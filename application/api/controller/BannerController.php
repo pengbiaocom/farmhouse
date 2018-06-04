@@ -50,6 +50,12 @@ class BannerController extends Controller{
         $list = $advModel->getAdvList($name, $path);
 
         if($list){
+            foreach($list as $key=>$row){
+               $list[$key]['path'] = pic($row['pic']);
+            }
+        }
+
+        if($list){
             return  json(['code'=>0,'msg'=>'调用成功','data'=>$list]);
         }else{
             return  json(['code'=>1,'msg'=>'调用失败','data'=>[]]);
