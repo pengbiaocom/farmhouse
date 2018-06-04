@@ -1,0 +1,19 @@
+<ul class="nav nav-tabs">
+    <php>
+        switch($tab){
+            case 'edit':
+                $editClass="active";
+                break;
+            case 'module':
+                $moduleClass="active";
+                break;
+            default:
+                break;
+        }
+    </php>
+    <li class="{$editClass}"><a href="{:url('Role/editRole', array('id'=>$this_role['id']))}">
+        <if condition="empty($is_edit)">{:lang("_NEW_IDENTITY_")}</if>
+        <if condition="$is_edit eq 1">{:lang("_EDIT_IDENTITY_")}</if>
+    </a></li>
+    <li class="{$moduleClass}"><a href="{:url('Role/configModule',array('id'=>$this_role['id']))}">模块权限</a></li>
+</ul>

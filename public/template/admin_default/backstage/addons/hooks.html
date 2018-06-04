@@ -1,0 +1,61 @@
+<extend name="public/base" />
+
+<block name="body">
+
+	<div class="layui-main">
+		<div class="layui-elem-quote" >
+			<a href="{:url('backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+			<a><cite>{:lang("_HOOK_LIST_")}</cite></a>
+			<div class="page-toolbar">
+				<include file="public/_addTo"/>
+			</div>
+		</div>
+		<fieldset class="layui-elem-field layui-field-title">
+			<legend>
+				{:lang("_HOOK_LIST_")}
+			</legend>
+		</fieldset>
+		<div class="with-padding">
+			<?php if (Request()->isPost()): ?>
+			<a class="layui-btn" href="{:url('addhook')}">{:lang("_NEW_GROWTH_WITH_SPACE_")}</a>
+			<?php endif ?>
+		</div>
+		<div class="data-table with-padding layui-form">
+			<table class="layui-table" lay-even>
+				<thead>
+				<tr>
+					<th>ID</th>
+					<th>{:lang("_NAME_")}</th>
+					<th>{:lang("_DESCRIPTION_")}</th>
+					<th>{:lang("_TYPE_")}</th>
+					<th>{:lang("_OPERATION_")}</th>
+				</tr>
+				</thead>
+				<tbody>
+				<volist name="list" id="vo">
+					<tr>
+						<td>{$vo.id}</td>
+						<td><a href="{:url('edithook?id='.$vo['id'])}">{$vo.name}</a></td>
+						<td>{$vo.description}</td>
+						<td>{$vo.type_text}</td>
+						<td>
+							<a title={:lang("_EDIT_WITH_DOUBLE_")} href="{:url('edithook?id='.$vo['id'])}">{:lang("_EDIT_")}</a>
+							<a class="confirm ajax-get" title={:lang("_DELETE_WITH_DOUBLE_")} href="{:url('delhook?id='.$vo['id'])}">{:lang("_DELETE_")}</a>
+						</td>
+					</tr>
+				</volist>
+				</tbody>
+			</table>
+		</div>
+		<div class="with-padding">
+			{$_page}
+		</div>
+	</div>
+</block>
+
+<block name="script">
+	<script type="text/javascript">
+		//导航高亮
+		highlight_subnav('{:url("Addons/index")}');
+	</script>
+</block>

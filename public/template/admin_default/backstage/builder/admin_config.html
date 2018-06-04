@@ -1,0 +1,219 @@
+<extend name="public/base"/>
+
+<block name="body">
+    <div class="layui-main">
+        <div class="layui-elem-quote" >
+            <a href="{:url('backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+            <a><cite>{$title}</cite></a>
+            <div class="page-toolbar">
+                <include file="public/_addTo"/>
+            </div>
+        </div>
+        <!--<fieldset class="layui-elem-field layui-field-title">-->
+            <!--<legend>-->
+                <!--{$title}            <if condition="$suggest">（{$suggest}）</if>-->
+            <!--</legend>-->
+        <!--</fieldset>-->
+        <div class="with-padding">
+            <php>
+                $has_nestable=0;
+                $importDatetimePicker = false;
+                $colorPicker = 0;
+            </php>
+            <div class="tab-wrap tabbable-custom" style="margin-bottom: 5px">
+                <ul class="nav nav-tabs group_nav">
+                    <volist name="group" id="vGroup">
+                        <li class="<if condition="
+                            $i eq 1">active</if>"><a href="javascript:">{$key}</a></li>
+                    </volist>
+                </ul>
+                <div class="tab-content" style="min-height: 450px;">
+                    <form action="{$savePostUrl}" method="post" class="form-horizontal layui-form">
+                        <php>if($group){</php>
+                        <!--看板-->
+                        <volist name="group" id="vGroup">
+                            <div class="group_list" style="<if condition='$i neq 1'>display: none;</if>">
+                                <volist name="keyList" id="field">
+                                    <php>if(in_array($field['name'],$vGroup)||(is_array($field['name'])&&in_array(implode('|', $field['name']),$vGroup))){</php>
+                                    <include file="Builder/_key"/>
+                                    <php>}</php>
+                                </volist>
+                            </div>
+                        </volist>
+
+                        <php>}else{</php>
+                        <volist name="keyList" id="field">
+                            <include file="builder/_key"/>
+                        </volist>
+                        <php>}</php>
+                        <div class="form-item" style="margin-left: 15px;">
+                            <volist name="buttonList" id="button">
+                                <button {$button.attr}>{$button.title}</button>  &nbsp;
+                            </volist>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</block>
+
+<block name="script">
+    <if condition="$importDatetimePicker">
+        <script>
+            layui.use('laydate', function(){
+                var laydate = layui.laydate;
+
+
+                lay(".form-time").each(function(){
+                    var that = this;
+                    laydate.render({
+                        elem: that //指定元素
+                        ,trigger:'click'
+                        ,type: 'time'
+                        ,theme: 'grid'
+                        ,done:function(value){
+                            var fieldName = $(that).attr('data-field-name');
+                            if(value==''){
+                                $('[name=' + fieldName + ']').val('');
+                                return true;
+                            }
+                            var date = new Date(value);
+                            var timestamp = date.getTime();
+                            $('[name=' + fieldName + ']').val(Math.floor(timestamp / 1000));
+                        }
+                    });
+                });
+
+                lay('.form-date').each(function(){
+                    var that = this;
+                    laydate.render({
+                        elem: that //指定元素
+                        ,trigger:'click'
+                        ,type: 'date'
+                        ,theme: 'grid'
+                        ,done:function(value){
+                            var fieldName = $(that).attr('data-field-name');
+                            if(value==''){
+                                $('[name=' + fieldName + ']').val('');
+                                return true;
+                            }
+                            var date = new Date(value);
+                            var timestamp = date.getTime();
+                            $('[name=' + fieldName + ']').val(Math.floor(timestamp / 1000));
+                        }
+                    });
+                });
+
+
+                lay('.form-datetime').each(function(){
+                    var that = this;
+                    laydate.render({
+                        elem: that //指定元素
+                        ,trigger: 'click'
+                        ,type: 'datetime'
+                        ,theme: 'grid'
+                        ,done:function(value){
+                            var fieldName = $(that).attr('data-field-name');
+                            if(value==''){
+                                $('[name=' + fieldName + ']').val('');
+                                return true;
+                            }
+                            var date = new Date(value);
+                            var timestamp = date.getTime();
+                            $('[name=' + fieldName + ']').val(Math.floor(timestamp / 1000));
+                        }
+                    });
+                });
+
+            });
+        </script>
+    </if>
+    <if condition="$colorPicker">
+        <script type="text/javascript" src="__B_JS__/jquery.simple-color.js"></script>
+        <script>
+            $(function(){
+                $('.simple_color_callback').simpleColor({
+                    boxWidth:20,
+                    cellWidth: 20,
+                    cellHeight: 20,
+                    chooserCSS:{ 'z-index': 500 },
+                    displayCSS: { 'border': 0 ,
+                        'width': '32px',
+                        'height': '32px',
+                        'margin-top': '-32px'
+                    },
+                    onSelect: function(hex, element) {
+                        $('#tw_color').val('#'+hex);
+                    }
+                });
+                $('.simple_color_callback').show();
+                $('.simpleColorContainer').css('margin-left','105px');
+                $('.simpleColorDisplay').css('border','1px solid #DFDFDF');
+            });
+            var setColorPicker=function(obj){
+                var color=$(obj).val();
+                $(obj).parents('.color-picker').find('.simpleColorDisplay').css('background',color);
+            }
+        </script>
+    </if>
+    <script type="text/javascript">
+        $(function () {
+            $('.group_nav li a').click(function () {
+                $('.group_list').hide();
+                $('.group_list').eq($(".group_nav li a").index(this)).show();
+                $('.group_nav li').removeClass('active');
+                $(this).parent().addClass('active');
+            })
+        })
+        Think.setValue("type", '{$info.type|default=0}');
+        Think.setValue("group", '{$info.group|default=0}');
+        //导航高亮
+        var controller = '{:Request()->controller()}';
+        var action = '{:Request()->action()}';
+        if(controller=='news' || controller == 'News'){
+            if(action == 'config'){
+                highlight_subnav("{:url('backstage'.'/'.Request()->controller().'/'.Request()->action())}");
+            }else if(action=='add'){
+                highlight_subnav("{:url('backstage'.'/'.Request()->controller().'/newsCategory')}");
+            }else{
+                highlight_subnav("{:url('backstage'.'/'.Request()->controller().'/index')}");
+            }
+        }else{
+            highlight_subnav("{:url('backstage'.'/'.Request()->controller().'/'.Request()->action())}");
+        }
+    </script>
+    <link type="text/css" rel="stylesheet" href="__STATIC__/js/ext/magnific/magnific-popup.css"/>
+    <script type="text/javascript" src="__STATIC__/js/ext/magnific/jquery.magnific-popup.min.js"></script>
+
+    <script type="text/javascript" charset="utf-8" src="__STATIC__/js/ext/webuploader/js/webuploader.js"></script>
+    <link href="__STATIC__/js/ext/webuploader/css/webuploader.css" type="text/css" rel="stylesheet">
+
+
+    <script>
+        $(document).ready(function () {
+            $('.popup-gallery').each(function () { // the containers for all your galleries
+                $(this).magnificPopup({
+                    delegate: 'a',
+                    type: 'image',
+                    tLoading: '{:lang("_LOADING_")}#%curr%...',
+                    mainClass: 'mfp-img-mobile',
+                    gallery: {
+                        enabled: true,
+                        navigateByImgClick: true,
+                        preload: [0, 1] // Will preload 0 - before current, and 1 after the current image
+
+                    },
+                    image: {
+                        tError: '<a href="%url%">{:lang("_PICTURE_")}#%curr%</a>{:lang("_COULD_NOT_BE_LOADED_")}',
+                        titleSrc: function (item) {
+                            return '';
+                        },
+                        verticalFit: true
+                    }
+                });
+            });
+        });
+    </script>
+</block>

@@ -1,0 +1,335 @@
+<extend name="public/base"/>
+
+<block name="body">
+    <div class="layui-main">
+        <div class="layui-elem-quote" >
+            <a href="{:url('Backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+            <a><cite>{$title}</cite></a>
+            <div class="page-toolbar">
+                <include file="public/_addTo"/>
+            </div>
+        </div>
+        <!--<fieldset class="layui-elem-field layui-field-title">-->
+            <!--<legend>-->
+                <!--{$title|htmlspecialchars} <if condition="$suggest">（{$suggest|htmlspecialchars}）</if>-->
+            <!--</legend>-->
+        <!--</fieldset>-->
+        <div class="with-padding" style="margin-bottom: 0px;">
+            <div class="fl layui-form">
+                <div class="layui-btn-group" style="margin-bottom: 10px;">
+                <volist name="buttonList" id="button">
+                    <{$button.tag} {$button.attr}>{$button.title|htmlspecialchars}</{$button.tag}>&nbsp;
+                </volist>
+                </div>
+
+                <!-- 选择框select -->
+                <div style="float: right;margin-bottom: 10px;" >
+                    <style>
+                        .oneselect{
+                            display: inline-block;
+                            margin-left: 10px;
+                        }
+                        .oneselect .title{
+                            float: left;
+                            line-height: 32px;
+                        }
+                        .oneselect .select_box{
+                            float: left;
+                            line-height: 32px;
+                            width: 175px;
+                        }
+                        .oneselect .btns{
+                            float: left;
+                            line-height: 32px;
+                        }
+                        .oneselect .select_box select{
+                            min-width: 150px;
+                        }
+                    </style>
+                    <form id="selectForm" method="get" action="{$searchPostUrl}" class="form-dont-clear-url-param">
+                        <volist name="selects" id="select">
+                            <div class="oneselect">
+                                <div class="title">{$select.title}</div>
+                                <div class="select_box">
+                                    <php> $select_get = input($select['name']); </php>
+                                    <notempty name="select['attr']">
+                                        <select name="{$select['name']}"  {$select['attr']}>
+                                            <volist name="select['arrvalue']" id="svo">
+                                                <option value="{$svo['id']}" <eq name="svo['id']" value="$select_get">selected</eq>>{$svo['value']}</option>
+                                            </volist>
+                                        </select>
+                                    <else/>
+                                        <select name="{$select['name']}"   lay-filter="select_text">
+                                            <volist name="select['arrvalue']" id="svo">
+                                                <option value="{$svo['id']}" <eq name="svo['id']" value="$select_get">selected</eq>>{$svo['value']}</option>
+                                            </volist>
+                                        </select>
+                                    </notempty>
+
+                                </div>
+                            </div>
+                        </volist>
+                        <volist name="datetime"  id ="date_time">
+                            <div class="oneselect">
+                                <div class="title">{$date_time.title}</div>
+                                <div class="select_box">
+                                    <php> $datetime_get = input($date_time['name']); </php>
+                                    <input type="hidden" name="{$date_time.name}" value="{$datetime_get}"/>
+                                    <input style="width: 130px; float: none;" type="text" data-field-name="{$date_time.name}" class="form-datetime  layui-input" value="{$datetime_get|time_format}" placeholder="{$date_time.des}" />
+                                </div>
+                            </div>
+                        </volist>
+                        <volist name="texts" id="text">
+                            <div class="oneselect">
+                                <div class="title">{$text.title}</div>
+                                <div class="select_box">
+                                    <php> $text_get = input($text['name']); </php>
+                                    <input style="float: none;width:180px;" type="text" name="{$text.name}" class="layui-input"  value="{$text_get}" placeholder="{$text.des}" />
+                                </div>
+                            </div>
+                        </volist>
+                        <notempty name="searchPostUrl">
+                            <div class="oneselect">
+                                <div class="btns">
+                                    <button class="layui-btn layui-btn-primary" type="submit">
+                                        <i class="layui-icon">&#xe615;</i>
+                                    </button>
+                                </div>
+                            </div>
+                        </notempty>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <notempty name="tips">
+            <div  class="with-padding">
+                {$tips}
+            </div>
+        </notempty>
+        <div class="with-padding layui-form">
+            <table id="table-data" class="layui-table" lay-even>
+                <!-- 表头 -->
+                <thead>
+                <tr>
+                    <th  style="width: 20px">
+                        <input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose" />
+                    </th>
+                    <volist name="keyList" id="field">
+                        <th>{$field.title|htmlspecialchars}</th>
+                    </volist>
+                </tr>
+                </thead>
+
+                <!-- 列表 -->
+                <tbody>
+                <notempty name="list">
+                    <foreach name="list" item="e">
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="ids" name="ids[]" lay-skin="primary" value="{$e['id']}" />
+                            </td>
+                            <notempty name="keyList">
+                                <foreach name="keyList" item="field">
+                                    <td style="display: none">{:preg_match_all('/href/i', $e[$field['name']], $m); }</td>
+                                    <if condition="mb_strlen($e[$field['name']],'UTF8') lt 30 ">
+                                        <td  style="width:auto;max-width: {$field['width']};" class="text-ellipsis" <eq name="field.opt" value="tooltip">data-title="{$e[$field['name']]}" data-role="watch"</eq>>{$e[$field['name']]}</td>
+                                        <elseif condition="$m[0] neq null" />
+                                        <td  data-role="tdclick" style="width:auto;max-width: {$field['width']};" class="text-ellipsis" <eq name="field.opt" value="tooltip">data-title="{$e[$field['name']]}" data-role="watch"</eq>>{$e[$field['name']]}</td>
+                                        <else/>
+                                        <td title="双击显示全部内容" data-role="tdclick" style="width:auto;max-width: {$field['width']};" class="text-ellipsis" <eq name="field.opt" value="tooltip">data-title="{$e[$field['name']]}" data-role="watch"</eq><a href="{:url('index/index')}">{$e[$field['name']]}</a></td>
+                                    </if>
+                                </foreach>
+                            </notempty>
+                        </tr>
+                    </foreach>
+                </notempty>
+                </tbody>
+            </table>
+        </div>
+        <div class="with-padding">
+            {$pagination}
+        </div>
+    </div>
+</block>
+
+<block name="script">
+    <link type="text/css" rel="stylesheet" href="__STATIC__/js/ext/magnific/magnific-popup.css"/>
+    <script type="text/javascript" src="__STATIC__/js/ext/magnific/jquery.magnific-popup.min.js"></script>
+    <script type="text/javascript">
+        function post_select_form(){
+            var val = [];
+            $("input:checkbox[name='ids[]']:checked").each(function() {
+                val.push($(this).val());
+            });
+            var title="{:lang('_USER_GROUP_SELECT_')}";
+            if(val==''){
+                toast.error(' 请勾选操作对象。');
+                return false;
+            }else{
+                var url="{:url('user/changeGroup')}"+'?id='+val;
+                active.openLayer(url,title,'650px','250px',false);
+            }
+        }
+
+        //点击弹窗功能(解决显示不全的问题)
+        layui.use(['layer','form','laydate'],function(){
+            var layer = layui.layer
+                   ,form = layui.form
+                    ,laydate = layui.laydate;
+            $('[data-role="tdclick"]').dblclick(function(){
+                layer.open({
+                    type: 1,
+                    skin: 'layui-layer-rim', //加上边框
+                    area: ['auto', 'auto'], //宽高
+                    content: $(this).html(),
+                });
+            });
+
+            form.on('select(select_text)',function(data){
+                $('#selectForm').submit();
+            });
+
+            //选择搜索方式
+            form.on('select(seek)', function(data){
+                switch (data.value) {
+                    case '0':
+                        $(".search-input").attr("placeholder", "{:lang('_PLACEHOLDER_NONE_')}");
+                        break;
+                    case '1':
+                        $(".search-input").attr("placeholder", "{:lang('_PLACEHOLDER_UID_')}");
+                        break;
+                    case '2':
+                        $(".search-input").attr("placeholder", "{:lang('_PLACEHOLDER_NICKNAME_')}");
+                        break;
+                    case '3':
+                        $(".search-input").attr("placeholder", "{:lang('_PLACEHOLDER_EMAIL_')}");
+                        break;
+                    case '4':
+                        $(".search-input").attr("placeholder", "{:lang('_PLACEHOLDER_MOBILE_')}");
+                        break;
+                    default:
+                        $(".search-input").attr("placeholder", "{:lang('_PLACEHOLDER_NONE_')}");
+                }
+            });
+
+            laydate.render({
+                elem: '.form-datetime' //指定元素
+                ,type: 'datetime'
+                ,theme: 'grid'
+                ,done:function(value){
+                    var fieldName = $(".form-datetime").attr('data-field-name');
+                    if(value==''){
+                        $('[name=' + fieldName + ']').val('');
+                        return true;
+                    }
+                    var date = new Date(value);
+                    var timestamp = date.getTime();
+                    $('[name=' + fieldName + ']').val(Math.floor(timestamp / 1000));
+                }
+            });
+
+        });
+
+        $(document).on('submit', '.form-dont-clear-url-param', function(e){
+            e.preventDefault();
+
+            var form = $(this).serialize();
+            var action = $(this).attr('action');
+            if(action == ''){
+                action = location.href;
+            }
+            var seperator = "?";
+            if(action.indexOf("?")!=-1){
+                seperator = "&";
+            }
+            var new_location = action + seperator + form;
+            location.href = new_location;
+
+            return false;
+        });
+
+        $(function(){
+            //点击排序
+            $('.list_sort').click(function () {
+                var url = $(this).attr('url');
+                var ids = $('.ids:checked');
+                var param = '';
+                if (ids.length > 0) {
+                    var str = new Array();
+                    ids.each(function () {
+                        str.push($(this).val());
+                    });
+                    param = str.join(',');
+                }
+                if (url != undefined && url != '') {
+                    window.location.href = url + '/ids/' + param;
+                }
+            });
+
+            //模态弹窗
+            $('[data-role="modal_popup"]').click(function(){
+                var target_url=$(this).attr('modal-url');
+                var data_title=$(this).attr('data-title');
+                var target_form=$(this).attr('target-form');
+                if(target_form!=undefined){
+                    //设置了参数时，把参数加入
+                    var form=$('.'+target_form);
+                    if (form.get(0) == undefined ) {
+                        toast.error("{:lang('_NO_OPERATIONAL_DATA_WITH_SINGLE_')}");
+                        return false;
+                    } else if (form.get(0).nodeName == 'FORM') {
+                        query = form.serialize();
+                    } else if (form.get(0).nodeName == 'INPUT' || form.get(0).nodeName == 'SELECT' || form.get(0).nodeName == 'TEXTAREA') {
+                        query = form.serialize();
+                    } else {
+                        query = form.find('input,select,textarea').serialize();
+                    }
+                    if(!query.length && $(this).attr('can_null') != 'true'){
+                        toast.error("{:lang('_NO_OPERATIONAL_DATA_WITH_SINGLE_')}");
+                        return false;
+                    }
+                    target_url=target_url+'&'+query;
+                }
+                layer_open(target_url,data_title,'700px','620px');
+        });
+        $('.tox-confirm').click(function(e){
+            var text = $(this).attr('data-confirm');
+            var result = confirm(text);
+            if(result) {
+                return true;
+            } else {
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                e.preventDefault();
+                return false;
+            }
+        })
+        });
+
+        $(document).ready(function () {
+            $('.popup-gallery').each(function () { // the containers for all your galleries
+                $(this).magnificPopup({
+                    delegate: 'a',
+                    type: 'image',
+                    tLoading: '{:lang("_LOADING_")}#%curr%...',
+                    mainClass: 'mfp-img-mobile',
+                    gallery: {
+                        enabled: true,
+                        navigateByImgClick: true,
+                        preload: [0, 1] // Will preload 0 - before current, and 1 after the current image
+
+                    },
+                    image: {
+                        tError: '<a href="%url%">{:lang("_PICTURE_")}#%curr%</a>{:lang("_COULD_NOT_BE_LOADED_")}',
+                        titleSrc: function (item) {
+                            return '';
+                        },
+                        verticalFit: true
+                    }
+                });
+            });
+        });
+        //导航高亮
+        highlight_subnav("{:url('backstage'.'/'.Request()->controller().'/'.Request()->action())}");
+    </script>
+</block>

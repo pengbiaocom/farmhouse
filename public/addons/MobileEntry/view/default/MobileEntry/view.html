@@ -1,0 +1,79 @@
+<a data-role="show_mobile_entry" id="mobile_entry" href="javascript:;" class="mobile">
+
+</a>
+<div id="mobile_entry_pop"
+     style="position: fixed;right: 100px;bottom: 20px;display: none;background: white;border: 1px solid #ccc;box-shadow: 2px 2px 6px  #999;padding: 10px;border-radius: 3px">
+    <div class="common-block">
+
+        <header style="border-bottom: 1px solid #eee;margin-bottom: 20px">请通过下方方式使用移动端访问本站。</header>
+        <section class="clearfix text-center">
+
+            <eq name="config.mob" value="1">
+                <php>
+                    if(!S('qrcode_mob')){
+                    qrcode(url($mobModule['entry'],null,null,true),'qrcode_mob.png','upload/picture/qrcode');
+                    S('qrcode_mob',1);
+                    }
+                </php>
+                <div style="display: inline-block;width: 30%;">
+                    <div class="text-center"><a target="_blank" href="{:url($mobModule['entry'],null,null,true)}"><img
+                            style="width: 100px"
+                            src="__ROOT__/upload/picture/qrcode/qrcode_mob.png"></a>
+
+                        <div><a target="_blank" href="{:url($mobModule['entry'],null,null,true)}">手机网页版</a></div>
+                    </div>
+
+                </div>
+            </eq>
+            <neq name="config.android" value="">
+                <php>
+                    if(!S('qrcode_android')){
+                    qrcode($config['android'],'qrcode_android.png','Uploads/Picture/Qrcode');
+                    S('qrcode_android',1);
+                    }
+                </php>
+                <div style="display: inline-block;width: 30%;">
+                    <div class="text-center"><a target="_blank" href="{$config.android}"><img style="width: 100px"
+                                                                                              src="__ROOT__/upload/picture/qrcode/qrcode_android.png"></a>
+
+                        <div><a target="_blank" href="{$config.android}">安卓</a></div>
+                    </div>
+
+                </div>
+            </neq>
+            <neq name="config.ios" value="">
+                <php>
+                    if(!S('qrcode_ios')){
+                    qrcode($config['ios'],'qrcode_ios.png','upload/picture/qrcode');
+                    S('qrcode_ios',1);
+                    }
+                </php>
+                <div style="display: inline-block;width: 30%;">
+                    <div class="text-center" style=""><a target="_blank" href="{$config.ios}"><img style="width: 100px"
+                                                                                          src="__ROOT__/upload/picture/qrcode/qrcode_ios.png"></a>
+                        <div><a target="_blank" href="{$config.ios}">IOS</a></div>
+                    </div>
+
+                </div>
+            </neq>
+
+        </section>
+    </div>
+
+</div>
+<style>
+    .tool .mobile {
+        background-position: 0 -183px;
+    }
+
+    .tool .mobile:hover {
+        background-position: 0 -229px;
+    }
+</style>
+<script>
+    $(function () {
+        $('[data-role=show_mobile_entry]').click(function () {
+            $('#mobile_entry_pop').toggle();
+        });
+    });
+</script>

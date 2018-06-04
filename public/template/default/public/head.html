@@ -1,0 +1,43 @@
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport"  content="width=device-width, initial-scale=1">
+<meta name="format-detection" content="telephone=no">
+<meta name="renderer" content="webkit">
+<meta http-equiv="Cache-Control" content="no-siteapp"/>
+{:hook('syncMeta')}
+<include file="public@seo"/>
+<link rel="shortcut icon" type="image/x-icon" href="__STATIC__/images/favicon.ico" media="screen" />
+<link href="__ZUI__/css/zui.css" rel="stylesheet">
+<link rel="stylesheet" href="__STATIC__/css/core.css"/>
+<link rel="stylesheet" href="__STATIC__/css/common.css"/>
+<link href="__STATIC__/os-icon/simple-line-icons.min.css" rel="stylesheet">
+<link href="__STATIC__/os-loading/loading.css" rel="stylesheet">
+<link type="text/css" rel="stylesheet" href="__STATIC__/js/ext/magnific/magnific-popup.css"/>
+<link type="text/css" rel="stylesheet" href="//at.alicdn.com/t/font_m3e1llc4usypsyvi.css"/>
+<!--[if lt IE 9]>
+<script type="text/javascript" src="__STATIC__/js/jquery-1.10.2.min.js"></script>
+<![endif]--><!--[if gte IE 9]><!-->
+<script type="text/javascript" src="__STATIC__/js/jquery-2.0.3.min.js"></script>
+<!--<![endif]-->
+<script src="__STATIC__/js.php?f=js/com/com.functions.js,static/os-loading/loading.js,js/com/com.toast.class.js,js/common.js"></script>
+<block name="style"><!--Style--></block>
+
+<include file="public@var"/>
+<script>
+    //全局内容的定义
+    var _ROOT_ = "__ROOT__";
+    var MID = "{:is_login()}";
+    var SIGNATURE = "{$signature}";
+    var TIMESTAMP = "{$timestamp}";
+    var MODULE_NAME="<php>echo Request()->module();</php>";
+    var ACTION_NAME="<php>echo Request()->action();</php>";
+    var CONTROLLER_NAME ="<php>echo Request()->controller();</php>";
+    var initNum = "{:modC('WEIBO_NUM',140,'WEIBO')}";
+    function adjust_navbar(){
+        $('#sub_nav').css('top',$('#nav_bar').height());
+        $('#main-container').css('padding-top',$('#nav_bar').height()+$('#sub_nav').height()+20)
+    }
+</script>
+<audio id="music" src="" autoplay="autoplay"></audio>
+<!-- 页面header钩子，一般用于加载插件CSS文件和代码 -->
+{:hook('pageHeader')}

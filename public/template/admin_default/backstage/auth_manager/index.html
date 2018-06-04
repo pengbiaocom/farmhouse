@@ -1,0 +1,79 @@
+<extend name="public/base" />
+<block name="body">
+	<div class="layui-elem-quote" >
+		<a href="{:url('backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+		<a><cite>{:lang('_AUTH_MANAGER_')}</cite></a>
+		<div class="page-toolbar">
+			<include file="public/_addTo"/>
+		</div>
+	</div>
+
+	<!--<fieldset class="layui-elem-field layui-field-title">-->
+		<!--<legend>{:lang('_AUTH_MANAGER_')}</legend>-->
+	<!--</fieldset>-->
+
+    <div class="tools  with-padding">
+        <a id="add-group" class="layui-btn" href="{:url('createGroup')}">{:lang('_ADD_WITH_SPACE_')}</a>
+        <a url="{:url('changestatus',array('method'=>'resumeGroup'))}" class="layui-btn layui-btn-normal ajax-post" target-form="ids" >{:lang('_ENABLE_WITH_SPACE_')}</a>
+        <a url="{:url('changestatus',array('method'=>'forbidGroup'))}" class="layui-btn layui-btn-normal ajax-post" target-form="ids" >{:lang('_DISABLE_WITH_SPACE_')}</a>
+        <a  url="{:url('changestatus',array('method'=>'deleteGroup'))}" class="layui-btn layui-btn-danger ajax-post confirm" target-form="ids" >{:lang('_DELETE_WITH_SPACE_')}</a>
+        &nbsp; &nbsp; &nbsp; &nbsp;
+        <a class="layui-btn layui-btn-normal" href="{:url('Backstage/menu/index')}">{:lang('_MENU_BG_MANAGER_')}</a>
+        <a class="layui-btn" href="{:url('Backstage/menu/add')}">{:lang('_MENU_NEW_')}</a>
+        <a class="layui-btn layui-btn-normal" href="{:url('addNode')}">{:lang('_AUTH_FG_NEW_')}</a>
+    </div>
+	<!-- 数据列表 -->
+	<div class="with-padding layui-form">
+	<table class="layui-table" lay-even>
+    <thead>
+        <tr>
+		<th class=""><input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose"></th>
+		<th class="">权限组</th>
+		<th class="">描述</th>
+        <th class="">有效期</th>
+		<th class="">授权</th>
+		<th class="">状态</th>
+		<th class="">操作</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="vo">
+		<tr>
+            <td><input  type="checkbox" class="ids" name="ids[]" value="{$vo.id}" lay-skin="primary" /></td>
+			<td><a href="{:url('AuthManager/editgroup?id='.$vo['id'])}">{$vo.title}</a> </td>
+			<td><span>{:mb_strimwidth($vo['description'],0,60,"...","utf-8")}</span></td>
+            <td><span>{:$vo['end_time']==2000000000?'永久':time_format($vo['end_time'])}</span></td>
+			<td><a class=" layui-btn layui-btn-normal layui-btn-small" href="{:url('AuthManager/access?group_name='.$vo['title'].'&group_id='.$vo['id'])}" >后台权限管理</a>
+                <a class=" layui-btn  layui-btn-small" href="{:url('AuthManager/accessuser?group_name='.$vo['title'].'&group_id='.$vo['id'])}" >前台权限管理</a>
+			<a class=" layui-btn layui-btn-danger layui-btn-small" href="{:url('AuthManager/user?group_name='.$vo['title'].'&group_id='.$vo['id'])}" >授权成员列表</a>
+			</td>
+			<td>{$vo.status_text}</td>
+			<td><eq name="vo.status" value="1">
+				<a href="{:url('AuthManager/changeStatus?method=forbidGroup&ids='.$vo['id'])}" class="ajax-get">禁用</a>
+				<else/>
+				<a href="{:url('AuthManager/changeStatus?method=resumeGroup&ids='.$vo['id'])}" class="ajax-get">启用</a>
+				</eq>
+<!--修改内容开始-->
+				<a href="{:url('AuthManager/changeStatus?method=deleteGroup&ids='.$vo['id'])}" class="confirm ajax-get">删除</a>
+<!--修改内容结束-->
+                </td>
+		</tr>
+		</volist>
+		<else/>
+		<td colspan="6" class="text-center"> {:lang('_ADMIN_USER_EMPTY_')} </td>
+		</notempty>
+	</tbody>
+    </table>
+	</div>
+    <div class="page">
+        {$_page}
+    </div>
+</block>
+
+<block name="script">
+<script type="text/javascript" charset="utf-8">
+    //导航高亮
+    highlight_subnav('{:url("AuthManager/index")}');
+</script>
+</block>

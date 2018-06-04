@@ -1,0 +1,155 @@
+<extend name="public/base"/>
+
+<block name="body">
+    <div class="layui-main">
+        <fieldset class="layui-elem-field layui-field-title">
+            <legend>
+                <php> $action = Request()->action(); </php>
+                <if condition="$action eq 'addaction'">
+                    {:lang("_NEWLY_ADDED_")}
+                 <else/>
+                    {:lang("_EDIT_")}
+                </if>
+                {:lang("_BEHAVIOR_")}
+            </legend>
+        </fieldset>
+        <div class="with-padding">
+            <form id="form" action="{:url('saveaction')}" method="post" class="form-horizontal layui-form">
+                <div class="layui-form-item cf">
+                    <label class="item-label">
+                        {:lang("_BEHAVIOR_IDENTIFICATION_")}
+                        <span class="check-tips">{:lang("_ENTER_THE_BEHAVIOR_TO_IDENTIFY_AN_ENGLISH_LETTER_WITH_SPACE_")}</span>
+                    </label>
+                    <div class="controls">
+                        <input type="text" class="input-large layui-input" name="name" value="{$data.name}" />
+                    </div>
+                </div>
+                <div class="layui-form-item cf">
+                    <label class="item-label">
+                        {:lang("_BEHAVIOR_NAME_")}
+                        <span class="check-tips">{:lang("_ENTER_THE_ACTION_NAME_")}</span>
+                    </label>
+                    <div class="controls">
+                        <input type="text" class="input-large layui-input" name="title" value="{$data.title}" />
+                    </div>
+                </div>
+                <div class="layui-form-item cf">
+                    <label class="item-label">
+                        {:lang("_BEHAVIOR_TYPE_")}
+                        <span class="check-tips">{:lang("_CHOICE_BEHAVIOR_TYPE_")}</span>
+                    </label>
+                    <div class="controls input-large">
+                        <select name="type" class=" form-control form-select-size">
+                            <volist name=":get_action_type(null,true)" id="vo">
+                                <option value="{$key}">{$vo}</option>
+                            </volist>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item cf">
+                    <label class="item-label">
+                        {:lang("_THE_MODULE_")}
+                        <span class="check-tips">{:lang("_SELECTION_MODULE_")}</span>
+                    </label>
+                    <div class="controls input-large">
+                        <select name="module">
+                            <option value="">{:lang("_SYSTEM_")}</option>
+                            <volist name="module" id="vo">
+                                <option value="{$vo.name}"
+                                <php> if($vo['name'] == $data['module']){</php>
+                                selected
+                                <php>}</php>
+                                >{$vo.alias}</option>
+                            </volist>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item cf">
+                    <label class="item-label">
+                        {:lang("_BEHAVIOR_DESCRIPTION_")}
+                        <span class="check-tips">{:lang("_INPUT_BEHAVIOR_DESCRIPTION_")}</span>
+                    </label>
+                    <div class="controls">
+                        <textarea name="remark"   class="layui-textarea input-large">{$data.remark}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item cf">
+                    <label class="item-label">
+                        {:lang("_LOG_RULE_")}
+                        <span class="check-tips">{:lang("_TO_GENERATE_SUPPORT_AND_SUPPORT_THE_RULE_TO_BE_GENERATED_BY_THIS_RULE_")}[{:lang("_VARIABLE_")}|{:lang("_FUNCTION_")}]。{:lang("_CURRENT_VARIABLES_")}{:lang("_COLON_")}user,time,model,record,data）</span>
+                    </label>
+
+                    <div class="controls">
+                        <textarea name="log" class="layui-textarea input-large">{$data.log}</textarea>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <input type="hidden" name="id" value="{$data.id}"/>
+                    <button type="submit" class="layui-btn submit-btn ajax-post" target-form="form-horizontal">{:lang("_SURE_WITH_SPACE_")}</button>
+                    <button class="layui-btn layui-btn-primary" onclick="javascript:history.back(-1);return false;">{:lang("_RETURN_WITH_SPACE_")}</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="rule_list" style="display: none">
+            <div style="margin-bottom: 10px">
+                <input class="layui-input" name="action_rule[table][]" value="member" title={:lang("_THE_TABLE_THAT_IS_EXECUTED_THE_DEFAULT_IS_MEMBER_WITH_DOUBLE_")}
+                       style="width: 100px;display: inline-block">
+                <div style="width: 100px;display: inline-block">
+                    <select  name="action_rule[field][]" title={:lang("_INTEGRAL_OF_EXECUTION_WITH_DOUBLE_")}  >
+                        <option value="0">{:lang("_PLEASE_CHOOSE_")}</option>
+                        <volist name="score" id="s">
+                            <option value="{$s.id}">{$s.title}</option>
+                        </volist>
+                    </select>
+                </div>
+                <input type="text" name="action_rule[rule][]" title={:lang("_THE_INTEGRAL_OPERATION_THE_MINUS_INTEGRAL_WITH_DOUBLE_")} value="0" class=" layui-input"
+                       style="width: 100px;display: inline-block"/>
+                <input class="layui-input" name="action_rule[cycle][]" title={:lang("_PERIOD_HOURS_WITH_DOUBLE_")} value="24"
+                       style="width: 100px;display: inline-block">
+                <input class="layui-input" name="action_rule[max][]" title={:lang("_MAXIMUM_LIMIT_SECOND_WITH_DOUBLE_")} value="1"
+                       style="width: 100px;display: inline-block">
+                <a href="javascript:" data-role="del_rule">{:lang("_DELETE_RULE_")}</a>
+            </div>
+        </div>
+    </div>
+</block>
+
+<block name="script">
+    <script type="text/javascript" src="__STATIC__/uploadify/jquery.uploadify.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        Think.setValue('type', '{$data.type|default=1}');
+        //导航高亮
+        highlight_subnav('{:url("user/action")}');
+        $(function () {
+            rebind();
+        });
+
+        var rebind = function () {
+            add_rule();
+            del_rule();
+            layui.define('form',function(){
+                var form = layui.form;
+                form.render();
+            });
+        };
+        var add_rule = function () {
+
+            $('[data-role="add_rule"]').unbind('click');
+            $('[data-role="add_rule"]').click(function () {
+                $('.action_rule').append($('#rule_list').html());
+                rebind();
+            });
+
+        };
+
+        var del_rule = function () {
+            $('[data-role="del_rule"]').unbind('click');
+            $('[data-role="del_rule"]').click(function () {
+                $(this).closest('div').remove();
+                rebind();
+            });
+        };
+    </script>
+</block>

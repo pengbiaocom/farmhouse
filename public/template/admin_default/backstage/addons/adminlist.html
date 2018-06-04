@@ -1,0 +1,57 @@
+<extend name="public/base" />
+
+<block name="body">
+	<div class="layui-main">
+		<div class="layui-elem-quote" >
+			<a href="{:url('backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+			<a><cite>{$title}</cite></a>
+			<div class="page-toolbar">
+				<include file="public/_addTo"/>
+			</div>
+		</div>
+		<!-- 数据列表 -->
+		<div class="data-table table-striped layui-form">
+			<empty name="custom_adminlist">
+				<!-- 数据列表 -->
+				<table class="layui-table" lay-even>
+					<thead>
+					<tr>
+						<th>
+							<input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose" title="{:lang('_SERIAL_NUMBER_')}" />
+						</th>
+						<volist name="listKey" id="vo">
+							<th>{$vo}</th>
+						</volist>
+					</tr>
+					</thead>
+					<tbody>
+					<volist name="_list" id="lv" key="vo">
+						<tr>
+							<td>
+								<input class="ids" type="checkbox" lay-skin="primary" value="{$lv.id}" name="id[]" title="{$lv.id}" />
+							</td>
+							<volist name="listKey" id="lk">
+								<td>{$lv.$key}</td>
+							</volist>
+						</tr>
+					</volist>
+					</tbody>
+				</table>
+				<else />
+				<present name="custom_adminlist">
+					{$custom_adminlist}
+				</present>
+			</empty>
+		</div>
+		<!-- 分页 -->
+		<div class="page">
+			{$_page}
+		</div>
+	</div>
+
+</block>
+<block name="script">
+	<script type="text/javascript">
+
+	</script>
+</block>

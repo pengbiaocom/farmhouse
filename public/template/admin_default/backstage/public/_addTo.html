@@ -1,0 +1,19 @@
+<a class="btn btn-danger" data-role="addTo"><i class="icon-plus"></i> 添加到常用操作</a>
+<php>$controller = Request()->controller();
+    $current = model('Menu')->where("url like '%$controller/" . Request()->action() . "' AND pid > 0")->field('id')->find();
+</php>
+<input type="hidden" id="current" value="{$current}">
+
+<script>
+    $('[data-role="addTo"]').click(function () {
+        var id = "{$current['id']}";
+        var url = "{:url('backstage/Index/addTo')}";
+        $.post(url, {id: id}, function (msg) {
+            if (msg.code) {
+                toast.success(msg.msg);
+            } else {
+                toast.error(msg.msg);
+            }
+        }, 'json')
+    });
+</script>

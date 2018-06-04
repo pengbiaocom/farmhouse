@@ -1,0 +1,80 @@
+.banner {
+    background: url("../images/sh-banner.png") no-repeat center;
+    height: 650px;
+    margin-top: 50px;
+    position: relative;
+    overflow: hidden;
+}
+.banner .banner-box {
+    padding-left: 5px;
+    height: 250px;
+    margin-top: 375px;
+}
+.banner .banner-box .info-wrap {
+    height: 100%;
+    padding-left: 0;
+}
+.banner .banner-box .info-wrap p {
+    font-size: 20px;
+    color: #6a6a6a;
+}
+.banner .banner-box .info-wrap .btn-group {
+    margin-top: 20px;
+}
+
+.sh-btn {
+    padding: 10px 30px;
+    display: block;
+    float: left;
+    border: 1px solid #5FB878;
+    border-radius: 4px;
+    color: #ffffff;
+    position: relative;
+    box-shadow: 0 0 3px rgba(26, 188, 156, 0.2);
+}
+.index-btn {
+    overflow: hidden;
+}
+.index-btn:hover {
+    color: #5FB878;
+}
+.index-btn:hover:before {
+    top: -100%;
+}
+.index-btn:before {
+    content: "" attr(data-hover) "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    border-radius: 4px;
+    text-align: center;
+    line-height: 42px;
+    top: 0;
+    background-color: #5FB878;
+    transition: top .3s ease;
+}
+.online-btn {
+    margin-left: 20px;
+    color: #5FB878;
+    overflow: hidden;
+}
+.online-btn:hover:after {
+    bottom: 0;
+    color: #5FB878;
+}
+.online-btn:after {
+    content: "" attr(data-hover) "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    border-radius: 4px;
+    text-align: center;
+    line-height: 42px;
+    bottom: -100%;
+    background-color: #ffffff;
+    transition: all .3s ease;
+}

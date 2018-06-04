@@ -1,0 +1,41 @@
+<div>
+    <style>
+        .modal-dialog {
+            width: 430px;
+        }
+    </style>
+    <form id="migration" action="{:url('news/doaudit')}" method="post" class="ajax-form">
+        <input type="hidden" name="ids" value="{$ids}">
+        <div class="form-group">
+            <label class="col-xs-4 control-label" style="text-align: right;">
+                {:lang('_FAULT_REASON_')}
+            </label>
+            <div class="col-xs-8">
+                <textarea name="reason" style="width: 240px;height: 73px;margin-bottom: 10px;" placeholder="{:lang('_AUDIT_FAULT_RETURN_')}"></textarea>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+        <div style="width: 100%;text-align: center;">
+            <a class="btn btn-primary" data-role="submit">{:lang('_SUBMIT_')}</a>
+            <a onclick="$('.close').click();" class="btn btn-default">{:lang('_CANCEL_')}</a>
+        </div>
+    </form>
+</div>
+<script>
+    $(function(){
+        $('[data-role="submit"]').click(function(){
+            query=$('#migration').serialize();
+            var url=$('#migration').attr('action');
+            $.post(url,query,function(msg){
+                if(msg.code){
+                    toast.success('{:lang("_SUCCESS_TIP_")}！');
+                    setTimeout(function(){
+                        window.location.href=msg.url;
+                    },1500);
+                }else{
+                    handleAjax(msg);
+                }
+            },'json');
+        });
+    });
+</script>

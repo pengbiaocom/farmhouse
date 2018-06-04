@@ -1,0 +1,28 @@
+<footer class="footer">
+    <div class="container text-center">
+        <p>
+            <span>
+                <php> $copy_right =htmlspecialchars_decode(modC('COPY_RIGHT',lang('_NOT_SET_NOW_'),'Config'));  </php>
+                {:$copy_right}
+            </span>
+            <span>{:modC('ICP','浙ICP备12042711号-5', 'Config')}</span>
+        </p>
+        {$count_code}
+    </div>
+</footer>
+
+<include file="public@js"/>
+
+<block name="script"><!-- 用于加载js代码 --></block>
+<!-- 页面footer钩子，一般用于加载插件JS文件和JS代码 -->
+{:hook('pageFooter', 'widget')}
+<!-- 调用全站公告部件-->
+{:widget('Common/Announce/render')}
+
+<!-- 调用消息部件-->
+{:widget('Common/Message/render')}
+
+<div class="hidden"><!-- 用于加载统计代码等隐藏元素 -->
+    {$count_code}
+    <block name="hidden"></block>
+</div>

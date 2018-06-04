@@ -1,0 +1,129 @@
+<extend name="public/base"/>
+
+<block name="body">
+    <div class="layui-elem-quote" >
+        <a href="{:url('backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+        <a><cite>地区库</cite></a>
+        <div class="page-toolbar">
+            <include file="public/_addTo"/>
+        </div>
+    </div>
+
+    <div class="with-padding" style="margin-bottom: 0px;">
+        <div class="col-xs-2">
+            <div class="layui-btn-group" style="margin-bottom: 10px;">
+                <a class="layui-btn" href="{:url('add',array('id'=>$id))}">新 增</a>
+                <button class="layui-btn layui-btn-normal ajax-post confirm" url="{:url('del')}" target-form="ids">删 除
+                </button>
+            </div>
+        </div>
+        <div class="col-xs-6" style="line-height: 38px;height: 38px;text-align: center;">
+            {$curClassList}
+        </div>
+        <div class="col-xs-4">
+            <div style="float:right;margin-bottom: 10px;">
+                <style>
+                    .oneselect{
+                        display: inline-block;
+                        margin-left: 10px;
+                    }
+                    .oneselect .title{
+                        float: left;
+                        line-height: 32px;
+                    }
+                    .oneselect .select_box{
+                        float: left;
+                        line-height: 32px;
+                        width: 250px;
+                    }
+                    .oneselect .btns{
+                        float: left;
+                        line-height: 32px;
+                    }
+                </style>
+                <form id="selectForm" method="get" action="{:url('District/index')}" class="form-dont-clear-url-param">
+                    <div class="oneselect">
+                        <div class="select_box">
+                            <input style="float: none;width:260px;" type="text" name="keyword" class="layui-input"  value="{:input('keyword')}" placeholder="请输入地理名称或者编号" />
+                        </div>
+                    </div>
+                    <div class="oneselect">
+                        <div class="btns">
+                            <button class="layui-btn layui-btn-primary" type="submit">
+                                <i class="layui-icon">&#xe615;</i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="with-padding layui-form">
+        <form action="{:url('table_edit')}" method="post" class="form-horizontal">
+        <table id="table-data" class="layui-table" lay-even>
+            <!-- 表头 -->
+            <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose" />
+                </th>
+                <th width="15%">ID</th>
+                <th width="15%">分类名</th>
+                <th width="35%">所属分类</th>
+                <th width="15%">级数</th>
+                <th width="20%">操作</th>
+            </tr>
+            </thead>
+            <!-- 列表 -->
+            <tbody>
+            <php>
+                define('showSetValUrl',url('District/setval'));
+                function showSetValUrl($f,$rs){
+                echo showSetValUrl.'?name='.$f.'&value='.($rs[$f]==1?0:1).'&id='.$rs['id'].'" style="color:'.($rs[$f]?'green':'#BBB').';';
+                }
+            </php>
+            <notempty name="rows">
+                <volist name="rows" id="vo">
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="ids" name="ids[]" lay-skin="primary" value="{$vo['id']}" />
+                        </td>
+                        <td>{$vo['id']}</td>
+                        <td><a href="{:url('District/index',array('id'=>$vo['id']))}" >{$vo['name']|op_t}</a></td>
+                        <td>
+                            <?php echo model('District')->adminTipOffset($vo['upid']); ?>
+                        </td>
+                        <td>{$vo['level']}</td>
+                        <td align="center">
+                            <a href="<?php showSetValUrl('is_show',$vo);?>" title="开启">开启</a>&nbsp;
+                            <a href="{:url('District/edit?id='.$vo['id'])}" >编辑</a>&nbsp;
+                            <a href="{:url('District/del?&id='.$vo['id'])}" class="confirm ajax-get">删除</a>
+                        </td>
+
+                    </tr>
+                </volist>
+                <else/>
+                <td colspan="6" class="text-center">
+                    aOh! 暂时还没有下一级地理位置!&nbsp;&nbsp;
+                    <volist name="curClassList" id="rs">
+                        <a href="{:url('District/index',array('id'=>$rs['id']))}"><?php echo $rs['name']?></a> >
+                    </volist>
+                </td>
+            </notempty>
+            </tbody>
+        </table>
+       </form>
+    </div>
+    <div class="with-padding">
+        {$pageStr}
+    </div>
+
+</block>
+
+<block name="script">
+    <script type="text/javascript" charset="utf-8">
+        //导航高亮
+        highlight_subnav('{:url("District/index")}');
+    </script>
+</block>

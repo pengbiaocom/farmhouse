@@ -1,0 +1,65 @@
+<!-- 管理员权限组新增和编辑页面 -->
+<extend name="public/base"/>
+<block name="body">
+    <div class="layui-main">
+        <div class="tab-wrap with-padding layui-form">
+
+            <div class="clearfix">
+                <div class="col-xs-10">
+                    <include file="role/_link"/>
+                </div>
+                <div class="col-xs-2 text-center">
+                    <select name="role">
+                        <volist name="role_list" id="vo">
+                            <option value="{:url('Role/configModule',array('id'=>$vo['id']))}"
+                            <eq name="vo['id']" value="$this_role['id']">selected</eq>
+                            >{$vo.title}</option>
+                        </volist>
+                    </select>
+                </div>
+            </div>
+            <form id="module-form" url="{:url('Role/configmodule')}" class="form-horizontal auth-form">
+                <input type="hidden" name="id" value="{$this_role.id}"/>
+                <div style="margin: 0 15px 10px;">
+                    <label class="item-label">前台该身份允许访问的模块</label>
+                    <div class="controls layui-form-item">
+                        <volist name="modules" id="one_module">
+                            <input type="checkbox" value="{$one_module['id']}" name="allow_module[]"
+                                   class="oneplus-checkbox" title="{$one_module['alias']}"
+                            <if condition="in_array($this_role['id'],$one_module['auth_role'])">checked</if>
+                            />
+                        </volist>
+                    </div>
+                </div>
+            </form>
+            <div class="col-xs-12">
+                <button class="layui-btn" data-role="module-form">{:lang("_STEP_NEXT_")}
+                </button>
+                <button class="layui-btn layui-btn-primary" onclick="javascript:history.back(-1);return false;">
+                    {:lang("_RETURN_WITH_SPACE_")}
+                </button>
+                <span style="color: #BABABA;margin: 11px;">{:lang("_PLEASE_SAVE_THE_ABOVE_CONFIGURATION_AND_THEN_SWITCH_TO_ANOTHER_INTERFACE_")}</span>
+            </div>
+        </div>
+    </div>
+</block>
+<block name="script">
+    <script type="text/javascript" charset="utf-8">
+        +function ($) {
+            $('[data-role="module-form"]').click(function () {
+                var $tag=$('#module-form');
+                var url=$tag.attr('url');
+                var param=$tag.serialize();
+                console.log(param);
+                $.post(url,param,function (msg) {
+                    handleAjax(msg);
+                })
+            });
+            $('select[name="role"]').change(function () {
+                location.href = this.value;
+            });
+            //导航高亮
+            highlight_subnav('{:url("Role/index")}');
+        }(jQuery);
+    </script>
+</block>

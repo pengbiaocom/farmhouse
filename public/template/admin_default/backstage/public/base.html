@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{$meta_title}|{:lang('_SNS_BACKSTAGE_MANAGE_')}</title>
+    <link href="__STATIC__/images/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" href="__B_CSS__/admin.css" media="all" />
+    <link rel="stylesheet" href="__STATIC__/layui/css/layui.css" />
+    <link rel="stylesheet" href="__STATIC__/layui/css/global.css" />
+    <link rel="stylesheet" href="__B_JS__/bootstrap-toastr/toastr.min.css" />
+    <link  href="__B_CSS__/bootstrap.css" rel="stylesheet" type="text/css" />
+    <link href="__B_CSS__/simple-line-icons/simple-line-icons.min.css" rel="stylesheet" type="text/css"/>
+    <link  href="__B_CSS__/components.min.css" rel="stylesheet" id="style_components" type="text/css" />
+
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="__STATIC__/js/jquery-1.10.2.min.js"></script>
+    <![endif]--><!--[if gte IE 9]><!-->
+    <script type="text/javascript" src="__STATIC__/js/jquery-2.0.3.min.js"></script>
+    <script type="text/javascript" src="__B_JS__/jquery.mousewheel.js"></script>
+    <!--<![endif]-->
+    <block name="style"></block>
+    <script type="text/javascript">
+        var ThinkPHP = window.Think = {
+            "ROOT": "__ROOT__", //当前网站地址
+            "APP": "__APP__", //当前项目地址
+            "PUBLIC": "__STATIC__", //项目公共目录地址
+            "DEEP": "{:config('URL_PATHINFO_DEPR')}",
+            "MODEL": ["{:config('URL_MODEL')}", "{:config('URL_CASE_INSENSITIVE')}", "{:config('URL_HTML_SUFFIX')}"],
+            "VAR": ["{:config('VAR_MODULE')}", "{:config('VAR_CONTROLLER')}", "{:config('VAR_ACTION')}"],
+            'URL_MODEL': "{:config('URL_MODEL')}"
+        }
+        var _ROOT_ = "__ROOT__";
+    </script>
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header header header-demo">
+        <div class="layui-main">
+            <div style="font-size: 24px;color: #ffffff;font-weight: bold;height:60px;line-height: 55px;">
+                益丰农舍管理后台
+            </div>
+            <ul class="layui-nav" pc="">
+                <volist name="__MENU__.main" id="menu">
+                    <neq name="menu.hide" value="1">
+                        <li data-id="{$menu.id}" class="layui-nav-item {$menu.class|default=''}" pc="">
+                            <a href="{$menu.url|url}">
+                                {$menu.title}
+                            </a>
+                        </li>
+                    </neq>
+                </volist>
+                <li class="layui-nav-item" pc="">
+                    <php>
+                        $avatar = query_user(array('avatar128'));
+                    </php>
+                    <a href="javascript:;">
+                        <img  src="{$avatar.avatar32}" class="small-img">
+                        {:session('user_auth.username')}
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" onclick="clear_cache()"> {:lang('_CACHE_CLEAR_')}</a></dd>
+                        <dd><a href="{:url('Home/Index/index')}" target="_blank">{:lang('_FORESTAGE_OPEN_')}</a></dd>
+                        <dd><a href="{:url('User/updatePassword')}">修改密码</a></dd>
+                        <dd><a href="{:url('User/updateNickname')}">修改昵称</a></dd>
+                        <dd><a href="{:url('Login/logout')}">{:lang('_EXIT_')}</a></dd>
+                    </dl>
+                    <script>
+                        function clear_cache() {
+                            $.get('{:think_get_root()}/cc.php');
+                            toast.success("{:lang('_CACHE_CLEAR_SUCCESS_')}{:lang('_PERIOD_')}");
+                        }
+                    </script>
+                </li>
+                <li class="layui-nav-item"></li>
+                <li class="layui-nav-item" mobile="">
+                    <a href="javascript:;">更多<span class="layui-nav-more"></span></a>
+                    <ul class="layui-nav-child">
+                        <volist name="__MENU__.main" id="menu">
+                            <li data-id="{$menu.id}"><a href="{$menu.url|url}">{$menu.title}</a></li>
+                        </volist>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll" id="sub_menu">
+            <ul class="layui-nav layui-nav-tree" lay-filter="demo">
+                <notEmpty name="__MENU__.child">
+                    <volist name="__MENU__.child" id="children">
+                        <notEmpty name="children">
+                        <li class="layui-nav-item layui-nav-itemed">
+                            <a href="javascript:;">{$key}</a>
+                            <dl class="layui-nav-child">
+                                <volist name="children" id="child">
+                                    <dd><a href="{$child.url|url}">{$child.title}</a></dd>
+                                </volist>
+                            </dl>
+                        </li>
+                        </notEmpty>
+                    </volist>
+                </notEmpty>
+                <if condition="$__CONTROLLER__ eq 'addons'">
+                    <li class="layui-nav-item layui-nav-itemed">
+                        <a href="javascript:;">{:lang('_ALREADY_INSTALLED_IN_THE_BACKGROUND_')}</a>
+                        <dl class="layui-nav-child">
+                            <volist name="__ADDONS_MENU__" id="v">
+                                <dd>
+                                    <a href="{$v.url|url}">
+                                        <span>{$v.title}</span>
+                                    </a>
+                                </dd>
+                            </volist>
+                        </dl>
+                    </li>
+                </if>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body layui-tab-content">
+        <block name="body"></block>
+    </div>
+
+</div>
+
+<div class="site-tree-mobile layui-hide">
+    <i class="layui-icon">&#xe602;</i>
+</div>
+<div class="site-mobile-shade"></div>
+<script src="__B_JS__/bootstrap.min.js"></script>
+<script type="text/javascript" src="__STATIC__/layui/layui.js"></script>
+<script type="text/javascript" src="__STATIC__/layui/layui-mz-min.js"></script>
+<script src="__B_JS__/bootstrap-toastr/toastr.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="__B_JS__/com/com.toast.class.js"></script>
+<script type="text/javascript" src="__STATIC__/think.js"></script>
+<script type="text/javascript" src="__B_JS__/common.js"></script>
+<block name="script"></block>
+<block name="modal">
+
+</block>
+</body>
+</html>

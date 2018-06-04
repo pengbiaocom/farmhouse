@@ -1,0 +1,63 @@
+<extend name="public/base" />
+<!-- 管理员{:L("_USER_GROUP_")}新增和编辑页面 -->
+<block name="body">
+    <div class="layui-main">
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+            <legend>{$auth_group['id']?'编辑':'新增'}权限组</legend>
+        </fieldset>
+        <div class="with-padding">
+            <form action="{:url('AuthManager/writeGroup')}" enctype="application/x-www-form-urlencoded" method="POST"
+                  class="form-horizontal layui-form">
+                <div class="layui-form-item">
+                    <label class="item-label">权限组</label>
+                    <div class="controls">
+                        <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入权限组" value="{$auth_group.title}" class="layui-input input-large" />
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="item-label">描述</label>
+                    <div class="controls">
+                        <textarea placeholder="请输入内容" class="layui-textarea input-large" name="description">{$auth_group.description}</textarea>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="item-label">过期时间(空为永久)</label>
+                    <div class="controls">
+                        <input type="hidden"  name="end_time" value="">
+                        <input type="text" data-field-name="end_time"  autocomplete="off" class="layui-input input-large time" />
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <input type="hidden" name="id" value="{$auth_group.id}" />
+                    <button type="submit" class="layui-btn ajax-post" target-form="form-horizontal">确定</button>
+                    <button type="button" class="layui-btn layui-btn-primary" onclick="javascript:history.back(-1);return false;">返回</button>
+                </div>
+             </form>
+        </div>
+    </div>
+
+</block>
+<block name="script">
+<script type="text/javascript" charset="utf-8">
+    //导航高亮
+    highlight_subnav('{:url("AuthManager/index")}');
+    layui.use('laydate', function(){
+        var laydate = layui.laydate;
+
+        laydate.render({
+            elem: '.time' //指定元素
+            ,type: 'datetime'
+            ,done:function(value){
+                var fieldName = $(".time").attr('data-field-name');
+                if(value==''){
+                    $('[name=' + fieldName + ']').val('');
+                    return true;
+                }
+                var date = new Date(value);
+                var timestamp = date.getTime();
+                $('[name=' + fieldName + ']').val(Math.floor(timestamp / 1000));
+            }
+        });
+    });
+    </script>
+</block>

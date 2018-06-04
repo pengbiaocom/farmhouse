@@ -1,0 +1,358 @@
+<extend name="public/base"/>
+
+<block name="body">
+    <link type="text/css" rel="stylesheet" href="__STATIC__/js/ext/magnific/magnific-popup.css"/>
+    <script type="text/javascript" charset="utf-8" src="__STATIC__/js/ext/webuploader/js/webuploader.js"></script>
+    <link href="__STATIC__/js/ext/webuploader/css/webuploader.css" type="text/css" rel="stylesheet">
+    <div class="layui-main">
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+            <legend> {$_meta_title}</legend>
+        </fieldset>
+        <div class="with-padding">
+            <div class="tab-wrap" style="margin-bottom: 5px">
+                <ul class="nav nav-tabs group_nav">
+                </ul>
+            </div>
+            <form action="{:url('editadv?pos_id='.$pos['id'])}" method="post" class="form-horizontal layui-form">
+                <label class="item-label">所属广告位： </label>
+
+                <div class="controls ">
+                    <input type="hidden" name="pos_id" value="{$pos.id}" class="text input-large form-control"
+                           style="width: 400px" placeholder="无需填写" readonly/>
+                    <p class="lead">{$pos.title}——{$pos.name}——{$pos.path}</p>
+                </div>
+                <label class="item-label">广告尺寸： </label>
+                <div class="controls ">
+                    <span class="text-danger" style="font-size: 32px">{$pos.width}</span> X
+                    <span class="text-danger" style="font-size: 32px">{$pos.height}</span>
+                    请使用最合适宽度的图片获得最佳广告显示效果
+                </div>
+                <input name="type" type="hidden" value="2" />
+                <style>
+                    .web_uploader_picture_list {
+                        background: #eee;
+                        content: "无图";
+                        margin-top: 10px;
+                        border: 1px solid #eee;
+                        width: 150px;
+                        height: 100px;
+                        overflow: hidden;
+                    }
+
+                    .web_uploader_picture_list img {
+                        width: 150px;
+                        height: 100px;
+                    }
+
+                    #data-table {
+                        list-style: none;
+                        padding-left: 0;
+                    }
+
+                    #data-table li {
+                        padding-bottom: 10px;
+                        border-bottom: 1px dashed #eee;
+                        padding-top: 10px;
+                        background: white;
+                    }
+
+                    #data-table .dragging {
+                        background-color: #fff4e5;
+                        opacity: 0.35;
+                    }
+
+                    .data-header {
+                        padding-bottom: 10px;
+                        border-bottom: 1px dashed #eee;
+                    }
+                </style>
+                <label class="item-label">图片列表： </label>
+                <div class="row data-header">
+                    <div class="col-xs-2" style="text-align: center;">图片</div>
+                    <div class="col-xs-1" style="text-align: center;">广告标题</div>
+                    <div class="col-xs-2" style="text-align: center;">Url链接</div>
+                    <div class="col-xs-2" style="text-align: center;">时间</div>
+                    <div class="col-xs-1" style="text-align: center;">打开方式</div>
+                    <div class="col-xs-1" style="text-align: center;">排序</div>
+                    <div class="col-xs-2" style="text-align: center;">操作</div>
+                </div>
+                <ul id="data-table">
+                    <volist name="list" id="vo">
+                        <li class="line row">
+                            <div class="col-xs-2">
+                                <span id="web_uploader_wrapper_{$i}">选择图片</span>
+                                <input id="web_uploader_input_{$i}" name="pic[]" type="hidden" value="{$vo.pic}"
+                                       event-node="uploadinput">
+
+                                <div id="web_uploader_picture_list_{$i}" class="web_uploader_picture_list">
+                                    <img src="{$vo.pic|pic}">
+                                </div>
+                            </div>
+                            <div class="col-xs-1">
+                                <input type="text" name="title[]" value="{$vo.title}"
+                                       class="layui-input" style="width: 100%"/>
+                            </div>
+                            <div class="col-xs-2">
+                                <input type="text" name="url[]" value="{$vo.url}"
+                                       class="layui-input" style="width:  100%"/>
+                            </div>
+                            <div class="col-xs-2">
+                                <div>
+                                    <label style="float: left;">生效：</label>
+                                    <div style="float: left;">
+                                        <input type="hidden" name="start_time[]" value="{$vo.start_time}"/>
+                                        <input type="text" data-field-name="start_time[]" class="layui-input form-datetime"
+                                               style="width: 100%" value="{$vo.start_time|date='Y-m-d H:i:s',###}"
+                                               placeholder="请选择时间"/>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style="float: left;">失效：</label>
+                                    <div style="float: left;">
+                                        <input type="hidden" name="end_time[]" value="{$vo.end_time}"/>
+                                        <input type="text" data-field-name="end_time[]" class="layui-input form-datetime"
+                                               style="width: 100%" value="{$vo.end_time|date='Y-m-d H:i:s',###}"
+                                               placeholder="请选择时间"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-1">
+                                <select id="target_{$vo.id}" name="target[]"  style="width: 100%">
+                                    <option value="_blank" selected>新窗口:_blank</option>
+                                    <option value="_self">当前层:_self</option>
+                                    <option value="_parent">父框架:_parent</option>
+                                    <option value="_top">整个框架:_top</option>
+                                </select>
+                                <script>
+                                    $('#target_{$vo.id}').val("{$vo.target}")
+                                </script>
+                            </div>
+
+                            <div class="col-xs-1">
+                                <input type="text" name="sort[]" value="{$vo.sort}"
+                                       class="layui-input" style="width: 80px"/>
+                            </div>
+                            <div class="col-xs-2 layui-btn-group" style="text-align: center;">
+                                <a class="layui-btn layui-btn-small" onclick="builder.add(this)">
+                                    <i class="icon-plus"></i>
+                                </a>
+                                <a class="layui-btn btn-danger layui-btn-small" onclick="builder.remove(this)">
+                                    <i class="icon-trash"></i>
+                                </a>
+                                <!--<a href="javascript:" class="layui-btn btn-warning sort-handle layui-btn-small">-->
+                                    <!--<i class="icon-move"></i>-->
+                                <!--</a>-->
+                            </div>
+                        </li>
+                    </volist>
+                </ul>
+                <br/>
+                <div class="form-item">
+                    <button class="layui-btn ajax-post" id="submit" type="submit" target-form="form-horizontal" style="width: 100px">确定</button>
+                    &nbsp;
+                    <a class="layui-btn btn-danger" href="{:url('adv?pos_id='.$pos['id'])}">返回广告管理</a>
+                    &nbsp; <a class="layui-btn btn-danger" onclick="builder.init()">清空并重置
+                </a></div>
+            </form>
+        </div>
+    </div>
+    <!-- 数据表格 -->
+
+</block>
+<block name="script">
+    <script id="line-tpl" style="display: none" type="text/html">
+        <li class="line row">
+            <div class="col-xs-2">
+            </div>
+            <div class="col-xs-1">
+                <input type="text" name="title[]" value=""
+                       class="layui-input" style="width: 100%"/>
+            </div>
+            <div class="col-xs-2">
+                <input type="text" name="url[]" value=""
+                       class="layui-input" style="width:  100%"/>
+            </div>
+            <div class="col-xs-2">
+                <div>
+                    <label style="float: left;">生效：</label>
+                    <div style="float: left;">
+                        <php>$start=time();</php>
+                        <input type="hidden" name="start_time[]" value="{$start}"/>
+                        <input type="text" data-field-name="start_time[]"  class="form-datetime  layui-input"
+                               style="width: 100%" value="{$start|date='Y-m-d H:i:s',###}"
+                               placeholder="请选择时间"/>
+                    </div>
+                </div>
+                <div>
+                    <label style="float: left;">失效：</label>
+                    <div style="float: left;">
+                        <php>$end=time()+7*60*60*24;</php>
+                        <input type="hidden" name="end_time[]" value="{$end}"/>
+                        <input type="text" data-field-name="end_time[]" class=" form-datetime layui-input"
+                               style="width: 100%" value="{$end|date='Y-m-d H:i:s',###}"
+                               placeholder="请选择时间"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-1">
+                <select name="target[]" class="layui-input" style="width: 100%">
+                    <option value="_blank" selected>新窗口:_blank</option>
+                    <option value="_self">当前层:_self</option>
+                    <option value="_parent">父框架:_parent</option>
+                    <option value="_top">整个框架:_top</option>
+                </select>
+            </div>
+
+            <div class="col-xs-1">
+                <input type="text" name="sort[]" value="{$data.sort}"
+                       class=" layui-input" style="width: 80px"/>
+            </div>
+            <div class="col-xs-2 layui-btn-group" style="text-align: center;">
+                <a class="layui-btn layui-btn-small" onclick="builder.add(this)">
+                    <i class="icon-plus"></i>
+                </a>
+                <a class="layui-btn btn-danger layui-btn-small" onclick="builder.remove(this)">
+                    <i class="icon-trash"></i>
+                </a>
+                <!--<a href="javascript:" class="layui-btn btn-warning sort-handle layui-btn-small">-->
+                    <!--<i class="icon-move"></i>-->
+                <!--</a>-->
+            </div>
+        </li>
+    </script>
+    <script>
+        var builder = {
+            'uploaders': [],
+            'index': 1,
+            'sortable': function () {
+                $('#data-table').sortable({
+                    trigger: '.sort-handle', selector: 'li', dragCssClass: '', finish: function () {
+                        // builder.sortable();
+                        builder.refresh_order();
+
+                    }
+                });
+            },
+            'refresh_order': function () {
+                $('#data-table li').each(function (index, element) {
+                    $(this).attr('data-order', index);
+                    $(this).find('input[name*=sort]').val($(this).attr('data-order'));
+                })
+            },
+            'init': function () {
+                var $html = $($('#line-tpl').html());
+                $('#data-table').html($html);
+                builder.createWebUpload($html, $html);
+                builder.sortable();
+                builder.refresh_order();
+            },
+            'add': function (obj) {
+                var $this = $(obj);
+                var $html = $($('#line-tpl').html());
+                $html.insertAfter($this.parent().parent());
+                builder.createWebUpload($html, $this.parent().parent());
+                builder.sortable();
+                builder.refresh_order();
+
+            },
+            'remove': function (obj) {
+                $(obj).parent().parent().remove();
+                builder.sortable();
+                builder.refresh_order();
+
+            },
+            'createWebUpload': function ($html, $parent_parent) {
+                var id = builder.index++;
+                $html.find('div:eq(0)').html(
+                        ' <span id="web_uploader_wrapper_' + id + '">选择图片</span>\
+                <input id="web_uploader_input_' + id + '" name="pic[]" type="hidden" value=""\
+                event-node="uploadinput">\
+                <div id="web_uploader_picture_list_' + id + '" class="web_uploader_picture_list">\
+                </div>'
+                );
+                $html.insertAfter($parent_parent);
+                builder.createUploader(id);
+            },
+            'createUploader': function (id_origin) {
+                var id = "#web_uploader_wrapper_" + id_origin;
+                var uploader = WebUploader.create({
+                    // swf文件路径
+                    swf: 'Uploader.swf',
+                    // 文件接收服务端。
+                    server: U('common/File/uploadpicture'),
+                    fileNumLimit: 5,
+                    // 选择文件的按钮。可选。
+                    // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+                    pick: {'id': id, 'multi': false}
+                });
+
+                uploader.on('fileQueued', function (file) {
+                    uploader.upload();
+                    $("#web_uploader_file_name_" + id_origin).text('正在上传...');
+                });
+
+                /*上传成功*/
+                uploader.on('uploadSuccess', function (file, ret) {
+                    if (ret.status == 0) {
+                        $("#web_uploader_file_name_" + id_origin).text(ret.info);
+                        toast.error(ret.info);
+                    } else {
+                        $('#web_uploader_input_' + id_origin).focus();
+                        $('#web_uploader_input_' + id_origin).val(ret.data.file.id);
+                        $('#web_uploader_input_' + id_origin).blur();
+
+                        $("#web_uploader_picture_list_" + id_origin).html('<img src="' + ret.data.file.path + '"/>');
+                    }
+                });
+                builder.uploaders.push(uploader);
+            }
+        };
+
+        initTimePicker();
+
+        function initTimePicker() {
+            layui.use([ 'form','laydate'], function(){
+                var laydate = layui.laydate;
+                var form = layui.form;
+
+                form.render();
+
+                lay('.form-datetime').each(function(){
+                    var that = this;
+                    laydate.render({
+                        elem: that
+                        ,trigger: 'click'
+                        ,type: 'datetime'
+                        ,theme: 'grid'
+                        ,done:function(value){
+                        var fieldName = $(that).prev();
+                        if(value==''){
+                            fieldName.val('');
+                            return true;
+                        }
+                        var date = new Date(value);
+                        var timestamp = date.getTime();
+                        fieldName.val(Math.floor(timestamp / 1000));
+                    }
+                    });
+                });
+
+            });
+        }
+    </script>
+    <script>
+        $(function () {
+            var children = $('#data-table').children();
+            if (children.length == 0) {
+                builder.init();
+            } else {
+                for (var i = 0; i < children.length; i++) {
+                    builder.createUploader(i + 1);
+                }
+                builder.index = i + 1;
+            }
+        });
+        //导航高亮
+        highlight_subnav('{:url("Adv/adv")}');
+    </script>
+</block>

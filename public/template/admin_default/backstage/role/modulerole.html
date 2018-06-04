@@ -1,0 +1,63 @@
+<extend name="public/base"/>
+<block name="body">
+    <div class="layui-main">
+        <div class="layui-elem-quote" >
+            <a href="{:url('Backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+            <a><cite>按身份允许模块前台访问！（都不选表示非登录状态也可访问）</cite></a>
+            <div class="page-toolbar">
+                <include file="public/_addTo"/>
+            </div>
+        </div>
+        <div class="with-padding  layui-form">
+            <form id="role_module_auth">
+                <table id="table-data" class="layui-table" lay-even>
+                    <!-- 表头 -->
+                    <thead>
+                    <tr>
+                        <th>模块标识</th>
+                        <th>模块名</th>
+                        <th>允许访问身份</th>
+                    </tr>
+                    </thead>
+
+                    <!-- 列表 -->
+                    <tbody>
+                    <volist name="modules" id="one_module">
+                        <tr>
+                            <td style="width:auto;max-width: 150px;" class="text-ellipsis">{$one_module['name']}</td>
+                            <td style="width:auto;max-width: 150px;" class="text-ellipsis">{$one_module['alias']}</td>
+                            <td style="width:auto;">
+                                <volist name="role_list" id="one_role">
+                                    <input type="checkbox" name="role_module[{$one_module['id']}][]" lay-skin="primary"
+                                    <if condition="in_array($one_role['id'],$one_module['auth_role'])">checked</if>
+                                           title="{$one_role['title']}" value="{$one_role['id']}" />
+                                </volist>
+                            </td>
+                        </tr>
+                    </volist>
+                    </tbody>
+                </table>
+            </form>
+
+            <div class="form-item" style="margin-top: 10px;">
+                <button class="layui-btn ajax-post" id="save-role-module-auth">保存设置</button>
+                <button onclick="javascript:history.back(-1);return false;" class="layui-btn layui-btn-primary">返回</button>
+            </div>
+        </div>
+    </div>
+</block>
+
+<block name="script">
+    <script>
+        $(function () {
+            $('#save-role-module-auth').click(function () {
+                var param = $('#role_module_auth').serialize();
+                $.post(U('Backstage/Role/moduleRole'), param, function (res) {
+                    handleAjax(res);
+                });
+            });
+        });
+        //导航高亮
+        highlight_subnav('{:url("Role/moduleRole")}');
+    </script>
+ </block>

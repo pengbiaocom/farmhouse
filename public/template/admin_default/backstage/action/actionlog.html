@@ -1,0 +1,258 @@
+<extend name="public/base"/>
+<block name="body">
+    <div class="layui-main">
+        <div class="layui-elem-quote" >
+            <a href="{:url('Backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+            <a><cite>{:lang("_BEHAVIOR_LOG_")}&nbsp;(<span style="color: red">{:lang("_THE_LONGTERM_ACCUMULATION_OF_BEHAVIOR_LOG_WILL_LEAD_TO_THE_WHOLE_SYSTEM_PERFORMANCE_DEGRADATION_")}</span>)</cite></a>
+            <div class="page-toolbar">
+                <include file="public/_addTo"/>
+            </div>
+        </div>
+        <!--<fieldset class="layui-elem-field layui-field-title">-->
+            <!--<legend>-->
+                <!--{:lang("_BEHAVIOR_LOG_")}&nbsp;<sub style="color: red">{:lang("_THE_LONGTERM_ACCUMULATION_OF_BEHAVIOR_LOG_WILL_LEAD_TO_THE_WHOLE_SYSTEM_PERFORMANCE_DEGRADATION_")}</sub>-->
+            <!--</legend>-->
+        <!--</fieldset>-->
+
+        <div class="with-padding">
+            <div class="fl layui-form">
+                <div class="layui-btn-group" style="margin-bottom: 10px;">
+                    <button type="button" class="layui-btn layui-btn-normal ajax-get confirm" url="{:url('clear')}">{:lang("_CLEARANCE_WITH_SPACE_")}</button>
+                    <button type="button" class="layui-btn layui-btn-danger ajax-post confirm" target-form="ids" url="{:url('remove')}">{:lang("_DELETE_WITH_SPACE_")}</button>
+                    <button type="button" class="layui-btn select">{:lang("_SCREEN_")}</button>
+                    <button type="button" class="layui-btn layui-btn-primary ajax-get confirm"   target-form="ids" url="{:url('action/csv')}">
+                        {:lang("_EXPORT_CSV_")}
+                    </button>
+                </div>
+                <div style="float: right;margin-bottom: 10px;">
+                    <style>
+                        .oneselect{
+                            display: inline-block;
+                            margin-left: 10px;
+                        }
+                        .oneselect .title{
+                            float: left;
+                            line-height: 32px;
+                        }
+                        .oneselect .select_box{
+                            float: left;
+                            line-height: 32px;
+                            width: 180px;
+                        }
+                        .oneselect .btns{
+                            float: left;
+                            line-height: 32px;
+                        }
+                        .oneselect .select_box select{
+                            min-width: 150px;
+                        }
+                    </style>
+                    <form id="selectForm" method="get" action="{:url('Action/actionlog')}" class="form-dont-clear-url-param">
+                        <div class="oneselect">
+                            <div class="title"></div>
+                            <div class="select_box">
+                                <input style="float: none;width:180px;" type="text" name="uid" class="layui-input"  value="{:input('uid','','intval')}" placeholder={:lang("_PLEASE_ENTER_THE_USER_UID_WITH_DOUBLE_")} />
+                            </div>
+                        </div>
+                        <div class="oneselect">
+                            <div class="btns">
+                                <button class="layui-btn layui-btn-primary" type="submit">
+                                    <i class="layui-icon">&#xe615;</i>
+                                </button>
+                            </div>
+                        </div>
+                     </form>
+                </div>
+            </div>
+
+            <div class="with-padding  layui-form">
+                <table class="layui-table" lay-even>
+                    <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose" />
+                        </th>
+                        <th class="">ID</th>
+                        <th class="">{:lang("_BEHAVIOR_NAME_")}</th>
+
+                        <th class="">{:lang("_EXECUTIVE_")}</th>
+                        <th>执行者IP</th>
+                        <th class="">{:lang("_LOG_CONTENT_")}</th>
+                        <th class="">{:lang("_EXECUTION_TIME_")}</th>
+                        <th class="">{:lang("_OPERATION_")}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <notempty name="_list">
+                        <volist name="_list" id="vo">
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="ids" name="ids[]" lay-skin="primary" value="{$vo['id']}" />
+                                </td>
+                                <td>{$vo.id} </td>
+                                <td>{:get_action($vo['action_id'],'title')}</td>
+                                <td><a href="{:url('Action/actionlog',array('uid'=>$vo['user_id']))}">{:get_nickname($vo['user_id'])}</a></td>
+                                <td>{$vo.ip}</td>
+                                <td>{$vo['remark']}</td>
+                                <td><span>{$vo.create_time|time_format}</span></td>
+
+                                <td><a href="{:url('Action/edit?id='.$vo['id'])}">{:lang("_DETAILED_")}</a>
+                                    <a class="confirm ajax-get" href="{:url('Action/remove?ids='.$vo['id'])}">{:lang("_DELETE_")}</a>
+                                </td>
+                            </tr>
+                        </volist>
+                        <else/>
+                        <td colspan="8" class="text-center"> aOh!{:lang("_THERE_IS_NO_CONTENT_")} </td>
+                    </notempty>
+                    </tbody>
+                </table>
+            </div>
+            <div class="with-padding">{$_page}</div>
+
+        </div>
+    </div>
+
+</block>
+<block name="modal">
+    <div class="modal fade" id="select">
+        <div class="modal-dialog modal-sm layui-form" style="margin-top: 198px;width: 528px;">
+            <div class="modal-content" style="height: 298px">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span
+                            class="sr-only">{:lang('_CLOSE_')}</span></button>
+                    <h4 class="modal-title" id="myModalLabel">行为日志筛选</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="ajax-form" method="post" action="{:url('action/actionlog')}">
+                        <div style="line-height: 45px;margin-left: 15px">
+                            <label>根据时间筛选</label>
+                        </div>
+                        <div class="col-xs-5">
+                            <input type="hidden" name="sTime" value="{$sTime}">
+                            <input type="text" data-field-name="sTime" class="sTime form-control form_check" readonly  value="{$sTime|date='Y-m-d H:i:s',###}" placeholder="开始时间" />
+                        </div>
+
+                        <div class="col-xs-5">
+                            <input type="hidden" name="eTime" value="{$eTime}">
+                            <input type="text" data-field-name="eTime" class="eTime form-control form_check" readonly   value="{$eTime|date='Y-m-d H:i:s',###}" placeholder="截止时间" />
+                        </div>
+
+                        <div style="line-height: 45px;margin-left: 15px">
+                            <label>根据行为筛选</label>
+                        </div>
+                        <div class="col-xs-5">
+                            <select name="select">
+                                <option></option>
+                                <volist name="action_list" id="vo">
+                                    <option value="{$vo.id}" <if condition="$select eq $vo['id']"> selected </if> >{$vo.title}</option>
+                                </volist>
+                            </select>
+                        </div>
+
+                        <div style="height: 40px;margin-left: 18px;width: 160px ">
+                            <span><p class="pull-left" style="margin-right: 5px">
+                                <input type="submit" data-role="submitscreen" value="确定" class="layui-btn send_box">
+                            </p></span>
+
+                            <span><p class="pull-left" style="margin-left: 5px;">
+                                <input type="button" value="取消" class="layui-btn layui-btn-primary send_box" data-dismiss="modal">
+                            </p></span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        layui.use('laydate', function(){
+            var laydate = layui.laydate;
+
+            laydate.render({
+                elem: '.sTime' //指定元素
+                ,type: 'datetime'
+                ,done:function(value){
+                    var fieldName = $(".sTime").attr('data-field-name');
+                    if(value==''){
+                        $('[name=' + fieldName + ']').val('');
+                        return true;
+                    }
+                    var date = new Date(value);
+                    var timestamp = date.getTime();
+                    $('[name=' + fieldName + ']').val(Math.floor(timestamp / 1000));
+                }
+            });
+
+            laydate.render({
+                elem: '.eTime' //指定元素
+                ,type: 'datetime'
+                ,done:function(value){
+                    var fieldName = $(".eTime").attr('data-field-name');
+                    if(value==''){
+                        $('[name=' + fieldName + ']').val('');
+                        return true;
+                    }
+                    var date = new Date(value);
+                    var timestamp = date.getTime();
+                    $('[name=' + fieldName + ']').val(Math.floor(timestamp / 1000));
+                }
+            });
+        });
+    </script>
+</block>
+<block name="script">
+<script type="text/javascript">
+$(function(){
+    $(document).on('submit', '.form-dont-clear-url-param', function(e){
+        e.preventDefault();
+
+        var form = $(this).serialize();
+        var action = $(this).attr('action');
+        if(action == ''){
+            action = location.href;
+        }
+        var seperator = "?";
+        if(action.indexOf("?")!=-1){
+            seperator = "&";
+        }
+        var new_location = action + seperator + form;
+        location.href = new_location;
+
+        return false;
+    });
+
+    $("#action_add").click(function(){
+		window.location.href = $(this).attr('url');
+	});
+    //回车搜索
+    $(".search-input").keyup(function (e) {
+        if (e.keyCode === 13) {
+            $('#selectForm').submit();
+            return false;
+        }
+    });
+
+    //模态框
+    $('.select').click(function () {
+        $('#select').modal();
+    });
+
+    //导出csv
+    $('[data-role="csv"]').click(function(){
+        var data_url=$(this).attr('data-url');
+        var form=$('.ids');
+        if (form.get(0) == undefined) {
+        } else if (form.get(0).nodeName == 'FORM') {
+            query = form.serialize();
+        } else if (form.get(0).nodeName == 'INPUT' || form.get(0).nodeName == 'SELECT' || form.get(0).nodeName == 'TEXTAREA') {
+            query = form.serialize();
+        } else {
+            query = form.find('input,select,textarea').serialize();
+        }
+        data_url+='&'+query;
+        window.open(data_url);
+    });
+})
+//导航高亮
+highlight_subnav("{:url('Action/actionlog')}");
+</script>
+</block>

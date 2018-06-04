@@ -1,0 +1,125 @@
+<extend name="Public/base"/>
+<block name="body">
+	<div class="layui-main">
+		<fieldset class="layui-elem-field layui-field-title">
+			<legend>
+				<if condition="$sign eq 'add'">新增<else/>编辑</if>友情链接
+			</legend>
+		</fieldset>
+		<form id="form" action="{:addons_url('SuperLinks://SuperLinks/update')}" method="post" class="form-horizontal layui-form">
+			<!-- 基础文档模型 -->
+			<div id="tab1" class="tab-pane with-padding in tab1">
+				<div class="layui-form-item cf">
+					<label class="item-label">站点名称<span class="check-tips">（请输入友情链接站点名称）</span></label>
+					<div class="controls">
+						<input type="text" class=" layui-input form-input-width" name="title" value="{$info.title}">
+					</div>
+				</div>
+				<div class="layui-form-item cf">
+					<label class="item-label">链接类型</label>
+					<div class="controls ">
+						<empty name="info['type']">
+							<input type="radio" name="type" value="2" title="普通链接" checked="checked"  lay-filter="type" />
+							<input type="radio" name="type" value="1" title="图片链接" lay-filter="type"  />
+						<else/>
+							<input type="radio" name="type" value="2" title="普通链接" <if condition="$info.type eq 2">checked="checked"</if> lay-filter="type"  />
+							<input type="radio" name="type" value="1" title="图片链接" <if condition="$info.type eq 1">checked="checked"</if> lay-filter="type"  />
+						</empty>
+					</div>
+				</div>
+				<div class="layui-form-item cf">
+					<label class="item-label">外链地址<span class="check-tips">（请填写带http://的全路径）</span></label>
+					<div class="controls">
+						<input type="text" class="layui-input form-input-width" name="link" value="{$info.link}">
+					</div>
+				</div>
+				<div class="layui-form-item cf " style="display: none" id="img_area">
+					<label class="item-label">站点图片</label>
+					<div class="controls">
+						{:widget('backstage/Uploadimage/render',array(array('name'=>'cover_id','id'=>'cover_id','value'=>$info['cover_id'])))}
+					</div>
+				</div>
+			</div>
+			<input type="hidden" name="id" value="{$info.id}"/>
+			<div class="layui-form-item with-padding">
+				<input class="layui-btn submit-btn ajax-post" type="submit" target-form="form-horizontal" value="确 定" />
+				<input class="layui-btn layui-btn-normal" type="reset" value="重置" />
+				<input class="layui-btn layui-btn-primary" type="button" onclick="returnUrl();" value="返回" />
+			</div>
+		</form>
+	</div>
+</block>
+<block name="script">
+	<script type="text/javascript" src="__STATIC__/uploadify/jquery.uploadify.min.js"></script>
+	<script type="text/javascript">
+        var url = "{:url('/backstage/addons/adminlist/name/SuperLinks')}";
+        $("#sub_menu").find("a[href='" + url + "']").parent().addClass("layui-this");
+		function returnUrl(){
+			layer.confirm('确认要返回到列表？',function(){
+				window.location.href="{$current}";
+			},function(){
+				layer.alert("你取消了操作？");
+			});
+		}
+		(function(){
+			var type = "{$info['type']}";
+			if(type==1){
+				$("#img_area").show();
+			}else{
+				$("#img_area").hide();
+			}
+
+			//上传文件
+			/* 初始化上传插件 */
+			$("#download-file").uploadify({
+				"height"          : 30,
+				"swf"             : "__STATIC__/uploadify/uploadify.swf",
+				"fileObjName"     : "download",
+				"buttonText"      : "上传文件",
+				"uploader"        : "{:url('File/upload',array('session_id'=>session_id()))}",
+				"width"           : 120,
+				'removeTimeout'   : 1,
+				"onUploadSuccess" : uploadSuccess
+			});
+
+			/* 文件上传成功回调函数 */
+			function uploadSuccess(file, data){
+				var data = $.parseJSON(data);
+				if(data.code){
+					$("input[name=file]").val(data.data);
+					$("input[name=file]").parent().find('.upload-img-box').html(
+							"<div class=\"uplaod-pre-file\">" + data.msg + "</div>"
+					);
+				} else {
+					updateAlert(data.msg);
+				}
+			}
+
+			//上传图片
+			/* 初始化上传插件 */
+			$("#upload_picture").uploadify({
+				"height"          : 30,
+				"swf"             : "__STATIC__/uploadify/uploadify.swf",
+				"fileObjName"     : "download",
+				"buttonText"      : "上传图片",
+				"uploader"        : "{:url('File/uploadPicture',array('session_id'=>session_id()))}",
+				"width"           : 120,
+				'removeTimeout'	  : 1,
+				'fileTypeExts'	  : '*.jpg; *.png; *.gif;',
+				"onUploadSuccess" : uploadPicture
+			});
+			function uploadPicture(file, data){
+				var data = $.parseJSON(data);
+				if(data.code){
+					$("#cover_id").val(data.id);
+					$("#cover_id").parent().find('.upload-img-box').html(
+							'<div class="upload-pre-item"><img src="' + data.path + '"/></div>'
+					);
+				} else {
+					updateAlert(data.msg);
+				}
+			}
+		})();
+
+	</script>
+</block>

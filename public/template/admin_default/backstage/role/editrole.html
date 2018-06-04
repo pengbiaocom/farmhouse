@@ -1,0 +1,117 @@
+<extend name="public/base" />
+<block name="body">
+    <div class="layui-main">
+        <div class="with-padding">
+            <div class="clearfix">
+                <div class="col-xs-10">
+                    <include file="role/_link"/>
+                </div>
+            </div>
+
+            <div class="node-list">
+                <!-- 访问授权 -->
+                <div class="tab-pane in">
+                    <form action="{:url('Role/editRole')}" enctype="application/x-www-form-urlencoded" method="POST" class="form-horizontal auth-form layui-form">
+                        <label class="item-label">{:lang("_ROLE_NAME_")}    <span class="check-tips">（{:lang("_CANT_REPEAT_")}）</span></label>
+                        <div class="controls layui-form-item">
+                            <input type="text" name="title" value="{$data.title}"   class="input-large layui-input" />
+                        </div>
+
+                        <label class="item-label">{:lang("_ENGLISH_LOGO_")} <span class="check-tips">（{:lang("_COMPOSED_BY_ABC_")}）</span></label>
+                        <div class="controls layui-form-item">
+                            <input type="text" name="name" value="{$data.name}"  class="input-large layui-input" />
+                        </div>
+
+                        <label class="item-label">{:lang("_DESCRIPTION_")}</label>
+                        <div class="controls layui-form-item">
+                             <textarea name="description" class="text input-large layui-textarea">{$data.description}</textarea>
+                        </div>
+
+                        <label class="item-label">{:lang("_GROUP_")}<span>（{:lang('_SAME_GROUP_ROLE_CANNOT_BE_AT_THE_SAME_TIME_')}）</span></label>
+                        <div class="controls layui-form-item input-large">
+                            <select name="group_id">
+                                <volist name="group" id="opt">
+                                    <option value="{$opt.id}" <eq name="opt['id']" value="$data['group_id']">selected</eq> >{$opt.title}</option>
+                                </volist>
+                            </select>
+                            <a data-role="save">{:lang('_NO_GROUP_POINT_I_CREATE_')}</a>
+                        </div>
+
+                        <label class="item-label">{:lang("_DEFAULT_USER_GROUP_")} <span class="check-tips">（{:lang("_THE_DEFAULT_USER_REGISTRATION_WHERE_THE_USER_GROUP_CHOOSE_")}）</span></label>
+                        <div class="controls layui-form-item input-large">
+                            <select name="user_groups[]" multiple="multiple">
+                                <option value=""></option>
+                                <volist name="group_list" id="option">
+                                    <php>
+                                        $selected = in_array($option['id'],$data['user_groups']) ? 'selected' : '';
+                                    </php>
+                                    <option value="{$option.id}" {$selected}>{$option.title}</option>
+                                </volist>
+                            </select>
+                        </div>
+
+                        <label class="item-label">{:lang("_NEED_TO_BE_INVITED_TO_REGISTER_")} <span class="check-tips">（{:lang("_DEFAULT_IS_OFF_AFTER_OPENING_THE_USER_CAN_BE_INVITED_TO_REGISTER_")}）</span></label>
+                        <div class="controls layui-form-item">
+                                <input  name="invite" value="1" title="开启" type="radio" <if condition="$data['invite'] eq 1">checked</if>/>
+                                <input  name="invite" title="关闭" value="0" type="radio" <if condition="$data['invite'] eq 0">checked</if>/>
+                        </div>
+
+                        <label class="item-label">{:lang("_NEED_TO_EXAMINE_")}<span class="check-tips">（{:lang("_DEFAULT_IS_CLOSED_AFTER_THE_USER_AUDIT_TO_HAVE_THE_IDENTITY_OF_THE_")}）</span></label>
+                        <div class="controls layui-form-item">
+                           <input  name="audit" value="1" type="radio" title="开启" <if condition="$data['audit'] eq 1">checked</if>/>
+                           <input  name="audit" value="0" type="radio" title="关闭" <if condition="$data['audit'] eq 0">checked</if>/>
+                        </div>
+
+                        <label class="item-label">状态    </label>
+                        <div class="controls layui-form-item input-large">
+                            <select name="status">
+                                <option value="-1" <if condition="$data['status'] eq -1">selected</if> >{:lang("_DELETE_")}</option>
+                                <option value="0" <if condition="$data['status'] eq 0">selected</if> >{:lang("_DISABLE_")}</option>
+                                <option value="1" <if condition="$data['status'] eq 1">selected</if> >{:lang("_ENABLED_")}</option>
+                                <option value="2" <if condition="$data['status'] eq 2">selected</if> >{:lang("_NOT_AUDITED_")}</option>
+                            </select>
+                        </div>
+
+                        <input type="hidden" name="is_edit" value="{$is_edit}"/>
+                        <input type="hidden" name="group_list" value="{$group_list}"/>
+                        <input type="hidden" name="group" value="{$group}"/>
+                        <input type="hidden" name="data" value="{$data}"/>
+                        <input type="hidden" name="id" value="{$this_role.id}" />
+                        <div style="margin-top: 20px;"></div>
+                        <div class="controls layui-form-item">
+                            <button type="submit" class="layui-btn ajax-post" target-form="auth-form">{:lang("_STEP_NEXT_")}</button>
+                            <span style="color: #BABABA;margin: 11px;">{:lang("_PLEASE_SAVE_THE_ABOVE_CONFIGURATION_AND_THEN_SWITCH_TO_ANOTHER_INTERFACE_")}</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</block>
+<block name="script">
+    <script type="text/javascript" src="__STATIC__/qtip/jquery.qtip.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/qtip/jquery.qtip.min.css" media="all">
+    <script>
+        $('[data-role="save"]').click(function() {
+            var url = "{:url('backstage/Role/editGroup')}";
+            var rank = $('input[name="title"]').val();
+            var name = $('input[name="name"]').val();
+            var description = $('textarea[name="description"]').val();
+
+            $.post(url, {rank: rank, name: name, description: description}, function() {
+                window.location.href = url;
+            }, 'json')
+        });
+    </script>
+    <script type="text/javascript" charset="utf-8">
+        +function($){
+            $('select[name="role"]').change(function(){
+                location.href = this.value;
+            });
+            //导航高亮
+            highlight_subnav('{:url("Role/index")}');
+        }(jQuery);
+    </script>
+</block>

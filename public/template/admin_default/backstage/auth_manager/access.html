@@ -1,0 +1,92 @@
+<extend name="public/base" />
+<block name="body">
+    <div class="layui-main">
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+            <legend>{:lang("_MANAGEMENT_BACKGROUND_AUTHORIZATION_")}</legend>
+        </fieldset>
+    </div>
+
+    <div class="with-padding">
+        <form action="{:url('AuthManager/writeGroup')}" enctype="application/x-www-form-urlencoded" method="POST" class="form-horizontal auth-form layui-form">
+        <div class="clearfix">
+            <div class="col-xs-10" style="padding-right:0px;padding-left:0px;">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="javascript:;">{:lang("_MANAGEMENT_BACKGROUND_AUTHORIZATION_")}</a></li>
+                    <li><a href="{:url('AuthManager/accessUser',array('group_name'=>input('group_name') ,'group_id'=> input('group_id')))}">{:lang("_FRONT_DESK_ACCESS_AUTHORIZATION_")}</a></li>
+                    <li><a href="{:url('AuthManager/user',array('group_name'=>input('group_name') ,'group_id'=> input('group_id')))}">{:lang("_MEMBER_DELEGATION_")}</a></li>
+                </ul>
+            </div>
+            <div class="col-xs-2 text-center">
+                <select name="group" class="form-control" lay-filter="group">
+                    <volist name="auth_group" id="vo">
+                        <option value="{:url('AuthManager/access',array('group_id'=>$vo['id'],'group_name'=>$vo['title']))}" <eq name="vo['id']" value="$this_group['id']">selected</eq> >{$vo.title}</option>
+                    </volist>
+                </select>
+            </div>
+        </div>
+
+        <!-- 访问授权 -->
+        <div class="node-list in">
+
+                <volist name="node_list" id="node" >
+                    <dl class="checkmod">
+                        <dt class="hd">
+                            <input class="auth_rules" lay-filter="rules_all" type="checkbox" name="rules[]"  value="<?php echo $main_rules[$node['url']] ?>" title="{$node.title}{:lang('_ADMINISTRATION_')}" lay-skin="primary" />
+                        </dt>
+                        <dd class="bd">
+                            <present name="node['child']">
+                                <volist name="node['child']" id="child" >
+                                    <div class="rule_check">
+                                        <div>
+                                            <input class="auth_rules" lay-filter="rules_row" type="checkbox" name="rules[]"
+                                                   value="<?php echo $auth_rules[$child['url']] ?>" title="{$child.title}" lay-skin="primary"  />
+                                        </div>
+                                        <notempty name="child['operator']">
+                                           <div class="child_row divsion">
+                                               <volist name="child['operator']" id="op">
+                                                   <input class="auth_rules" type="checkbox" name="rules[]"
+                                                          value="<?php echo $auth_rules[$op['url']] ?>" title="{$op.title}" lay-skin="primary"/>
+                                               </volist>
+                                           </div>
+                                        </notempty>
+                                    </div>
+                                </volist>
+                            </present>
+                        </dd>
+                    </dl>
+                </volist>
+                <input type="hidden" name="id" value="{$this_group.id}" />
+                <div class="layui-form-item" style="margin-top: 20px;">
+                    <button type="submit" class="layui-btn ajax-post" target-form="auth-form">{:lang("_SURE_WITH_SPACE_")}</button>
+                    <button type="button" class="layui-btn layui-btn-primary" onclick="javascript:history.back(-1);return false;">{:lang("_RETURN_WITH_SPACE_")}</button>
+                </div>
+
+        </div>
+        </form>
+    </div>
+</block>
+<block name="script">
+<script type="text/javascript" charset="utf-8">
+    layui.define(['layer', 'code', 'form', 'element', 'util','laydate'],function(exports){
+        var $ = layui.jquery
+                ,layer = layui.layer
+                ,form = layui.form;
+        var rules = [{$this_group.rules}];
+        $('.auth_rules').each(function(){
+            if( $.inArray( parseInt(this.value,10),rules )>-1 ){
+                $(this).prop('checked',true);
+            }
+            if(this.value==''){
+                $(this).closest('span').remove();
+            }
+            form.render('checkbox');
+        });
+    });
+
+    +function($){
+
+        //导航高亮
+        highlight_subnav('{:url("AuthManager/index")}');
+    }(jQuery);
+</script>
+</block>

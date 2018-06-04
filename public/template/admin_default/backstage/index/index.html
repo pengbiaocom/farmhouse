@@ -1,0 +1,306 @@
+<extend name="public/base"/>
+
+<block name="body">
+    <div class="layui-elem-quote">
+        <a href="{:url('backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+        <a><cite>仪表盘</cite></a>
+    </div>
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>常用操作</legend>
+    </fieldset>
+    <div class="portlet light bordered">
+        <div class="portlet-body">
+            <div>
+                <div class="tiles tile-group ten-wide ">
+                    <volist name="list" id="data" mod="9">
+                        <if condition="$mod eq 8">
+                            <div class="live-tile accent exclude tile-id" id="tile_{$data['id']}" data-speed="750" data-delay="3000" style="width: 151px;background-color: {$data['tile_bg']}">
+                                <a href="{$data.url_vo}"><span class="tile-title">{$data.title_vo}</span></a>
+                                <div class="tile-box">
+                                    <p class="menus"><a href="{$data.url}">
+                                        <i id="icon_set" class="icon-{$data['icon']}"></i>
+                                    </a></p>
+                                    <div>
+                                        <a href="{$data.url}">{$data.title}</a>
+                                    </div>
+                                    <div class="tile-setting" data-id="{$data.id}">
+                                        <a><i class="icon-settings"></i></a>
+                                    </div>
+                                    <div class="tile-del">
+                                        <a data-id="{$data.id}" href="javascript:void(0);" onclick="deltile($(this))" >
+                                            <i class="icon-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <else/>
+                            <div class="live-tile accent exclude tile-id" id="tile_{$data['id']}" data-speed="750" data-delay="3000" style="background-color: {$data['tile_bg']}">
+                                <a href="{$data.url_vo}"><span class="tile-title">{$data.title_vo}</span></a>
+                                <div class="tile-box">
+                                    <p class="menus"><a href="{$data.url}">
+                                        <i id="icon_set" class="icon-{$data['icon']}"></i>
+                                    </a></p>
+
+                                    <div>
+                                        <a href="{$data.url}">{$data.title}</a>
+                                    </div>
+                                    <div class="tile-setting" data-id="{$data.id}">
+                                        <a><i class="icon-settings"></i></a>
+                                    </div>
+                                    <div class="tile-del">
+                                        <a data-id="{$data.id}" href="javascript:void(0);" onclick="deltile($(this))" >
+                                            <i class="icon-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </if>
+
+                    </volist>
+
+                </div>
+
+            </div>
+            <!-- Activate live tiles -->
+            <script type="text/javascript">
+                $(function () {
+                    $(".live-tile, .flip-list").not(".exclude").liveTile();
+                    $(".tiles").sortable({
+                        update: function(event, ui) {
+                            var ids = $(this).sortable("toArray");
+                            var url = "{:url('backstage/Index/sortTile')}";
+                            $.post(url, {ids: ids}, function(msg) {
+
+                            })
+                        }
+                    });
+                    $(".tiles").disableSelection();
+                });
+
+                function deltile(tile) {
+                    if (confirm("你确定要删除此常用操作吗？")) {
+                        var id = tile.attr('data-id');
+                        var url = "{:url('backstage/Index/delTile')}";
+                        $.post(url, {id: id}, function (msg) {
+                            if (msg.code) {
+                                toast.success(msg.msg);
+                                setTimeout(function () {
+                                    var tileId = tile.attr('data-id');
+                                    if(tileId == msg.tile_id){
+                                        $('#tile_'+tileId).hide();
+                                    }
+                                }, 1000);
+                            } else {
+                                toast.error(msg.msg);
+                            }
+                        }, 'json')
+                    }
+                }
+
+                var tile_setting;
+                $('.tile-setting').click(function () {
+                    sessionStorage['id'] = $(this).attr('data-id');
+                    var id = $(this).attr('data-id');
+                    var tile_bg = $('#tile_'+id).css("background-color").colorHex();
+                    var icon = $('#tile_'+id).find("i#icon_set").attr('class');
+
+                    $(".icon-chose").find("i").removeClass().addClass(icon);
+                    $("input[name='icon_chose']").val(icon);
+                    $(".simpleColorDisplay").css("background-color", tile_bg);
+                    $("input[name='color_chose']").val(tile_bg);
+                    $('#tile_setting').modal();
+                });
+
+                //十六进制颜色值的正则表达式
+                var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+                /*RGB颜色转换为16进制*/
+                String.prototype.colorHex = function(){
+                    var that = this;
+                    if(/^(rgb|RGB)/.test(that)){
+                        var aColor = that.replace(/(?:\(|\)|rgb|RGB)*/g,"").split(",");
+                        var strHex = "#";
+                        for(var i=0; i<aColor.length; i++){
+                            var hex = Number(aColor[i]).toString(16);
+                            if(hex === "0"){
+                                hex += hex;
+                            }
+                            strHex += hex;
+                        }
+                        if(strHex.length !== 7){
+                            strHex = that;
+                        }
+                        return strHex;
+                    }else if(reg.test(that)){
+                        var aNum = that.replace(/#/,"").split("");
+                        if(aNum.length === 6){
+                            return that;
+                        }else if(aNum.length === 3){
+                            var numHex = "#";
+                            for(var i=0; i<aNum.length; i+=1){
+                                numHex += (aNum[i]+aNum[i]);
+                            }
+                            return numHex;
+                        }
+                    }else{
+                        return that;
+                    }
+                };
+            </script>
+        </div>
+    </div>
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>{:lang('_SYSTEM_INFO_')}</legend>
+    </fieldset>
+    <table class="layui-table" lay-even >
+        <tr>
+            <th style="width: 200px">{:lang('_SERVER_OS_')}</th>
+            <td>{$Think.const.PHP_OS}</td>
+        </tr>
+        <tr>
+            <th>{:lang('_THINKPHP_VERSION_')}</th>
+            <td>{$Think.VERSION}</td>
+        </tr>
+        <tr>
+            <th>{:lang('_RUNTIME_ENVIR_')}</th>
+            <td>{$_SERVER['SERVER_SOFTWARE']}</td>
+        </tr>
+        <tr>
+            <th>{:lang('_MYSQL_VERSION_')}</th>
+            <php>
+                $system_info_mysql = db()->query("select version() as v;");
+            </php>
+            <td>{$system_info_mysql.0.v}</td>
+        </tr>
+        <tr>
+            <th>{:lang('_LIMIT_UPLOAD_')}</th>
+            <td>
+                {:ini_get('upload_max_filesize')}
+             </td>
+        </tr>
+    </table>
+</block>
+<block name="modal">
+    <div class="modal fade" id="tile_setting" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="">设置图标和颜色</h4>
+                </div>
+                <div class="modal-body" style="height: 100px">
+                    <div class="col-xs-3">
+                        <h4>选择图标</h4>
+                        <div class="pull-left icon-chose" title={:lang("__WITH_DOUBLE_")}>
+                            <a class="icon-selector"> <i class=""></i><input name="icon_chose" title={:lang("__WITH_DOUBLE_")} type="hidden" value=""></a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4>背景颜色</h4>
+                        <div class="pull-left color-chose" title={:lang("_SELECT_THE_ICON_BACKGROUND_COLOR_WITH_DOUBLE_")}>
+                            <input name="color_chose" class="simple_color_callback" value="{default='#000000'}"/>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn " data-role="saveTileSetting" data-id="{$data.id}" href="javascript:void(0);" onclick="setTile()">
+                        {:lang('_SAVE_')}
+                    </button>
+                    <button class="btn " data-dismiss="modal">
+                         {:lang('_CANCEL_')}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="icon_selector" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">选择图标</h4>
+                </div>
+                <div class="modal-body">
+                    <include file="index/_icon"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(function(){
+            initIconSelector();
+            bindColor();
+        });
+
+        $('[data-role=saveCountSetting]').click(function () {
+            $.post("{:url('')}", {count_day: $('[name=count_day]').val()}, function (msg) {
+                handleAjax(msg);
+            });
+        });
+
+        function setTile(){
+            var id = sessionStorage['id'];
+            var icon = $("input[name='icon_chose']").val();
+            var tile_bg = $("input[name='color_chose']").val();
+            var url = "{:url('Backstage/Index/setTile')}";
+
+            $.post(url, {id: id, icon: icon, tile_bg: tile_bg}, function (msg) {
+                if (msg.code) {
+                    toast.success(msg.msg);
+                    setTimeout(function () {
+                        if(id == msg.tile_id){
+                            $('#tile_setting').modal('hide');
+                            $('#tile_'+id).css("background-color", msg.tile_bg).find("i#icon_set").removeClass().addClass("icon-"+msg.tile_icon);
+                        }
+                    }, 500);
+                } else {
+                    toast.error(msg.msg);
+                }
+            }, 'json')
+        }
+
+        var icon_selector;
+        function initIconSelector() {
+            $('.icons-list .item span').click(function(){
+                var icon = $(this).attr('class');
+                $('#current').val(icon);
+                icon_selector.find('input').val(icon);
+                icon_selector.find('i').attr('class',icon);
+                $('#icon_selector').modal('hide');
+            });
+            $('.icon-selector').click(function () {
+                icon_selector = $(this);
+                $('#icon_selector').modal();
+            });
+        }
+
+        function bindColor() {
+            $('.simpleColorContainer').remove();
+            $('.simple_color_callback').simpleColor({
+                boxWidth: 15,
+                boxHeight: 15,
+                cellWidth: 15,
+                cellHeight: 15,
+                chooserCSS: { 'z-index': 1200 },
+                displayCSS: { 'border': 0 }
+            });
+        }
+    </script>
+
+</block>
+<block name="script">
+    <link rel="stylesheet" href="__B_CSS__/tile.css" media="all">
+    <link href="__B_JS__/plugins/metro/MetroJs.min.css" type="text/css" rel="stylesheet">
+    <script src="__B_JS__/plugins/metro/MetroJs.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="__B_JS__/plugins/jQueryUI/jquery-ui.min.js"></script>
+    <script src="__B_JS__/jquery.simple-color.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        //导航高亮
+        highlight_subnav('{:url("Index/index")}');
+    </script>
+</block>

@@ -1,0 +1,104 @@
+<extend name="public/base"/>
+
+<block name="body">
+    <div class="layui-main">
+        <div class="layui-elem-quote" >
+            <a href="{:url('Backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+            <a><cite>{:lang("_PLUGIN_LIST_")}</cite></a>
+            <div class="page-toolbar">
+                <include file="public/_addTo"/>
+            </div>
+        </div>
+        <div class="with-padding">
+            <a href="{:url('hooks')}" class="layui-btn layui-btn-primary">{:lang("_HOOK_MANAGEMENT_")}</a>
+            <a href="{:url('create')}" class="layui-btn">{:lang("_QUICK_CREATE_PLUGIN_")}</a>
+        </div>
+        <div class="with-padding">
+            <div class="tab-wrap tabbable-custom" style="margin-bottom: 5px;margin-top: 10px;">
+                <ul class="nav nav-tabs group_nav">
+                    <li id="type_all"><a href="{:url('index',array('type'=>'all'))}">{:lang("_ALL_")}</a></li>
+                    <li id="type_yes"><a href="{:url('index',array('type'=>'yes'))}">{:lang("_NOT_INSTALLED_")}</a></li>
+                    <li id="type_no"><a href="{:url('index',array('type'=>'no'))}">{:lang("_INSTALLED_")}</a></li>
+                    <script>
+                        $('#type_{$type}').addClass('active');
+                    </script>
+                </ul>
+                <div class="tab-content">
+                    <div class="cards plugin-list" style="padding: 15px">
+                        <notempty name="_list">
+                            <volist name="_list" id="vo">
+                                <div class="pull-left" style="width: 245px;margin-right: 10px">
+                                    <div class="card">
+                                        <div class="media-wrapper"><a href="{:url('config',array('id'=>$vo['id']))}"><img src="__B_IMG__/plugin.png" alt=""></a></div>
+                                        <span class="caption">{$vo.name}</span>
+                                        <div class="card-heading">
+                                            <span class="pull-right"><span class="label" >{$vo.status_text|default=lang("_NOT_INSTALLED_WITH_DOUBLE_")}</span> <span class="label label-success">{$vo.version}</span></span>
+                                            <a href="{:url('config',array('id'=>$vo['id']))}" class=""><strong>{$vo.title} </strong></a>
+                                        </div>
+                                        <div class="card-content text-muted">
+                                            {$vo.description}
+                                        </div>
+                                        <div class="card-actions">
+                                            <div class="text-mute">
+                                                {$vo.author}
+                                            </div>
+                                        </div>
+                                        <div class="card-actions">
+                                            <div class="btn-group">
+                                                <empty name="vo.uninstall">
+                                                    <?php
+                                                        $class	= get_addon_class($vo['name']);
+                                                        if(!class_exists($class)){
+                                                            $has_config = 0;
+                                                        }else{
+                                                            $addon = new $class();
+                                                            $has_config = count($addon->getConfig());
+                                                        }
+                                                    ?>
+                                                    <?php if ($has_config){ ?>
+                                                    <a class="layui-btn" href="{:url('config',array('id'=>$vo['id']))}">{:lang("_SET_UP_")}</a>
+                                                    <?php } ?>
+                                                    <?php if ($vo['status'] >=0){ ?>
+                                                    <eq name="vo.status" value="0">
+                                                        <a class="layui-btn ajax-get"
+                                                           href="{:url('enable',array('id'=>$vo['id']))}">{:lang("_ENABLE_")}</a>
+                                                    <else/>
+                                                        <a class="layui-btn layui-btn-normal ajax-get"
+                                                           href="{:url('disable',array('id'=>$vo['id']))}">{:lang("_DISABLE_")}</a>
+                                                    </eq>
+                                                    <?php } ?>
+                                                    {//
+                                                    <eq name="vo.author" value="thinkphp">}
+                                                        <a class="layui-btn layui-btn-danger ajax-get"
+                                                           href="{:url('uninstall?id='.$vo['id'])}">{:lang("_UNINSTALL_")}</a>
+                                                        {//
+                                                    </eq>
+                                                    }
+                                                    <else/>
+                                                    <a class="layui-btn layui-btn-warm ajax-get"
+                                                       href="{:url('install?addon_name='.$vo['name'])}">{:lang("_INSTALL_")}</a>
+                                                </empty>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </volist>
+                            <else/>
+                            <div class="text-center"> aOh!{:lang("_THERE_IS_NO_CONTENT_")}</div>
+                        </notempty>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="with-padding">
+            {$_page}
+        </div>
+    </div>
+
+</block>
+<block name="script">
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav('{:url("Addons/index")}');
+    </script>
+</block>

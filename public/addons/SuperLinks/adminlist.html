@@ -1,0 +1,55 @@
+<div class="with-padding" style="margin-bottom: 0px;">
+    <div class="fl layui-form">
+        <div class="layui-btn-group" style="margin-bottom: 10px;">
+            <a href="{:addons_url('SuperLinks://SuperLinks/add')}" class="layui-btn btn-ajax">新增</a>&nbsp;
+            <button class="layui-btn ajax-post layui-btn-normal" url="{:addons_url('SuperLinks://SuperLinks/savestatus',array('status'=>1))}" target-form="ids">启用</button>&nbsp;
+            <button class="layui-btn ajax-post layui-btn-normal" url="{:addons_url('SuperLinks://SuperLinks/savestatus',array('status'=>0))}" target-form="ids">禁用</button>&nbsp;
+            <button class="layui-btn layui-btn-danger ajax-post confirm" url="{:addons_url('SuperLinks://SuperLinks/del')}" target-form="ids" confirm-info="确认删除友情链接？删除后不可恢复！">删除</button>&nbsp;
+        </div>
+    </div>
+</div>
+<div class="with-padding layui-form">
+    <table class="layui-table" lay-even>
+        <thead>
+        <tr>
+            <th>
+                <input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose"  />
+            </th>
+            <th>序号</th>
+            <volist name="listKey" id="vo">
+                <th>{$vo}</th>
+            </volist>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <volist name="_list" id="lv" key="vo">
+            <tr>
+                <td style="width: 25px">
+                    <input class="ids" type="checkbox" lay-skin="primary" value="{$lv.id}" name="id[]"  />
+                </td>
+                <td>{$lv.id}</td>
+                <volist name="listKey" id="lk">
+                    <td>{$lv[$key]}</td>
+                </volist>
+                <td>
+                    <a href="{:addons_url('SuperLinks://SuperLinks/edit',array('id'=>$lv['id']))}">编辑</a>
+                    <if condition="$lv.status eq 1">
+                        <a class="confirm ajax-get" href="{:addons_url('SuperLinks://SuperLinks/forbidden',array('id'=>$lv['id']))}">禁用</a>
+                        <else/>
+                        <a class="confirm ajax-get" href="{:addons_url('SuperLinks://SuperLinks/off',array('id'=>$lv['id']))}">启用</a>
+                    </if>
+                    <a class="confirm ajax-get" href="{:addons_url('SuperLinks://SuperLinks/del',array('id'=>$lv['id']))}">删除</a>
+                </td>
+            </tr>
+        </volist>
+        </tbody>
+    </table>
+</div>
+
+<block name="script">
+   <script>
+       var url = "{:url('/backstage/addons/adminlist/name/SuperLinks')}";
+       $("#sub_menu").find("a[href='" + url + "']").parent().addClass("layui-this");
+   </script>
+</block>

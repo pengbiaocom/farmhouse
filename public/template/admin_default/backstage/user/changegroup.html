@@ -1,0 +1,75 @@
+<link rel="stylesheet" href="__STATIC__/layui/css/layui.css" media="all">
+<link rel="stylesheet" href="__B_JS__/bootstrap-toastr/toastr.min.css">
+<link rel="stylesheet" href="__STATIC__/layui/css/layui.css" media="all">
+<form  class="frm_change_group layui-form" method="post">
+    <div style="margin-left: 20px;margin-top: 10px;">
+        <strong style="height: 30px;line-height: 30px;">{:lang("_CURRENTLY_SELECTED_USERS_")}</strong>
+        <div style="word-wrap: break-word">
+            <if condition="count($users) eq 0">
+                {:lang("__ALL_USERS_PLEASE_BE_CAREFUL_")}！！)-
+                <input type="hidden" value="1" name="all"/>
+            </if>
+
+            <volist name="users" id="user">
+                √{$user.nickname}&nbsp;&nbsp;<input type="hidden" name="uid[]" value="{$user.uid}"/>
+            </volist>
+        </div>
+    </div>
+    <div style="border-top:1px dashed #ccc;margin-top: 15px;margin-bottom: 15px "></div>
+    <div style="margin-left: 20px;">
+        <strong style="height: 30px;line-height: 30px;">{:lang("_CHOOSE_THE_USER_GROUP_OF_THESE_USERS_")}</strong>{:lang("_THE_GROUP_THAT_WILL_BE_LOST_TO_THE_USER_GROUP_WHICH_IS_OWNED_BY_THE_USER_ALL_USERS_ARE_USING_THE_NEW_SET_OF_USERS_")}：
+        <br/>
+        <volist name="groups" id="group">
+            <input type="checkbox" name="gid[]" lay-skin="primary" title="{$group.title}" value="{$group.id}">
+        </volist>
+    </div>
+    <div style="border-top:1px dashed #ccc;margin-top: 15px;margin-bottom: 15px "></div>
+    <button class="layui-btn layui-btn-primary"  type="button" style="margin-left: 20px;">
+        <a  url="__SELF__" target-form="frm_change_group" onclick="frm.frm_change_group()" >{:lang("_SUBMIT_")}</a>
+    </button>
+</form>
+<!--[if lt IE 9]>
+<script type="text/javascript" src="__STATIC__/js/jquery-1.10.2.min.js"></script>
+<![endif]--><!--[if gte IE 9]><!-->
+<script type="text/javascript" src="__STATIC__/js/jquery-2.0.3.min.js"></script>
+<script type="text/javascript" src="__B_JS__/jquery.mousewheel.js"></script>
+<!--<![endif]-->
+<script type="text/javascript" src="__STATIC__/layui/layui.js"></script>
+<script type="text/javascript" src="__STATIC__/layui/layui-mz-min.js"></script>
+<script src="__B_JS__/bootstrap-toastr/toastr.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="__B_JS__/com/com.toast.class.js"></script>
+<script type="text/javascript" src="__B_JS__/common.js"></script>
+<script type="text/javascript">
+    (function () {
+        var ThinkPHP = window.Think = {
+            "ROOT": "__ROOT__", //当前网站地址
+            "APP": "__APP__", //当前项目地址
+            "PUBLIC": "__PUBLIC__", //项目公共目录地址
+            "DEEP": "{:config('URL_PATHINFO_DEPR')}", //PATHINFO分割符
+            "MODEL": ["{:config('URL_MODEL')}", "{:config('URL_CASE_INSENSITIVE')}", "{:config('URL_HTML_SUFFIX')}"],
+            "VAR": ["{:config('VAR_MODULE')}", "{:config('VAR_CONTROLLER')}", "{:config('VAR_ACTION')}"],
+            'URL_MODEL': "{:config('URL_MODEL')}"
+        }
+    })();
+</script>
+<script>
+    var frm;
+    var index = parent.layer.getFrameIndex(window.name);
+    layui.define(['layer','form'], function(){
+       var layer = layui.layer,form = layui.form;
+
+       frm = {
+           frm_change_group:function(){
+               layer.confirm("{:lang('_DETERMINE_THE_USER_GROUP_THAT_SET_THESE_USERS?_THIS_OPERATION_CAN_NOT_BE_REDUCED_WITH_SINGLE_')}",function(index){
+                   layer.close(index);
+                   $.post($(this).attr('url'),$('.frm_change_group').serialize(),function(msg){
+                       handleAjax(msg);
+                       setTimeout(function () {
+                           parent.layer.close(index);
+                       }, 1500);
+                   });
+               });
+           }
+       };
+    });
+</script>

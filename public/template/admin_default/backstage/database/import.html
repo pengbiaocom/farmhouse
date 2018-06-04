@@ -1,0 +1,83 @@
+<extend name="public/base"/>
+
+<block name="body">
+    <div class="layui-main">
+        <div class="layui-elem-quote" >
+            <a href="{:url('Backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+            <a><cite>{:lang("_DATA_BACKUP_")}</cite></a>
+            <div class="page-toolbar">
+                <include file="public/_addTo"/>
+            </div>
+        </div>
+        <div class="with-padding">
+            <table class="layui-table" lay-even>
+                <thead>
+                <tr>
+                    <th width="200">{:lang("_BACKUP_NAME_")}</th>
+                    <th width="80">{:lang("_VOLUME_NUMBER_")}</th>
+                    <th width="80">{:lang("_COMPRESSION_")}</th>
+                    <th width="80">{:lang("_DATA_SIZE_")}</th>
+                    <th width="200">{:lang("_BACKUP_TIME_")}</th>
+                    <th>{:lang("_STATE_")}</th>
+                    <th width="120">{:lang("_OPERATION_")}</th>
+                </tr>
+                </thead>
+                <tbody>
+                <volist name="list" id="data">
+                    <tr>
+                        <td>{$data.time|date='Ymd-His',###}</td>
+                        <td>{$data.part}</td>
+                        <td>{$data.compress}</td>
+                        <td>{$data.size|format_bytes}</td>
+                        <td>{$key}</td>
+                        <td>-</td>
+                        <td class="action">
+                            <a class="db-import" href="{:url('import?time='.$data['time'])}">{:lang("_REDUCTION_")}</a>&nbsp;
+                            <a class="ajax-get confirm" href="{:url('del?time='.$data['time'])}">{:lang("_DELETE_")}</a>
+                        </td>
+                    </tr>
+                </volist>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        $(".db-import").click(function(){
+            var self = this, status = ".";
+            $.get(self.href, success, "json");
+            window.onbeforeunload = function(){ return '{:lang("_RESTORING_DATABASE_PLEASE_DONT_TURN_OFF_WITH_DOUBLE_")}'; }
+            return false;
+        
+            function success(data){
+                if(data.code){
+                    if(data.gz){
+                        data.msg += status;
+                        if(status.length === 5){
+                            status = ".";
+                        } else {
+                            status += ".";
+                        }
+                    }
+                    $(self).parent().prev().text(data.msg);
+                    if(data.part){
+                        $.get(self.href, 
+                            {"part" : data.part, "start" : data.start}, 
+                            success, 
+                            "json"
+                        );
+                    }  else {
+                        window.onbeforeunload = function(){ return null; }
+                    }
+                } else {
+                    updateAlert(data.msg,'alert-error');
+                }
+            }
+        });
+        //导航高亮
+        highlight_subnav('{:url("database/index",array("type"=>"import"))}');
+    </script>
+</block>
