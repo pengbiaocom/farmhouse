@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50505
 File Encoding         : 65001
 
-Date: 2018-06-01 10:57:18
+Date: 2018-06-04 16:50:22
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -87,13 +87,14 @@ CREATE TABLE `cms_action_log` (
   KEY `action_ip_ix` (`action_ip`),
   KEY `action_id_ix` (`action_id`),
   KEY `user_id_ix` (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=236 DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='行为日志表';
+) ENGINE=MyISAM AUTO_INCREMENT=237 DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='行为日志表';
 
 -- ----------------------------
 -- Records of cms_action_log
 -- ----------------------------
 INSERT INTO `cms_action_log` VALUES ('234', '8', '1', '0', 'Menu', '10039', '操作url：/farmhouse/public/backstage/menu/edit.html', '1', '1527751148');
 INSERT INTO `cms_action_log` VALUES ('235', '3', '1', '0', 'member', '1', 'admin在2018-06-01 09:40:55登录了账号', '1', '1527817255');
+INSERT INTO `cms_action_log` VALUES ('236', '3', '1', '0', 'member', '1', 'admin在2018-06-04 16:29:16登录了账号', '1', '1528100956');
 
 -- ----------------------------
 -- Table structure for cms_addons
@@ -607,6 +608,23 @@ CREATE TABLE `cms_avatar` (
 
 -- ----------------------------
 -- Records of cms_avatar
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for cms_cart
+-- ----------------------------
+DROP TABLE IF EXISTS `cms_cart`;
+CREATE TABLE `cms_cart` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uid` int(11) DEFAULT NULL COMMENT '用户id',
+  `product_id` int(11) DEFAULT NULL COMMENT '商品id',
+  `total` int(4) DEFAULT '0' COMMENT '数量',
+  `amount` decimal(10,2) DEFAULT '0.00' COMMENT '单价',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='购物车';
+
+-- ----------------------------
+-- Records of cms_cart
 -- ----------------------------
 
 -- ----------------------------
@@ -4391,7 +4409,7 @@ CREATE TABLE `cms_member` (
 -- ----------------------------
 -- Records of cms_member
 -- ----------------------------
-INSERT INTO `cms_member` VALUES ('1', 'admin', '0', '0000-00-00', '', '201', '0', '1489647108', '0', '1527817255', '1', '1', '1', '', '0', '0', '0', '0', 'ues9qnjffmmgkmtdfubv4d5hc1');
+INSERT INTO `cms_member` VALUES ('1', 'admin', '0', '0000-00-00', '', '202', '0', '1489647108', '0', '1528100956', '1', '1', '1', '', '0', '0', '0', '0', 'fuf36tvhhjkcjv49o7bhsq5311');
 
 -- ----------------------------
 -- Table structure for cms_menu
@@ -4932,7 +4950,7 @@ CREATE TABLE `cms_ucenter_member` (
 -- ----------------------------
 -- Records of cms_ucenter_member
 -- ----------------------------
-INSERT INTO `cms_ucenter_member` VALUES ('1', 'admin', '1db39b63aaf96514f186cc836e913951', 'admin@admin.com', '', '1489647108', '0', '1527817255', '0', '1489647108', '1', '1');
+INSERT INTO `cms_ucenter_member` VALUES ('1', 'admin', '1db39b63aaf96514f186cc836e913951', 'admin@admin.com', '', '1489647108', '0', '1528100956', '0', '1489647108', '1', '1');
 
 -- ----------------------------
 -- Table structure for cms_user_config
