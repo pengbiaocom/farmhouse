@@ -202,6 +202,7 @@ class ProductController extends BackstageController{
                 $this->error($title.lang('_SUCCESS_'),$productModel->getError());
             }
         }else{
+            $data = [];
             if($aId){
                 $data=$productModel->getData($aId);
             }
