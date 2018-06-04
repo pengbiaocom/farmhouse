@@ -9,7 +9,7 @@ use app\common\model\AdvPosModel;
 class BannerController extends Controller{
 
     /**
-     * µ÷ÓÃ¹ã¸æ  ½¹µãÍ¼
+     * è°ƒç”¨å¹¿å‘Š  ç„¦ç‚¹å›¾
      * @param Request $request
      * @return \think\response\Json
      */
@@ -23,7 +23,7 @@ class BannerController extends Controller{
 
         $pos = $advPosModel->getInfo($name, $path);
 
-        //²»´æÔÚ¹ã¸æÎ»Ôò´´½¨
+        //ä¸å­˜åœ¨å¹¿å‘Šä½åˆ™åˆ›å»º
         if (empty($pos)) {
             empty($param['type']) && $param['type'] = 3;
             empty($param['status']) && $param['status'] = 1;
@@ -52,9 +52,9 @@ class BannerController extends Controller{
         print_r($list);
 
         if($list){
-            return  json(['code'=>0,'msg'=>'µ÷ÓÃ³É¹¦','data'=>$list]);
+            return  json(['code'=>0,'msg'=>'è°ƒç”¨æˆåŠŸ','data'=>$list]);
         }else{
-            return  json(['code'=>1,'msg'=>'µ÷ÓÃÊ§°Ü','data'=>[]]);
+            return  json(['code'=>1,'msg'=>'è°ƒç”¨å¤±è´¥','data'=>[]]);
         }
     }
 }
