@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50505
 File Encoding         : 65001
 
-Date: 2018-06-04 16:50:22
+Date: 2018-06-04 17:41:26
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -136,8 +136,6 @@ CREATE TABLE `cms_adv` (
   `sort` int(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序',
   `status` tinyint(2) NOT NULL DEFAULT '1' COMMENT '状态（0：禁用，1：正常）',
   `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '开始时间',
-  `start_time` int(11) DEFAULT NULL,
-  `end_time` int(11) unsigned DEFAULT '0' COMMENT '结束时间',
   `target` varchar(20) DEFAULT '_blank',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=10027 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='广告表';
@@ -145,10 +143,10 @@ CREATE TABLE `cms_adv` (
 -- ----------------------------
 -- Records of cms_adv
 -- ----------------------------
-INSERT INTO `cms_adv` VALUES ('10026', '焦点图一', '9', '{\"pic\":7,\"target\":\"_self\"}', '0', 'home/index/index', '0', '1', '1498804300', '1497237833', '1512012180', '_self');
-INSERT INTO `cms_adv` VALUES ('10023', '焦点图三', '9', '{\"pic\":5,\"target\":\"_blank\"}', '0', 'home/index/index', '2', '1', '1498804300', '1497237833', '1512012180', '_blank');
-INSERT INTO `cms_adv` VALUES ('10025', '焦点图四', '9', '{\"pic\":6,\"target\":\"_blank\"}', '0', 'home/index/index', '3', '1', '1498804300', '1497238074', '1504150020', '_blank');
-INSERT INTO `cms_adv` VALUES ('10024', '焦点图二', '9', '{\"pic\":8,\"target\":\"_blank\"}', '0', 'home/index/index', '1', '1', '1498804300', '1497237833', '1511925780', '_blank');
+INSERT INTO `cms_adv` VALUES ('10026', '焦点图一', '9', '{\"pic\":7,\"target\":\"_self\"}', '0', 'home/index/index', '0', '1', '1498804300', '_self');
+INSERT INTO `cms_adv` VALUES ('10023', '焦点图三', '9', '{\"pic\":5,\"target\":\"_blank\"}', '0', 'home/index/index', '2', '1', '1498804300', '_blank');
+INSERT INTO `cms_adv` VALUES ('10025', '焦点图四', '9', '{\"pic\":6,\"target\":\"_blank\"}', '0', 'home/index/index', '3', '1', '1498804300', '_blank');
+INSERT INTO `cms_adv` VALUES ('10024', '焦点图二', '9', '{\"pic\":8,\"target\":\"_blank\"}', '0', 'home/index/index', '1', '1', '1498804300', '_blank');
 
 -- ----------------------------
 -- Table structure for cms_adv_pos

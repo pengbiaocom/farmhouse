@@ -69,10 +69,9 @@
                 <label class="item-label">图片列表： </label>
                 <div class="row data-header">
                     <div class="col-xs-2" style="text-align: center;">图片</div>
-                    <div class="col-xs-1" style="text-align: center;">广告标题</div>
+                    <div class="col-xs-2" style="text-align: center;">广告标题</div>
                     <div class="col-xs-2" style="text-align: center;">Url链接</div>
-                    <div class="col-xs-2" style="text-align: center;">时间</div>
-                    <div class="col-xs-1" style="text-align: center;">打开方式</div>
+                    <div class="col-xs-2" style="text-align: center;">打开方式</div>
                     <div class="col-xs-1" style="text-align: center;">排序</div>
                     <div class="col-xs-2" style="text-align: center;">操作</div>
                 </div>
@@ -88,7 +87,7 @@
                                     <img src="{$vo.pic|pic}">
                                 </div>
                             </div>
-                            <div class="col-xs-1">
+                            <div class="col-xs-2">
                                 <input type="text" name="title[]" value="{$vo.title}"
                                        class="layui-input" style="width: 100%"/>
                             </div>
@@ -97,26 +96,6 @@
                                        class="layui-input" style="width:  100%"/>
                             </div>
                             <div class="col-xs-2">
-                                <div>
-                                    <label style="float: left;">生效：</label>
-                                    <div style="float: left;">
-                                        <input type="hidden" name="start_time[]" value="{$vo.start_time}"/>
-                                        <input type="text" data-field-name="start_time[]" class="layui-input form-datetime"
-                                               style="width: 100%" value="{$vo.start_time|date='Y-m-d H:i:s',###}"
-                                               placeholder="请选择时间"/>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label style="float: left;">失效：</label>
-                                    <div style="float: left;">
-                                        <input type="hidden" name="end_time[]" value="{$vo.end_time}"/>
-                                        <input type="text" data-field-name="end_time[]" class="layui-input form-datetime"
-                                               style="width: 100%" value="{$vo.end_time|date='Y-m-d H:i:s',###}"
-                                               placeholder="请选择时间"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xs-1">
                                 <select id="target_{$vo.id}" name="target[]"  style="width: 100%">
                                     <option value="_blank" selected>新窗口:_blank</option>
                                     <option value="_self">当前层:_self</option>
@@ -164,7 +143,7 @@
         <li class="line row">
             <div class="col-xs-2">
             </div>
-            <div class="col-xs-1">
+            <div class="col-xs-2">
                 <input type="text" name="title[]" value=""
                        class="layui-input" style="width: 100%"/>
             </div>
@@ -173,28 +152,6 @@
                        class="layui-input" style="width:  100%"/>
             </div>
             <div class="col-xs-2">
-                <div>
-                    <label style="float: left;">生效：</label>
-                    <div style="float: left;">
-                        <php>$start=time();</php>
-                        <input type="hidden" name="start_time[]" value="{$start}"/>
-                        <input type="text" data-field-name="start_time[]"  class="form-datetime  layui-input"
-                               style="width: 100%" value="{$start|date='Y-m-d H:i:s',###}"
-                               placeholder="请选择时间"/>
-                    </div>
-                </div>
-                <div>
-                    <label style="float: left;">失效：</label>
-                    <div style="float: left;">
-                        <php>$end=time()+7*60*60*24;</php>
-                        <input type="hidden" name="end_time[]" value="{$end}"/>
-                        <input type="text" data-field-name="end_time[]" class=" form-datetime layui-input"
-                               style="width: 100%" value="{$end|date='Y-m-d H:i:s',###}"
-                               placeholder="请选择时间"/>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xs-1">
                 <select name="target[]" class="layui-input" style="width: 100%">
                     <option value="_blank" selected>新窗口:_blank</option>
                     <option value="_self">当前层:_self</option>
@@ -308,37 +265,6 @@
             }
         };
 
-        initTimePicker();
-
-        function initTimePicker() {
-            layui.use([ 'form','laydate'], function(){
-                var laydate = layui.laydate;
-                var form = layui.form;
-
-                form.render();
-
-                lay('.form-datetime').each(function(){
-                    var that = this;
-                    laydate.render({
-                        elem: that
-                        ,trigger: 'click'
-                        ,type: 'datetime'
-                        ,theme: 'grid'
-                        ,done:function(value){
-                        var fieldName = $(that).prev();
-                        if(value==''){
-                            fieldName.val('');
-                            return true;
-                        }
-                        var date = new Date(value);
-                        var timestamp = date.getTime();
-                        fieldName.val(Math.floor(timestamp / 1000));
-                    }
-                    });
-                });
-
-            });
-        }
     </script>
     <script>
         $(function () {

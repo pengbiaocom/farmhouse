@@ -203,7 +203,7 @@ class AdvController extends BackstageController
         $advModel = new AdvModel();
         $count = $advModel->where($map)->count();
 
-        $data['data'] = $advModel->where($map)->order('pos_id desc,sort desc')->paginate($r,false);
+        $data['data'] = $advModel->where($map)->order('pos_id desc,sort asc')->paginate($r,false);
         $page = $data['data']->render();
         $data['data'] = $data['data']->toArray()['data'];
         $data['count'] = $count;
@@ -222,14 +222,13 @@ class AdvController extends BackstageController
         }
         $builder->keyId()->keyLink('title', '广告说明', 'editAdv?id=###');
         $builder->keyHtml('pos', '所属广告位');
-        $builder->keyText('click_count', '点击量');
         $builder->buttonNew(url('editAdv?pos_id=' . $aPosId), '新增广告');
         $builder->buttonDelete(url('setAdvStatus'));
         if ($aPosId != 0) {
             $builder->button('广告排期查看', ['href' => url('schedule?pos_id=' . $aPosId)]);
             $builder->button('设置广告位', ['href' => url('editPos?id=' . $aPosId)]);
         }
-        $builder->keyText('url', '链接地址')->keyTime('start_time', '生效时间', '不设置则立即生效')->keyTime('end_time', '失效时间', '不设置则一直有效')->keyText('sort', '排序')->keyCreateTime()->keyStatus();
+        $builder->keyText('url', '链接地址')->keyText('sort', '排序')->keyCreateTime()->keyStatus();
         $builder->data($data['data']);
         $builder->pagination($page);
         return $builder->show();
@@ -259,8 +258,6 @@ class AdvController extends BackstageController
             $adv['sort'] = input('sort', 1, 'intval');
             $adv['status'] = input('status', 1, 'intval');
             $adv['create_time'] = input('create_time', '', 'intval');
-            $adv['start_time'] = input('start_time', '', 'intval');
-            $adv['end_time'] = input('end_time', '', 'intval');
             $adv['target'] = input('target', '', 'text');
             cache('adv_list_' . $pos['name'] . $pos['path'], null);
             if ($pos['type'] == 2) {
@@ -269,8 +266,6 @@ class AdvController extends BackstageController
                 $aTitles = input('title', '', 'text');
                 $aUrl = input('url', '', 'text');
                 $aSort = input('sort', '', 'intval');
-                $aStartTime = input('start_time', '', 'intval');
-                $aEndTime = input('end_time', '', 'intval');
                 $aTarget = input('target', '', 'text');
                 $added = 0;
                 $advModel->where(['pos_id' => $aPosId])->delete();
@@ -284,8 +279,6 @@ class AdvController extends BackstageController
                     $adv_temp['sort'] = $aSort[$key];
                     $adv_temp['status'] = 1;
                     $adv_temp['create_time'] = time();
-                    $adv_temp['start_time'] = $aStartTime[$key];
-                    $adv_temp['end_time'] = $aEndTime[$key];
                     $adv_temp['target'] = $aTarget[$key];
                     $adv_temp['data'] = json_encode($data);
 
@@ -347,7 +340,7 @@ class AdvController extends BackstageController
 
             $builder->title($pos['title'] . '设置——' . $advPosModel->switchType($pos['type']));
 
-            $builder->keyTime('start_time', '生效时间', '不设置则立即生效')->keyTime('end_time', '失效时间', '不设置则一直有效')->keyText('sort', '排序')->keyCreateTime()->keyStatus();
+            $builder->keyText('sort', '排序')->keyCreateTime()->keyStatus();
 
             $builder->buttonSubmit()->buttonLink('返回广告列表',['href'=>url('adv?pos_id='.$aPosId),'class'=>'layui-btn btn-danger']);
 
@@ -390,8 +383,6 @@ class AdvController extends BackstageController
             $builder->keyDefault('title', $pos['title'] . '的广告 ' . date('m月d日', time()) . ' 添加')->keyDefault('end_time', time() + 60 * 60 * 24 * 7);
             if ($pos['type'] == 2) {
                 $this->_meta_title = $pos['title'] . '设置——' . $advPosModel->switchType($pos['type']);
-                $adv['start_time'] = isset($adv['start_time']) ? $adv['start_time'] : time();
-                $adv['end_time'] = isset($adv['end_time']) ? $adv['end_time'] : time() + 60 * 60 * 24 * 7;
                 $adv['create_time'] = isset($adv['create_time']) ? $adv['create_time'] : time();
                 $adv['sort'] = isset($adv['sort']) ? $adv['sort'] : 1;
                 $adv['status'] = isset($adv['status']) ? $adv['status'] : 1;

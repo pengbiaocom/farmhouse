@@ -17,8 +17,6 @@ class AdvModel extends BaseModel
 
             $advMap['pos_id'] = $advPos['id'];
             $advMap['status'] = 1;
-            $advMap['start_time'] = ['lt', time()];
-            $advMap['end_time'] = ['gt', time()];
             $data = $this->where($advMap)->order('sort asc')->select()->toArray();
 
 
