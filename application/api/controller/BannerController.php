@@ -49,8 +49,6 @@ class BannerController extends Controller{
         $advModel = new AdvModel();
         $list = $advModel->getAdvList($name, $path);
 
-        dump($list);
-
         if($list){
             return  json(['code'=>0,'msg'=>'调用成功','data'=>$list]);
         }else{
