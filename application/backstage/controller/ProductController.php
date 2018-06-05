@@ -190,6 +190,7 @@ class ProductController extends BackstageController{
             $data['spec']=input('post.spec','','op_t');
             $data['cover']=input('post.cover',0,'op_t');
             $data['price']=input('post.price',0,'op_t');
+            $data['price_line']=input('post.price_line', "", 'op_t');
             $data['sort']=input('post.sort',0,'intval');
             $data['status']=input('post.status',1,'intval');
 
