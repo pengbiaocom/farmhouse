@@ -148,8 +148,8 @@ class ProductController extends BackstageController{
             ->keyText('name','商品名称')
             ->keyText('category',lang('_CATEGORY_'))
             ->keyText('price','价格')
-            ->keyTime('start_time','开始时间')
-            ->keyTime('end_time','结束时间')
+            ->keyText('unit','单位')
+            ->keyText('spec','规格')
             ->keyText('sort',lang('_SORT_'))
             ->keyStatus()->keyUpdateTime()
             ->keyDoActionEdit('product/editproduct?id=###');
@@ -186,8 +186,9 @@ class ProductController extends BackstageController{
             $data['name']=input('post.name','','op_t');
             $data['content']=input('post.content','','filter_content');
             $data['category']=input('post.category',0,'intval');
-            $data['description']=input('post.description','','op_t');
-            $data['cover']=input('post.cover',0,'intval');
+            $data['unit']=input('post.unit','','op_t');
+            $data['spec']=input('post.spec','','op_t');
+            $data['cover']=input('post.cover',0,'op_t');
             $data['price']=input('post.price',0,'op_t');
             $data['sort']=input('post.sort',0,'intval');
             $data['status']=input('post.status',1,'intval');
