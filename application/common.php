@@ -5,7 +5,6 @@ const ONETHINK_VERSION = '1.0.131218';
 use app\common\model\UserModel;
 use app\common\model\UcenterMemberModel;
 use app\common\model\ConfigModel;
-use app\common\model\ScoreModel;
 use app\common\model\AuthRuleModel;
 use think\Request;
 
@@ -378,7 +377,6 @@ function execute_action($rules = false, $action_id = null, $user_id = null, $log
     }
     $return = true;
 
-    $action_log = db('ActionLog')->where(['id' => $log_id])->find();
     foreach ($rules as $rule) {
         //检查执行周期
         $map = ['action_id' => $action_id, 'user_id' => $user_id];
@@ -396,25 +394,11 @@ function execute_action($rules = false, $action_id = null, $user_id = null, $log
         $rule['rule'] = is_bool(strpos($rule['rule'], '-')) ? $rule['rule'] : substr($rule['rule'], 1);
         $res = $Model->where(['uid' => is_login(), 'status' => 1])->setField($field, ['exp', $field . $rule['rule']]);
 
-        $scoreModel = new ScoreModel();
-
-        $scoreModel->cleanUserCache(is_login(), $rule['field']);
-
-
-        $sType = db('ucenter_score_type')->where(['id' => $rule['field']])->find();
-        $log_score .= '【' . $sType['title'] . '：' . $rule['rule'] . $sType['unit'] . '】';
-
-        $action = strpos($rule['rule'], '-') ? 'dec' : 'inc';
-        $scoreModel->addScoreLog(is_login(), $rule['field'], $action, substr($rule['rule'], 1, strlen($rule['rule']) - 1), $action_log['model'], $action_log['record_id'], $action_log['remark'] . '【' . $sType['title'] . '：' . $rule['rule'] . $sType['unit'] . '】');
-
         if (!$res) {
             $return = false;
         }
     }
-    if ($log_score) {
-        cookie('score_tip', $log_score, 30);
-        db('ActionLog')->where(['id' => $log_id])->setField('remark', ['exp', "CONCAT(remark,'" . $log_score . "')"]);
-    }
+
     return $return;
 }
 
