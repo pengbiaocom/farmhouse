@@ -17,10 +17,8 @@ class InitHookBehavior  {
 
     // 行为扩展的执行入口必须是run
     public function run(&$content= []){
-        if (!cms_is_installed()) {
-            return;
-        }
-        $data = cache('hooks');
+        if(!cms_is_installed())  return ;
+         $data = cache('hooks');
         if(!$data){
             $hooks = db('Hooks')->column('name,addons');
             foreach ($hooks as $key => $value) {
