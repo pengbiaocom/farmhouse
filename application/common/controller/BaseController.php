@@ -38,6 +38,11 @@ class BaseController extends Controller
     public function __construct(Request $request = null)
     {
 
+        if (!cms_is_installed() && $request->module() != 'install') {
+            header('Location: ' . think_get_root() . '/index.php?s=install');
+            exit;
+        }
+
         if (is_null($request)) {
             $request = Request::instance();
         }
