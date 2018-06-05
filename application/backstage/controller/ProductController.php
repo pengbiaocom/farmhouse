@@ -188,8 +188,6 @@ class ProductController extends BackstageController{
             $data['description']=input('post.description','','op_t');
             $data['cover']=input('post.cover',0,'intval');
             $data['price']=input('post.price',0,'op_t');
-            $data['start_time']=input('post.start_time',0,'intval');
-            $data['end_time']=input('post.end_time',0,'intval');
             $data['sort']=input('post.sort',0,'intval');
             $data['status']=input('post.status',1,'intval');
 
@@ -221,7 +219,7 @@ class ProductController extends BackstageController{
                 ->keyId()
                 ->keyText('name',lang('_TITLE_'))
                 ->keySelect('category',lang('_CATEGORY_'),'',$options)
-                ->keySingleImage('cover', "商品图片")
+                ->keyMultiImage('cover', "商品图片")
                 ->keyText('price',"商品价格")
                 ->keyText('unit',"商品单位")
                 ->keyText('spec',"商品规格")
