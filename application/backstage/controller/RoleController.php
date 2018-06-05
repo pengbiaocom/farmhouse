@@ -333,6 +333,7 @@ class RoleController extends BackstageController
             $val['nickname'] = $user['nickname'];
             $val['avatar'] = $user['avatar64'];
         }
+
         unset($user, $val);
 
         $statusOptions = [

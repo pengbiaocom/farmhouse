@@ -28,6 +28,7 @@ return array(
     '_SUCCESS_DELETE_COMPLETELY_' => '彻底删除成功',
     '_ERROR_SORT_' => '未修改排序或排序错误',
     '_SUCCESS_SORT_' => '排序成功',
+    '_INDEX_MANAGE_' => '管理首页',
 
     /*Controller&View*/
 //    public

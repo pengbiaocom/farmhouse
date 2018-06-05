@@ -250,47 +250,48 @@ class AdvController extends BackstageController
 
         $advPosModel = new AdvPosModel();
         $pos = db("advPos")->find($aPosId);
-
         if (Request()->isPost()) {
-            $adv['title'] = input('title', '', 'text');
-            $adv['pos_id'] = $aPosId;
-            $adv['url'] = input('url', '', 'text');
-            $adv['sort'] = input('sort', 1, 'intval');
-            $adv['status'] = input('status', 1, 'intval');
-            $adv['create_time'] = input('create_time', '', 'intval');
-            $adv['target'] = input('target', '', 'text');
             cache('adv_list_' . $pos['name'] . $pos['path'], null);
             if ($pos['type'] == 2) {
                 //todo 多图
-
-                $aTitles = input('title', '', 'text');
-                $aUrl = input('url', '', 'text');
-                $aSort = input('sort', '', 'intval');
-                $aTarget = input('target', '', 'text');
+                $datas = Request()->param();
+                $aTitles = $datas["title"];
+                $aUrl = $datas["url"];
+                $aSort = $datas["sort"];
+                $aTarget = $datas["target"];
                 $added = 0;
-                $advModel->where(['pos_id' => $aPosId])->delete();
-                foreach (input('pic', 0, 'intval') as $key => $v) {
-                    $data['pic'] = $v;
+                $pic = $datas["pic"];
+                if(!empty($pic)){
+                    $advModel->where(['pos_id' => $aPosId])->delete();
+                    foreach ($pic as $key => $v) {
+                        $data['pic'] = $v;
 
-                    $data['target'] = $aTarget[$key];
-                    $adv_temp['title'] = $aTitles[$key];
-                    $adv_temp['pos_id'] = $adv['pos_id'];
-                    $adv_temp['url'] = $aUrl[$key];
-                    $adv_temp['sort'] = $aSort[$key];
-                    $adv_temp['status'] = 1;
-                    $adv_temp['create_time'] = time();
-                    $adv_temp['target'] = $aTarget[$key];
-                    $adv_temp['data'] = json_encode($data);
-
-                    $result = $advModel->save($adv_temp);
-                    if ($result !== false) {
-                        $added++;
+                        $data['target'] = $aTarget[$key];
+                        $adv_temp['title'] = $aTitles[$key];
+                        $adv_temp['pos_id'] = $aPosId;
+                        $adv_temp['url'] = $aUrl[$key];
+                        $adv_temp['sort'] = $aSort[$key];
+                        $adv_temp['status'] = 1;
+                        $adv_temp['create_time'] = time();
+                        $adv_temp['target'] = $aTarget[$key];
+                        $adv_temp['data'] = json_encode($data);
+                        $result = db("adv")->insert($adv_temp);
+                        if ($result !== false) {
+                            $added++;
+                        }
+                        //todo添加
                     }
-                    //todo添加
                 }
                 $this->success('成功改动' . $added . '个广告。',url('Adv/adv',['pos_id'=>$adv['pos_id']]));
 
             } else {
+                $adv['title'] = input('title', '', 'text');
+                $adv['pos_id'] = $aPosId;
+                $adv['url'] = input('url', '', 'text');
+                $adv['sort'] = input('sort', 1, 'intval');
+                $adv['status'] = input('status', 1, 'intval');
+                $adv['create_time'] = input('create_time', '', 'intval');
+                $adv['target'] = input('target', '', 'text');
                 switch ($pos['type']) {
                     case 1:
                         //todo 单图

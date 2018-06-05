@@ -182,7 +182,7 @@ class PictureModel extends BaseModel{
         }
         /* 查找文件 */
         $map = ['md5' => $file['md5'],'sha1'=>$file['sha1']];
-        return $this->field(true)->where($map)->find()->toArray();
+        return db("picture")->field(true)->where($map)->find();
     }
 
     /**

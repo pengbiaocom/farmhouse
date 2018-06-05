@@ -114,7 +114,12 @@ function getRootUrl()
     if ($root != '') {
         return $root.'/';
     }
-    return $root;
+    if(substr($root,-1)=='/'){
+        return $root;
+    }else{
+        return $root.'/';
+    }
+
 }
 
 /**通过ID获取到图片的缩略图

@@ -171,9 +171,6 @@
                 <a class="layui-btn btn-danger layui-btn-small" onclick="builder.remove(this)">
                     <i class="icon-trash"></i>
                 </a>
-                <!--<a href="javascript:" class="layui-btn btn-warning sort-handle layui-btn-small">-->
-                    <!--<i class="icon-move"></i>-->
-                <!--</a>-->
             </div>
         </li>
     </script>
@@ -181,15 +178,6 @@
         var builder = {
             'uploaders': [],
             'index': 1,
-            'sortable': function () {
-                $('#data-table').sortable({
-                    trigger: '.sort-handle', selector: 'li', dragCssClass: '', finish: function () {
-                        // builder.sortable();
-                        builder.refresh_order();
-
-                    }
-                });
-            },
             'refresh_order': function () {
                 $('#data-table li').each(function (index, element) {
                     $(this).attr('data-order', index);
@@ -200,7 +188,6 @@
                 var $html = $($('#line-tpl').html());
                 $('#data-table').html($html);
                 builder.createWebUpload($html, $html);
-                builder.sortable();
                 builder.refresh_order();
             },
             'add': function (obj) {
@@ -208,15 +195,20 @@
                 var $html = $($('#line-tpl').html());
                 $html.insertAfter($this.parent().parent());
                 builder.createWebUpload($html, $this.parent().parent());
-                builder.sortable();
                 builder.refresh_order();
+                layui.use('form', function(){
+                    var form = layui.form;
+                    form.render();
+                });
 
             },
             'remove': function (obj) {
                 $(obj).parent().parent().remove();
-                builder.sortable();
                 builder.refresh_order();
-
+                layui.use('form', function(){
+                    var form = layui.form;
+                    form.render();
+                });
             },
             'createWebUpload': function ($html, $parent_parent) {
                 var id = builder.index++;
