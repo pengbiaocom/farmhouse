@@ -221,7 +221,7 @@ class ProductController extends BackstageController{
                 ->keyId()
                 ->keyText('name',lang('_TITLE_'))
                 ->keySelect('category',lang('_CATEGORY_'),'',$options)
-                ->keyMultiImage('cover', "商品图片")
+                ->keySingleImage('cover', "商品图片")
                 ->keyText('price',"商品价格")
                 ->keyText('unit',"商品单位")
                 ->keyText('spec',"商品规格")
@@ -230,8 +230,8 @@ class ProductController extends BackstageController{
 
                 ->keyStatus()->keyDefault('status',1)
                 ->keyInteger('sort',lang('_SORT_'))->keyDefault('sort',999)
-                ->group('基础', ['name', 'category', 'price', 'unit', 'spec', 'sort'])
-                ->group('扩展', ['cover', 'price_line', 'content'])
+                ->group('基础', ['name', 'category','cover', 'price', 'unit', 'spec', 'sort'])
+                ->group('扩展', [ 'price_line', 'content'])
                 ->buttonSubmit()->buttonBack();
             return $builder->show();
         }

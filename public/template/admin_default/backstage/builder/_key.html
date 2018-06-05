@@ -109,8 +109,8 @@
                     // 只允许选择图片文件
                     accept: {
                         title: 'Images',
-                        extensions: 'gif,jpg,jpeg,bmp,png',
-                        mimeTypes: 'image/gif,image/jpg,image/jpeg,image/bmp,image/png'
+                        extensions: 'jpg,jpeg,png',
+                        mimeTypes: 'image/jpg,image/jpeg,image/png'
                     }
                 });
                 uploader_{$field.name}.on('fileQueued', function (file) {
@@ -119,10 +119,10 @@
                 /*上传成功**/
                 uploader_{$field.name}.on('uploadSuccess', function (file, data) {
                     if (data.code) {
-                        $("[name='{$field.name}']").val(data.id);
+                        $("[name='{$field.name}']").val(data.data.file.id);
                         $("[name='{$field.name}']").parent().find('.upload-pre-item').html(
-                                ' <div class="each"><a href="'+ data.path+'" title={:lang("_CLICK_TO_SEE_THE_BIG_PICTURE_WITH_DOUBLE_")}><img src="'+ data.path+'"></a><div class="text-center opacity del_btn" ></div>' +
-                                        '<div onclick="admin_image.removeImage($(this),'+data.id+')"  class="text-center del_btn">{:lang("_DELETE_")}</div></div>'
+                                ' <div class="each"><a href="'+ data.data.file.path+'" title={:lang("_CLICK_TO_SEE_THE_BIG_PICTURE_WITH_DOUBLE_")}><img src="'+ data.data.file.path+'"></a><div class="text-center opacity del_btn" ></div>' +
+                                        '<div onclick="admin_image.removeImage($(this),'+data.data.file.id+')"  class="text-center del_btn">{:lang("_DELETE_")}</div></div>'
                         );
                         uploader_{$field.name}.reset();
                     } else {
@@ -176,8 +176,8 @@
                     // 只允许文件。
                     accept: {
                         title: 'Images',
-                        extensions: 'gif,jpg,jpeg,bmp,png',
-                        mimeTypes: 'image/gif,image/jpg,image/jpeg,image/bmp,image/png'
+                        extensions: 'jpg,jpeg,png',
+                        mimeTypes: 'image/jpg,image/jpeg,image/png'
                     }
                 });
                 uploader_{$field.name}.on('fileQueued', function (file) {
@@ -191,15 +191,15 @@
                           if (data.code) {
                             var ids = $("[name='{$field.name}']").val();
                             ids = ids.split(',');
-                          if( ids.indexOf(data.id) == -1){
-                                var rids = admin_image.upAttachVal('add',data.id, $("[name='{$field.name}']"));
+                          if( ids.indexOf(data.data.file.id) == -1){
+                                var rids = admin_image.upAttachVal('add',data.data.file.id, $("[name='{$field.name}']"));
                               if(rids.length>limit){
                                   updateAlert({:lang('_EXCEED_THE_PICTURE_LIMIT_WITH_SINGLE_')});
                                   return;
                               }
                               $("[name='{$field.name}']").parent().find('.upload-pre-item').append(
-                                        ' <div class="each"><a href="'+ data.path+'" title={:lang("_CLICK_TO_SEE_THE_BIG_PICTURE_WITH_DOUBLE_")}><img src="'+ data.path+'"></a><div class="text-center opacity del_btn" ></div>' +
-                                                '<div onclick="admin_image.removeImage($(this),'+data.id+')"  class="text-center del_btn">{:lang("_DELETE_")}</div></div>'
+                                        ' <div class="each"><a href="'+ data.data.file.path+'" title={:lang("_CLICK_TO_SEE_THE_BIG_PICTURE_WITH_DOUBLE_")}><img src="'+ data.data.file.path+'"></a><div class="text-center opacity del_btn" ></div>' +
+                                                '<div onclick="admin_image.removeImage($(this),'+data.data.file.id+')"  class="text-center del_btn">{:lang("_DELETE_")}</div></div>'
                                 );
                             }else{
                                 updateAlert({:lang('_THE_PICTURE_ALREADY_EXISTS_WITH_SINGLE_')});
