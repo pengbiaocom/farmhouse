@@ -180,6 +180,7 @@ class ProductController extends BackstageController{
         $CategoryModel = new ProductCategoryModel();
         $aId=input('id',0,'intval');
         $title=$aId?lang('_EDIT_'):lang('_ADD_');
+
         if(Request()->isPost()){
             $aId&&$data['id']=$aId;
             $data['name']=input('post.name','','op_t');
@@ -216,7 +217,7 @@ class ProductController extends BackstageController{
             $builder=new BackstageConfigBuilder();
             $builder->title($title.'商品')
                 ->data($data)
-                ->keyId()
+                ->keyId('id')
                 ->keyText('name',lang('_TITLE_'))
                 ->keySelect('category',lang('_CATEGORY_'),'',$options)
                 ->keyMultiImage('cover', "商品图片")
@@ -228,7 +229,7 @@ class ProductController extends BackstageController{
 
                 ->keyStatus()->keyDefault('status',1)
                 ->keyInteger('sort',lang('_SORT_'))->keyDefault('sort',999)
-                ->group('基础', ['name', 'category','cover', 'price', 'unit', 'spec', 'sort'])
+                ->group('基础', ['id', 'name', 'category','cover', 'price', 'unit', 'spec', 'sort'])
                 ->group('扩展', [ 'price_line', 'content'])
                 ->buttonSubmit()->buttonBack();
             return $builder->show();
