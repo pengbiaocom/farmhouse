@@ -16,11 +16,6 @@
 <block name="script"><!-- 用于加载js代码 --></block>
 <!-- 页面footer钩子，一般用于加载插件JS文件和JS代码 -->
 {:hook('pageFooter', 'widget')}
-<!-- 调用全站公告部件-->
-{:widget('Common/Announce/render')}
-
-<!-- 调用消息部件-->
-{:widget('Common/Message/render')}
 
 <div class="hidden"><!-- 用于加载统计代码等隐藏元素 -->
     {$count_code}
