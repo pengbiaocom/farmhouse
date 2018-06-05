@@ -226,7 +226,7 @@ class ProductController extends BackstageController{
                 ->keyText('unit',"商品单位")
                 ->keyText('spec',"商品规格")
                 ->keyTextArea('price_line', "商品价格线", '数量|价格  一行一个')
-                ->keyEditor('content',lang('_CONTENT_'),'','all',['width' => '700px', 'height' => '300px'])
+                ->keyEditor('content',"商品描述",'','all',['width' => '700px', 'height' => '300px'])
 
                 ->keyStatus()->keyDefault('status',1)
                 ->keyInteger('sort',lang('_SORT_'))->keyDefault('sort',999)
