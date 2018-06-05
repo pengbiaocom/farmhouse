@@ -221,15 +221,17 @@ class ProductController extends BackstageController{
                 ->keyId()
                 ->keyText('name',lang('_TITLE_'))
                 ->keySelect('category',lang('_CATEGORY_'),'',$options)
-                ->keySingleImage('cover',lang('_COVER_'))
+                ->keyMultiImage('cover', "商品图片")
                 ->keyText('price',"商品价格")
-                ->keyTextArea('description',lang('_NOTE_'))
+                ->keyText('unit',"商品单位")
+                ->keyText('spec',"商品规格")
+                ->keyTextArea('price_line', "商品价格线", '数量|价格  一行一个')
                 ->keyEditor('content',lang('_CONTENT_'),'','all',['width' => '700px', 'height' => '300px'])
 
                 ->keyStatus()->keyDefault('status',1)
-                ->keyTime('start_time','开始时间')->keyDefault('start_time',$start_time)
-                ->keyTime('end_time','结束时间')->keyDefault('end_time',$end_time)
                 ->keyInteger('sort',lang('_SORT_'))->keyDefault('sort',999)
+                ->group('基础', ['name', 'category', 'price', 'unit', 'spec', 'sort'])
+                ->group('扩展', ['cover', 'price_line', 'content'])
                 ->buttonSubmit()->buttonBack();
             return $builder->show();
         }
