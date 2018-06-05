@@ -66,7 +66,7 @@ class ProductCategoryModel extends BaseModel
 
     public function getCategoryList($map, $type = 0)
     {
-        $list = $this->where($map)->field('id,title,pid,sort,status')->order('sort desc')->select()->toArray();
+        $list = $this->where($map)->field('id,title,pid,sort,status')->order('sort asc')->select()->toArray();
         if (!$type) {
             return $list;
         }
