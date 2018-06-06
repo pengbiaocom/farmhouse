@@ -15,6 +15,8 @@ class GoodsController extends Controller{
     public function good_list(Request $request){
         $model = db('product');
         $category = $request->param('cate', 0, 'intval');
+        $limit = $request->param('limit', 10, 'intval');
+        $page = $request->param('page', 1, 'intval');
         
         if($category == 0) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
         
@@ -23,6 +25,7 @@ class GoodsController extends Controller{
             ->field('p.id,p.name,p.category,p.price,p.market_price,p.unit,p.spec,p.price_line,p.cover,p.sort,pc.title')
             ->join('product_category pc', 'p.category = pc.id', 'LEFT')
             ->where('p.status > 0 and p.category = ' . $category)
+            ->limit(($page-1)*$limit, $limit)
             ->select();
         
         if(!empty($list)){
@@ -44,7 +47,7 @@ class GoodsController extends Controller{
                 }
             }
             
-            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$list]);
+            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$list, 'paginate'=>array('cate'=>$category, 'page'=>sizeof($limit) < 10 ? $page : $page+1, 'limit'=>$limit)]);
         }else{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
