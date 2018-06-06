@@ -189,7 +189,8 @@ class ProductController extends BackstageController{
             $data['unit']=input('post.unit','','op_t');
             $data['spec']=input('post.spec','','op_t');
             $data['cover']=input('post.cover',0,'op_t');
-            $data['price']=input('post.price',0,'op_t');
+            $data['price']=input('post.price','0.00','op_t');
+            $data['market_price']=input('post.market_price','0.00','op_t');
             $data['price_line']=input('post.price_line', "", 'op_t');
             $data['sort']=input('post.sort',0,'intval');
             $data['status']=input('post.status',1,'intval');
@@ -223,7 +224,8 @@ class ProductController extends BackstageController{
                 ->keyText('name',lang('_TITLE_'))
                 ->keySelect('category',lang('_CATEGORY_'),'',$options)
                 ->keyMultiImage('cover', "商品图片")
-                ->keyText('price',"商品价格")
+                ->keyText('price',"商品现价")
+                ->keyText('market_price',"商品市价")
                 ->keyText('unit',"商品单位")
                 ->keyText('spec',"商品规格")
                 ->keyTextArea('price_line', "商品价格线", '数量|价格  一行一个')
@@ -231,7 +233,7 @@ class ProductController extends BackstageController{
 
                 ->keyStatus()->keyDefault('status',1)
                 ->keyInteger('sort',lang('_SORT_'))->keyDefault('sort',999)
-                ->group('基础', ['id', 'name', 'category','cover', 'price', 'unit', 'spec', 'sort'])
+                ->group('基础', ['id', 'name', 'category','cover', 'price', 'market_price', 'unit', 'spec', 'sort'])
                 ->group('扩展', [ 'price_line', 'content'])
                 ->buttonSubmit()->buttonBack();
             return $builder->show();
