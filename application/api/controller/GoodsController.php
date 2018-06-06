@@ -47,7 +47,7 @@ class GoodsController extends Controller{
                 }
             }
             
-            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$list, 'paginate'=>array('cate'=>$category, 'page'=>sizeof($limit) < 10 ? $page : $page+1, 'limit'=>$limit)]);
+            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$list, 'paginate'=>array('cate'=>$category, 'page'=>sizeof($list) < 10 ? $page : $page+1, 'limit'=>$limit)]);
         }else{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
