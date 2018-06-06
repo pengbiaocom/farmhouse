@@ -17,7 +17,7 @@ class CategoryController extends Controller{
         $model = db('product_category');
         $list = $model->where('status > 0')->order('sort asc')->select();
         
-        if($list){
+        if(!empty($list)){
             return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$list]);
         }else{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);

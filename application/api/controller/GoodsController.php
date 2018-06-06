@@ -46,7 +46,7 @@ class GoodsController extends Controller{
             
             return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$list]);
         }else{
-            return json(['code'=>1, 'msg'=>'没有数据', 'data'=>[]]);
+            return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
     }
 
@@ -58,6 +58,38 @@ class GoodsController extends Controller{
     * @return:
     */
     public function detail(Request $request){
-
+        $model = db('product');
+        $id = $request->param('id', 0, 'intval');
+        
+        if($id == 0) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
+        
+        $info = $model
+            ->alias('p')
+            ->field('p.id,p.name,p.category,p.price,p.market_price,p.unit,p.spec,p.price_line,p.cover,p.sort,pc.title')
+            ->join('product_category pc', 'p.category = pc.id', 'LEFT')
+            ->where('p.status > 0 and p.id = ' . $id)
+            ->find();
+        
+        if(!empty($info)){
+            $info['cover'] = get_cover(explode(',', $info['cover'])[0], 'path');
+            
+            if(!empty($info['price_line'])){
+                $array = preg_split('/[,;\r\n]+/', trim($info['price_line'], ",;\r\n"));
+            
+                if(strpos($info['price_line'],'|')){
+                    $value  = array();
+                    foreach ($array as $val) {
+                        list($k, $v) = explode('|', $val);
+                        $value[$k]   = $v;
+                    }
+            
+                    $info['price_line'] = $value;
+                }
+            }
+            
+            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$info]);
+        }else{
+            return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
+        }
     }
 }
