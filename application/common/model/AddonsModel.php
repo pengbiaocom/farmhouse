@@ -31,6 +31,9 @@ class AddonsModel extends BaseModel
             $this->error = lang('_PLUGIN_DOES_NOT_EXIST_');
             return false;
         }
+
+
+
         $addons = new $class;
         $info = $addons->info;
         if (!$info || !$addons->checkInfo())//检测信息的正确性
@@ -38,8 +41,10 @@ class AddonsModel extends BaseModel
             $this->error = lang('_PLUGIN_INFORMATION_MISSING_');
             return false;
         }
+
         session('addons_install_error', null);
         $install_flag = $addons->install();
+
         if (!$install_flag) {
             $this->error = lang('_PERFORM_A_PLUG__IN__OPERATION_FAILED_') . session('addons_install_error');
             return false;
@@ -47,17 +52,17 @@ class AddonsModel extends BaseModel
 
         $data = $info;
 
-        if ((is_array($addons->admin_list) && $addons->admin_list !== array()) || method_exists(controller('Addons://Mail/Admin'), 'buildList')) {
+        if ((is_array($addons->admin_list) && $addons->admin_list !== array())) {
             $data['has_adminlist'] = 1;
             cache('addons_menu_list',null);
         } else {
             $data['has_adminlist'] = 0;
         }
-
-        if ($this->allowField(true)->save($data)) {
+        if ($this->allowField(true)->isUpdate(false)->save($data)) {
             $config = array('config' => json_encode($addons->getConfig()));
-            $this->allowField(true)->save($config,"name='{$name}'");
+            $this->allowField(true)->isUpdate(true)->save($config,['name'=>$name]);
             $hooksModel = new HooksModel();
+
             $hooks_update = $hooksModel->updateHooks($name);
             if ($hooks_update) {
                 cache('hooks', null);

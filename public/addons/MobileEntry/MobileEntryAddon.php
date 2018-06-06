@@ -70,7 +70,10 @@ class MobileEntryAddon extends Addon{
             $data['type'] = 1;
             $data['update_time'] = time();
             $data['addons'] = $addons;
-            $hook_mod->allowField(true)->save($data);
+            if($hook_mod->where("name='".$data['name']."' and addons like '%".$addons."%'")->count()==0){
+                $hook_mod->allowField(true)->save($data);
+            }
+
         }
     }
     }

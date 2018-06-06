@@ -385,7 +385,7 @@ class BaseModel extends Model{
         $sql = fread($fp, filesize($file));
         fclose($fp);
 
-        $sql = str_replace("\r", "\n", str_replace('`' . 'ocenter_', '`' . $this->tablePrefix, $sql));
+        $sql = str_replace("\r", "\n", str_replace('`' . 'cms_', '`' . config('database.prefix'), $sql));
 
         foreach (explode(";\n", trim($sql)) as $query) {
             $query = trim($query);

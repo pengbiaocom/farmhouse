@@ -49,7 +49,7 @@ class ModuleModel extends BaseModel
         foreach ($modules as $m) {
             if (file_exists(APP_PATH . '/' . $m['name'] . '/info/info.php')) {
                 $info = array_merge($m, $this->getInfo($m['name']));
-                $this->save($info);
+                $this->isUpdate(true)->where(['id'=>$m['id']])->save($info);
             }
         }
         $this->cleanModulesCache();
@@ -60,14 +60,14 @@ class ModuleModel extends BaseModel
      */
     public function reloadModule($name)
     {
-        $module = $this->where(['name' => $name])->find();
+        $module = db("module")->where(['name' => $name])->find();
         if (empty($module)) {
             $this->error = lang('_MODULE_INFORMATION_DOES_NOT_EXIST_WITH_PERIOD_');
             return false;
         } else {
             if (file_exists(APP_PATH . '/' . $module['name'] . '/info/info.php')) {
                 $info = array_merge($module, $this->getInfo($module['name']));
-                $this->save($info);
+                $this->isUpdate(true)->where(['name'=>$name])->save($info);
                 $this->cleanModuleCache($name);
                 return true;
             }
@@ -93,9 +93,8 @@ class ModuleModel extends BaseModel
         if(!$id){
             return false;
         }
-        $data['id']=$id;
         $data['auth_role']=$auth_role;
-        $res=$this->save($data);
+        $res=$this->isUpdate(true)->where(['id'=>$id])->save($data);
         return $res;
     }
 
@@ -148,7 +147,8 @@ class ModuleModel extends BaseModel
      */
     public function uninstall($id, $withoutData = 1)
     {
-        $module = $this->find($id);
+        $module = db("module")->where(['id'=>$id])->find();
+
         if (!$module || $module['is_setup'] == 0) {
             $this->error = lang('_MODULE_DOES_NOT_EXIST_OR_IS_NOT_INSTALLED_WITH_PERIOD_');
             return false;
@@ -178,7 +178,7 @@ class ModuleModel extends BaseModel
             }
         }
         $module['is_setup'] = 0;
-        $this->save($module);
+        db("module")->where(['id'=>$id])->update($module);
 
         $this->cleanModulesCache();
         return true;
@@ -190,7 +190,7 @@ class ModuleModel extends BaseModel
      */
     public function getModule($name)
     {
-        $module = $this->where(['name' => $name])->cache('common_module_' . strtolower($name))->find()->toArray();
+        $module = db("module")->where(['name' => $name])->cache('common_module_' . strtolower($name))->find();
         if ($module === false || $module == null) {
             $m = $this->getInfo($name);
             if ($m != []) {
@@ -199,7 +199,7 @@ class ModuleModel extends BaseModel
                 } else {
                     $m['is_setup'] = 1;
                 }
-                $m['id'] = $this->save($m);
+                $m['id'] = db("module")->insertGetId($m);
                 $m['token'] = $this->getToken($m['name']);
                 return $m;
             }
@@ -243,7 +243,7 @@ class ModuleModel extends BaseModel
      */
     public function getModuleById($id)
     {
-        $module = $this->where(['id' => $id])->find()->toArray();
+        $module = db("module")->where(['id' => $id])->find();
         if ($module === false || $module == null) {
             $m = $this->getInfo($module['name']);
             if ($m != []) {
@@ -252,7 +252,7 @@ class ModuleModel extends BaseModel
                 } else {
                     $m['is_setup'] = 1;
                 }
-                $m['id'] = $this->save($m);
+                $m['id'] = db("module")->insertGetId($m);
                 $m['token'] = $this->getToken($m['name']);
                 return $m;
             }
@@ -286,9 +286,9 @@ class ModuleModel extends BaseModel
     {
         $log = '';
         if ($id != 0) {
-            $module = $this->find($id);
+            $module = db("module")->where(['id'=>$id])->find();
         } else {
-            $aName = input('get.name', '');
+            $aName = input('name', '');
             $module = $this->getModule($aName);
         }
         if ($module['is_setup'] == 1) {
@@ -340,6 +340,17 @@ class ModuleModel extends BaseModel
                 }
             }
 
+            //seo导入
+            $seo = json_decode($data['seo'], true);
+            if (!empty($seo)) {
+                $this->cleanSeo($module['name']);
+                if ($this->addSeo($seo)) {
+                    $log .= '&nbsp;&nbsp;>SEO方案成功导入。<br/>';
+                }
+            }
+
+
+
             if (file_exists(APP_PATH . '/' . $module['name'] . '/info/install.sql')) {
                 $install_sql = APP_PATH . '/' . $module['name'] . '/info/install.sql';
                 if ($this->executeSqlFile($install_sql) === true) {
@@ -350,7 +361,10 @@ class ModuleModel extends BaseModel
 
         $module['is_setup'] = 1;
         $module['auth_role']=input('auth_role','','text');
-        $rs = $this->save($module);
+
+
+        $rs = db("module")->where(['name'=>$module['name']])->update($module);
+
         if ($rs === false) {
             $this->error = lang('_MODULE_INFORMATION_MODIFICATION_FAILED_WITH_PERIOD_');
             return false;
@@ -449,14 +463,16 @@ class ModuleModel extends BaseModel
         db()->execute($sql);
     }
 
-    private function addMenus($menu, $pid = 0)
+    private function addMenus($menu, $pid = 10018)
     {
         $menu['pid'] = $pid;
         unset($menu['id']);
+        $nextmenu = $menu['_'];
+        unset($menu['_']);
         $id = db('Menu')->insertGetId($menu);
         $menu['id'] = $id;
-        if (!empty($menu['_']))
-            foreach ($menu['_'] as $v) {
+        if (!empty($nextmenu))
+            foreach ($nextmenu as $v) {
                 $this->addMenus($v, $id);
             }
         return true;
@@ -502,6 +518,21 @@ class ModuleModel extends BaseModel
         //关闭目录
         closedir($fp);
         return $files;
+    }
+
+    private function cleanSeo($module_name) {
+        if($module_name) {
+            $map['app'] = strtoupper($module_name) ;
+            db('SeoRule')->where($map)->delete() ;
+        }
+    }
+
+    private function addSeo($seo) {
+        foreach ($seo as $v) {
+            unset($v['id']);
+            db('SeoRule')->insert($v);
+        }
+        return true;
     }
 
 

@@ -137,10 +137,7 @@ class ModuleController extends BackstageController
                 if (file_exists(APP_PATH . '/' . $module['name'] . '/info/uninstall.php')) {
                     require_once(APP_PATH . '/' . $module['name'] . '/info/uninstall.php');
                 }
-                if ($aNav) {
-                    db('Channel')->where(['url' => $module['entry']])->delete();
-                    cache('common_nav', null);
-                }
+
                 cache('admin_modules', null);
                 $this->success(lang('_THE_SUCCESS_OF_THE_UNLOADING_MODULE_'), url('lists'));
             } else {
@@ -168,27 +165,17 @@ class ModuleController extends BackstageController
 
     public function install()
     {
-        $aName = input('get.name', '', 'text');
+        $aName = input('name', '', 'text');
         $aNav = input('add_nav', 0, 'intval');
 
         $moduleModel = new ModuleModel();
 
         $module = $moduleModel->getModule($aName);
-
         if (Request()->isPost()) {
             //执行guide中的内容
             $res = $moduleModel->install($module['id']);
 
             if ($res === true) {
-                if ($aNav) {
-                    $channel['title'] = $module['alias'];
-                    $channel['url'] = $module['entry'];
-                    $channel['sort'] = 100;
-                    $channel['status'] = 1;
-                    $channel['icon'] = $module['icon'];
-                    db('Channel')->insert($channel);
-                    cache('common_nav', null);
-                }
                 cache('ADMIN_MODULES_' . is_login(), null);
                 $this->success(lang('_INSTALLATION_MODULE_SUCCESS_'), url('lists'));
             } else {
@@ -218,7 +205,7 @@ class ModuleController extends BackstageController
                 $builder->keyBool('add_nav', lang('_ADD_NAVIGATION_'), lang('_INSTALL_AUTO_ADD_MENU_', ['link' => url('channel/index')]));
             }
 
-            $builder->group(lang('_INSTALL_OPTION_'), 'mode,add_nav,auth_role');
+            $builder->group(lang('_INSTALL_OPTION_'), 'name,mode,add_nav,auth_role');
 
             $module['mode'] = 'install';
             $module['add_nav'] = '1';

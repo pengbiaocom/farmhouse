@@ -484,7 +484,7 @@ str;
             else
                 $this->error(lang('_UPDATE_FAILED_'));
         } else {
-            $flag = $hookModel->allowField(true)->save($data);
+            $flag = $hookModel->allowField(true)->isUpdate(false)->save($data);
             if ($flag)
                 $this->success(lang('_NEW_SUCCESS_'), Cookie('__forward__'));
             else
