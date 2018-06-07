@@ -35,7 +35,7 @@
                             <div class="group_list" style="<if condition='$i neq 1'>display: none;</if>">
                                 <volist name="keyList" id="field">
                                     <php>if(in_array($field['name'],$vGroup)||(is_array($field['name'])&&in_array(implode('|', $field['name']),$vGroup))){</php>
-                                    <include file="Builder/_key"/>
+                                    <include file="builder/_key"/>
                                     <php>}</php>
                                 </volist>
                             </div>
