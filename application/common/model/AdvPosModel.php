@@ -1,5 +1,5 @@
 <?php
-namespace app\common\Model;
+namespace app\common\model;
 
 class AdvPosModel extends BaseModel
 {

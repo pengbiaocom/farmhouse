@@ -1,5 +1,4 @@
 <?php
-
 namespace app\common\model;
 
 class AdvModel extends BaseModel

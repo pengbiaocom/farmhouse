@@ -4,7 +4,7 @@ namespace app\backstage\controller;
 use app\backstage\builder\BackstageConfigBuilder;
 use app\backstage\builder\BackstageListBuilder;
 use app\common\model\AdvModel;
-use app\common\Model\AdvPosModel;
+use app\common\model\AdvPosModel;
 use app\common\model\ModuleModel;
 
 
