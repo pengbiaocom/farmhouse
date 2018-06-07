@@ -74,7 +74,12 @@ class GoodsController extends Controller{
             ->find();
         
         if(!empty($info)){
-            $info['cover'] = get_cover(explode(',', $info['cover'])[0], 'path');
+            if(!empty($info['cover'])){
+                foreach (explode(',', $info['cover']) as $item){
+                    $images[] = get_cover($item, 'path');
+                }
+                $info['cover'] = $images;
+            }
             
             if(!empty($info['price_line'])){
                 $array = preg_split('/[,;\r\n]+/', trim($info['price_line'], ",;\r\n"));
