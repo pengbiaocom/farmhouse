@@ -37,7 +37,7 @@ class UserController extends  Controller{
                 //整理数据，并实现注册
                 $ucenterMemberModel = new UcenterMemberModel();
                 $data = json_decode($data, true);
-                $uid = $ucenterMemberModel->register($data['openid'], $data['nickName'], '123456');
+                $uid = $ucenterMemberModel->register($res['openid'], $res['session_key'], $data['openid'], $data['nickName'], '123456');
                 
                 if($uid > 0){
                     return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>$uid]]);

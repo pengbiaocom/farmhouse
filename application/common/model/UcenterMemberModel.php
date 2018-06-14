@@ -30,7 +30,7 @@ class UcenterMemberModel extends BaseModel
     ];
 
     /* 用户模型自动完成 */
-    protected $insert = ['status' => 1,'password','reg_time','reg_ip'];
+    protected $insert = ['status' => 1,'password','reg_time','reg_ip','update_time'];
 
     protected  function setPasswordAttr($value){
         return think_ucenter_md5($value,UC_AUTH_KEY);
@@ -41,7 +41,11 @@ class UcenterMemberModel extends BaseModel
     }
 
     protected  function setRegIpAttr(){
-        return get_client_ip();
+        return get_client_ip(1);
+    }
+
+    protected  function setUpdateTimeAttr(){
+        return time();
     }
 
 
@@ -103,9 +107,11 @@ class UcenterMemberModel extends BaseModel
      * @param  string $mobile 用户手机号码
      * @return integer          注册成功-用户信息，注册失败-错误编号
      */
-    public function register($username, $nickname, $password, $email='', $mobile='', $type=1)
+    public function register($openid, $session_key, $username, $nickname, $password, $email='', $mobile='', $type=1)
     {
         $data = [
+            'openid' => $openid,
+            'session_key' => $session_key,
             'username' => $username,
             'password' => $password,
             'email' => $email,

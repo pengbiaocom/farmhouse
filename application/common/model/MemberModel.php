@@ -13,7 +13,6 @@ class MemberModel extends BaseModel
         'last_login_time'=>0,
         'reg_time',
         'reg_ip',
-        'update_time',
         'status'=>1,
         'pos_province'=>0,
         'pos_district'=>0,
@@ -38,12 +37,8 @@ class MemberModel extends BaseModel
         return time();
     }
 
-    protected  function setUpdateTimeAttr(){
-        return time();
-    }
-
     protected  function setRegIpAttr(){
-        return get_client_ip();
+        return get_client_ip(1);
     }
 
     public function getListPage($map,$order='uid desc',$r=30)
