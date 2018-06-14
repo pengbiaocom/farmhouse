@@ -35,7 +35,7 @@ class UserController extends  Controller{
             if ($errCode == 0) {
                 //整理数据，并实现注册
                 $data = json_decode($data, true);
-                return json(['code'=>0, 'msg'=>'调用成功', 'data'=>array('id'=>101,'nickName'=>$data['nickName'], 'avatarUrl'=>$data['avatarUrl'])]);
+                return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>101]]);
             }else{
                 //记录下日志
                 return json(['code'=>1, 'msg'=>'用户数据解析错误', 'data'=>[]]);
