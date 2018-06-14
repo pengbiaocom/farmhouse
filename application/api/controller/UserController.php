@@ -16,7 +16,7 @@ class UserController extends  Controller{
         $iv = $request->param('iv', '', 'op_t');
 
         $open_url = "https://api.weixin.qq.com/sns/jscode2session";
-        $data = array(
+        $curlData = array(
             'appid'=>$this->appid,
             'secret'=>$this->secret,
             'js_code'=>$code,
@@ -26,7 +26,7 @@ class UserController extends  Controller{
         $curlModel = new CurlModel();
         $curlModel->set_ssl_host(true);
         $curlModel->set_ssl_peer(true);
-        $resJson = $curlModel->get_single($open_url, $data);
+        $resJson = $curlModel->get_single($open_url, $curlData);
         $res = json_decode($resJson,true);
         
         if($res && !empty($res['openid'])){
@@ -34,6 +34,7 @@ class UserController extends  Controller{
             $errCode = $this->decryptData($encryptedData, $iv, $data);
             if ($errCode == 0) {
                 //整理数据，并实现注册
+                $data = json_decode($data, true);
                 return json(['code'=>0, 'msg'=>'调用成功', 'data'=>array('id'=>101,'nickName'=>$data['nickName'], 'avatarUrl'=>$data['avatarUrl'])]);
             }else{
                 //记录下日志
@@ -88,9 +89,9 @@ class UserController extends  Controller{
     
         $aesCipher=base64_decode($encryptedData);
     
-        $result=openssl_decrypt($aesCipher, "AES-128-CBC", $aesKey, 1, $aesIV);
+        $result = openssl_decrypt($aesCipher, "AES-128-CBC", $aesKey, 1, $aesIV);
     
-        $dataObj=json_decode($result);
+        $dataObj = json_decode($result);
         if($dataObj  == NULL)
         {
             return -41003;
@@ -99,7 +100,9 @@ class UserController extends  Controller{
         {
             return -41003;
         }
+        
         $data = $result;
+        
         return 0;
     }    
 }
