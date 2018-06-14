@@ -76,13 +76,13 @@ class UserController extends  Controller{
     public function decryptData($encryptedData, $iv, &$data)
     {
         if (strlen($this->sessionKey) != 24) {
-            return ErrorCode::$IllegalAesKey;
+            return -41001;
         }
         $aesKey=base64_decode($this->sessionKey);
     
     
         if (strlen($iv) != 24) {
-            return ErrorCode::$IllegalIv;
+            return -41002;
         }
         $aesIV=base64_decode($iv);
     
@@ -93,13 +93,13 @@ class UserController extends  Controller{
         $dataObj=json_decode($result);
         if($dataObj  == NULL)
         {
-            return ErrorCode::$IllegalBuffer;
+            return -41003;
         }
         if($dataObj->watermark->appid != $this->appid)
         {
-            return ErrorCode::$IllegalBuffer;
+            return -41003;
         }
         $data = $result;
-        return ErrorCode::$OK;
+        return 0;
     }    
 }
