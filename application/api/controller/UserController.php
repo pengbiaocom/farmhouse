@@ -4,6 +4,7 @@ namespace app\api\controller;
 use think\Controller;
 use think\Request;
 use app\common\model\CurlModel;
+use app\common\model\UcenterMemberModel;
 
 class UserController extends  Controller{
     private $appid = 'wx25fdd247f54f5841';
@@ -34,8 +35,15 @@ class UserController extends  Controller{
             $errCode = $this->decryptData($encryptedData, $iv, $data);
             if ($errCode == 0) {
                 //整理数据，并实现注册
+                $ucenterMemberModel = new UcenterMemberModel();
                 $data = json_decode($data, true);
-                return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>101]]);
+                $uid = $ucenterMemberModel->register($data['openid'], $data['nickName'], '123456');
+                
+                if($uid > 0){
+                    return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>$uid]]);
+                }else{
+                    return json(['code'=>0, 'msg'=>$ucenterMemberModel->getErrorMessage($uid), 'data'=>[]]);
+                }
             }else{
                 //记录下日志
                 return json(['code'=>1, 'msg'=>'用户数据解析错误', 'data'=>[]]);
