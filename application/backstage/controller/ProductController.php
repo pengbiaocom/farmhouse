@@ -130,6 +130,9 @@ class ProductController extends BackstageController{
 
         foreach($list as &$val){
             $val['category']='['.$val['category'].'] '.$category[$val['category']]['title'];
+            if($val['stock'] <= 100) {
+                $val['stock'] = '<span style="color:red;padding:0px 10px;"><i class="layui-icon layui-icon-tips"></i>&nbsp;库存不足，当前库存（'.$val['stock'].'）</span>';
+            }
         }
         unset($val);
         $optCategory=$category;
@@ -148,6 +151,7 @@ class ProductController extends BackstageController{
             ->keyText('name','商品名称')
             ->keyText('category',lang('_CATEGORY_'))
             ->keyText('price','价格')
+            ->keyText('stock', '库存')
             ->keyText('unit','单位')
             ->keyText('spec','规格')
             ->keyText('sort',lang('_SORT_'))
