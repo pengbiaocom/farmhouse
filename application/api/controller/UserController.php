@@ -31,22 +31,31 @@ class UserController extends  Controller{
         $res = json_decode($resJson,true);
         
         if($res && !empty($res['openid'])){
-            $this->sessionKey = $res['session_key'];
-            $errCode = $this->decryptData($encryptedData, $iv, $data);
-            if ($errCode == 0) {
-                //整理数据，并实现注册
-                $ucenterMemberModel = new UcenterMemberModel();
-                $data = json_decode($data, true);
-                $uid = $ucenterMemberModel->register($res['openid'], $res['session_key'], $data['openid'], $data['nickName'], '123456');
-                
-                if($uid > 0){
-                    return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>$uid]]);
-                }else{
-                    return json(['code'=>0, 'msg'=>$ucenterMemberModel->getErrorMessage($uid), 'data'=>[]]);
-                }
+            $ucenterMemberModel = new UcenterMemberModel();
+            
+            $user = $ucenterMemberModel::get(function($query){
+                $query->where('openid', $res['openid']);
+            });
+            
+            if($uid->id > 0){
+                return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>$uid->id]]);
             }else{
-                //记录下日志
-                return json(['code'=>1, 'msg'=>'用户数据解析错误', 'data'=>[]]);
+                $this->sessionKey = $res['session_key'];
+                $errCode = $this->decryptData($encryptedData, $iv, $data);
+                if ($errCode == 0) {
+                    //整理数据，并实现注册
+                    $data = json_decode($data, true);
+                    $uid = $ucenterMemberModel->register($res['openid'], $res['session_key'], $data['openid'], $data['nickName'], '123456');
+                
+                    if($uid > 0){
+                        return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>$uid]]);
+                    }else{
+                        return json(['code'=>0, 'msg'=>$ucenterMemberModel->getErrorMessage($uid), 'data'=>[]]);
+                    }
+                }else{
+                    //记录下日志
+                    return json(['code'=>1, 'msg'=>'用户数据解析错误', 'data'=>[]]);
+                }                
             }
         }else{
             //授权问题，记录日志
