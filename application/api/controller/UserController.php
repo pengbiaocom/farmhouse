@@ -71,18 +71,6 @@ class UserController extends  Controller{
 
     }
 
-    public function address_list(Request $request){
-
-    }
-
-    public function  add_address(Request $request){
-
-    }
-
-    public function edit_address(Request $request){
-
-    }
-    
     /**
      * 检验数据的真实性，并且获取解密后的明文.
      * @param $encryptedData string 加密的用户数据
