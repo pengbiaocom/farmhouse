@@ -21,6 +21,14 @@ class AddressController extends Controller{
     }
 
     /**
+     * 得到地址详细
+     * @param Request $request
+     */
+    public function get_detail(Request $request){
+
+    }
+
+    /**
      * 添加地址
      * @param Request $request
      */
@@ -33,6 +41,14 @@ class AddressController extends Controller{
      * @param Request $request
      */
     public function edit(Request $request){
+
+    }
+
+    /**
+     * 删除
+     * @param Request $request
+     */
+    public function del(Request $request){
 
     }
 
