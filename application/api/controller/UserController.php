@@ -46,7 +46,7 @@ class UserController extends  Controller{
                 }
             }else{
                 //记录下日志
-                return json(['code'=>1, 'msg'=>'用户数据解析错误', 'data'=>[]]);
+                return json(['code'=>1, 'msg'=>'用户数据解析错误', 'data'=>['errCode'=>$errCode]]);
             }
         }else{
             //授权问题，记录日志
