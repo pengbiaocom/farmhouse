@@ -12,16 +12,6 @@ class UserController extends  Controller{
     private $sessionKey = '';
     
     public function login(Request $request){
-        $ucenterMemberModel = new UcenterMemberModel();
-        $openid = $request->param('openid');
-        $user = $ucenterMemberModel::get(function($query) use($openid){
-            $query->where("openid", $openid);
-        });
-        echo $ucenterMemberModel->getLastSql();
-        var_dump($user);
-        exit;
-        
-        
         $code = $request->param('code', '', 'op_t');
         $encryptedData = $request->param('encryptedData', '', 'op_t');
         $iv = $request->param('iv', '', 'op_t');
