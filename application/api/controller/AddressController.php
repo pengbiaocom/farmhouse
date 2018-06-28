@@ -10,6 +10,36 @@ use think\Request;
 
 class AddressController extends Controller{
 
+
+    public function get_provinces(){
+
+        $district = db("district")->where(['level'=>1,'is_show'=>0])->order("id asc")->select();
+
+        return json($district);
+    }
+
+    public function get_citys(Request $request){
+        $upid = $request->param('upid');
+
+        if(empty($upid))  $upid = 110000;
+
+
+        $district = db("district")->where(['level'=>2,'upid'=>$upid,'is_show'=>0])->order("id asc")->select();
+
+        return json($district);
+    }
+
+    public function get_countys(Request $request){
+        $upid = $request->param('upid');
+
+        if(empty($upid))  $upid = 110100;
+
+        $district = db("district")->where(['level'=>3,'upid'=>$upid,'is_show'=>0])->order("id asc")->select();
+
+        return json($district);
+    }
+
+
     /**
      * 地址列表
      * @param Request $request
@@ -18,11 +48,13 @@ class AddressController extends Controller{
     public function  address_list(Request $request){
 
         $uid = $request->param('uid');
+        $limit = $request->param('limit', 10, 'intval');
+        $page = $request->param('page', 1, 'intval');
 
-        $address = db("receiving_address")->where(['uid'=>$uid])->order("create_time desc")->select();
+        $address = db("receiving_address")->where(['uid'=>$uid])->order("create_time desc")->page($page, $limit)->select();
 
         if($address){
-            return json(['code'=>0,'msg'=>'有数据','data'=>$address]);
+            return json(['code'=>0,'msg'=>'有数据','data'=>$address,'paginate'=>array('page'=>sizeof($address) < 10 ? $page : $page+1, 'limit'=>$limit)]);
         }else{
             return json(['code'=>1,'msg'=>'没有地址']);
         }
@@ -56,14 +88,16 @@ class AddressController extends Controller{
 
         $data['uid'] = $param['uid'];
         $data['name'] = $param['name'];
-        $data['mobile']=$param['mobile'];
-        $data['pos_province'] = $param['pos_province'];
-        $data['pos_city'] = $param['pos_city'];
-        $data['pos_district'] = $param['pos_district'];
-        $data['pos_community'] = $param['pos_community'];
-        if(db("receiving_address")->where(['uid'=>$data['uid']])->count()==0){
-            $data['is_default'] = 1;
-        }
+        $data['mobile']=$param['tel'];
+        $data['pos_province'] = $param['province_id'];
+        $data['pos_city'] = $param['city_id'];
+        $data['pos_district'] = $param['county_id'];
+        $data['pos_community'] = $param['address'];
+        $data['is_default'] = $param['is_def'];
+        $data['create_time'] = time();
+
+        $old = db("receiving_address")->where(['uid'=>$data['uid'],'is_default'=>1])->find();
+
         if(empty($data['name'])){
             return json(['code'=>1,'msg'=>'请输入收货人姓名']);
         }else if(!preg_match("/^1[345678]{1}\d{9}$/",$data['mobile'])){
@@ -72,6 +106,9 @@ class AddressController extends Controller{
             return json(['code'=>1,'msg'=>'请填写收货地址']);
         }else{
             if(db("receiving_address")->insert($data)){
+                if($data['is_default']==1){
+                    db("receiving_address")->where(['uid'=>$data['uid'],'id'=>$old['id']])->update(['is_default'=>0]);
+                }
                 return json(['code'=>0,'msg'=>'新增地址成功']);
             }else{
                 return json(['code'=>1,'msg'=>'新增地址失败']);
@@ -90,11 +127,15 @@ class AddressController extends Controller{
         $id = $param['id'];
         $data['uid'] = $param['uid'];
         $data['name'] = $param['name'];
-        $data['mobile']=$param['mobile'];
-        $data['pos_province'] = $param['pos_province'];
-        $data['pos_city'] = $param['pos_city'];
-        $data['pos_district'] = $param['pos_district'];
-        $data['pos_community'] = $param['pos_community'];
+        $data['mobile']=$param['tel'];
+        $data['pos_province'] = $param['province_id'];
+        $data['pos_city'] = $param['city_id'];
+        $data['pos_district'] = $param['county_id'];
+        $data['pos_community'] = $param['address'];
+        $data['is_default'] = $param['is_def'];
+
+        $old = db("receiving_address")->where(['uid'=>$data['uid'],'is_default'=>1])->find();
+
         if(empty($data['name'])){
             return json(['code'=>1,'msg'=>'请输入收货人姓名']);
         }else if(!preg_match("/^1[345678]{1}\d{9}$/",$data['mobile'])){
@@ -103,6 +144,9 @@ class AddressController extends Controller{
             return json(['code'=>1,'msg'=>'请填写收货地址']);
         }else{
             if(db("receiving_address")->where(['id'=>$id])->update($data)){
+                if($data['is_default']==1){
+                    db("receiving_address")->where(['uid'=>$data['uid'],'id'=>$old['id']])->update(['is_default'=>0]);
+                }
                 return json(['code'=>0,'msg'=>'修改地址成功']);
             }else{
                 return json(['code'=>1,'msg'=>'修改地址失败']);
@@ -144,7 +188,13 @@ class AddressController extends Controller{
         if($default_info){
             return json(['code'=>0,'msg'=>'成功','data'=>$default_info]);
         }else{
-            return json(['code'=>1,'msg'=>'失败,没有默认地址']);
+            $default_info = db("receiving_address")->where(['uid'=>$data['uid']])->order("id desc")->find();
+            if($default_info){
+                return json(['code'=>0,'msg'=>'成功','data'=>$default_info]);
+            }else{
+                return json(['code'=>1,'msg'=>'失败,没有默认地址']);
+            }
+
         }
     }
 
