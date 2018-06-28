@@ -26,13 +26,13 @@ class IndexController extends BackstageController
 //        dump(json_encode($data));
 //        exit();
         if (UID) {
-            $tileModel = db('tile');
-            $list = $tileModel->where(['status' => 1])->order('sort asc')->select();
-            foreach($list as &$key) {
-                $key['url'] = url($key['url']);
-                $key['url_vo'] = url($key['url_vo']);
-            }
-            $this->assign('list', $list);
+//             $tileModel = db('tile');
+//             $list = $tileModel->where(['status' => 1])->order('sort asc')->select();
+//             foreach($list as &$key) {
+//                 $key['url'] = url($key['url']);
+//                 $key['url_vo'] = url($key['url_vo']);
+//             }
+//             $this->assign('list', $list);
             $this->assign('meta_title',lang('_INDEX_MANAGE_'));
             return $this->fetch();
         } else {

@@ -24,7 +24,7 @@ class MenuController extends BackstageController {
             $this->assign('data',$data);
         }
         $title      =   trim(input('title'));
-        $all_menu   =   $menuModel->field('id,title')->select();
+        $all_menu   =   $menuModel->field('id,title')->order('sort asc,id asc')->select();
         $all_menu = array_column($all_menu,'title','id');
         $map['pid'] =   $pid;
         if($title)
