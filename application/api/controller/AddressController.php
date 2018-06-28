@@ -40,6 +40,17 @@ class AddressController extends Controller{
     }
 
 
+    public function get_streets(Request $request){
+        $upid = $request->param('upid');
+
+        if(empty($upid))  return json(['code'=>1,'msg'=>'缺少参数']);
+
+        $district = db("district")->where(['level'=>4,'upid'=>$upid,'is_show'=>0])->order("id asc")->select();
+
+        return json(['code'=>0,'data'=>$district]);
+    }
+
+
     /**
      * 地址列表
      * @param Request $request
@@ -54,6 +65,13 @@ class AddressController extends Controller{
         $address = db("receiving_address")->where(['uid'=>$uid])->order("create_time desc")->page($page, $limit)->select();
 
         if($address){
+            foreach($address as $key=>$row){
+                $pos_province = db("district")->where(['id'=>$row['pos_province']])->value("name");
+                $pos_city = db("district")->where(['id'=>$row['pos_city']])->value("name");
+                $pos_district = db("district")->where(['id'=>$row['pos_district']])->value("name");
+                $street_id = db("district")->where(['id'=>$row['street_id']])->value("name");
+                $address[$key]['address'] = $pos_province.$pos_city.$pos_district.$street_id.$row['pos_community'];
+            }
             return json(['code'=>0,'msg'=>'有数据','data'=>$address,'paginate'=>array('page'=>sizeof($address) < 10 ? $page : $page+1, 'limit'=>$limit)]);
         }else{
             return json(['code'=>1,'msg'=>'没有地址']);
@@ -72,6 +90,16 @@ class AddressController extends Controller{
         $detail = db("receiving_address")->where(['id'=>$id])->find();
 
         if($detail){
+            $pos_province = db("district")->where(['id'=>$detail['pos_province']])->value("name");
+            $pos_city = db("district")->where(['id'=>$detail['pos_city']])->value("name");
+            $pos_district = db("district")->where(['id'=>$detail['pos_district']])->value("name");
+            $street_id = db("district")->where(['id'=>$detail['street_id']])->value("name");
+
+            $detail['province_name'] = $pos_province;
+            $detail['city_name'] = $pos_city;
+            $detail['district_name'] = $pos_district;
+            $detail['street_name']  = $street_id;
+
             return json(['code'=>0,'msg'=>'查询成功','data'=>$detail]);
         }else{
             return json(['code'=>1,'msg'=>'没有地址']);
@@ -92,6 +120,7 @@ class AddressController extends Controller{
         $data['pos_province'] = $param['province_id'];
         $data['pos_city'] = $param['city_id'];
         $data['pos_district'] = $param['county_id'];
+        $data['street_id'] = $param['street_id'];
         $data['pos_community'] = $param['address'];
         $data['is_default'] = $param['is_def'];
         $data['create_time'] = time();
@@ -131,6 +160,7 @@ class AddressController extends Controller{
         $data['pos_province'] = $param['province_id'];
         $data['pos_city'] = $param['city_id'];
         $data['pos_district'] = $param['county_id'];
+        $data['street_id'] = $param['street_id'];
         $data['pos_community'] = $param['address'];
         $data['is_default'] = $param['is_def'];
 
