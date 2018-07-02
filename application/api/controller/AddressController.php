@@ -216,6 +216,15 @@ class AddressController extends Controller{
         $default_info = db("receiving_address")->where(['uid'=>$data['uid'],'is_default'=>1])->find();
 
         if($default_info){
+            $pos_province = db("district")->where(['id'=>$default_info['pos_province']])->value("name");
+            $pos_city = db("district")->where(['id'=>$default_info['pos_city']])->value("name");
+            $pos_district = db("district")->where(['id'=>$default_info['pos_district']])->value("name");
+            $street_id = db("district")->where(['id'=>$default_info['street_id']])->value("name");
+
+            $default_info['province_name'] = $pos_province;
+            $default_info['city_name'] = $pos_city;
+            $default_info['district_name'] = $pos_district;
+            $default_info['street_name']  = $street_id;
             return json(['code'=>0,'msg'=>'成功','data'=>$default_info]);
         }else{
             $default_info = db("receiving_address")->where(['uid'=>$data['uid']])->order("id desc")->find();
