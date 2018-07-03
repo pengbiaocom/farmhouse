@@ -2,6 +2,7 @@
 namespace app\api\controller;
 
 use think\Controller;
+use think\Request;
 
 class BootsController extends Controller{
     /**
@@ -32,5 +33,24 @@ class BootsController extends Controller{
     */
     public function share(Request $request){
         $uid = $request->param('uid', '', 'intval');
+        
+        if(!empty($uid)){
+            $model = db('coupon', [], false);
+            if($num = $model->where('uid', '=', $uid)->value('coupon_num')){
+                if($model->where('uid', '=', $uid)->update(['coupon_num'=>$num+1])){
+                    return json(['code'=>0, 'msg'=>'调用成功', 'data'=>[]]);
+                }else{
+                    return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
+                }
+            }else{
+                if($model->insert(['uid'=>$uid, 'coupon_num'=>1])){
+                    return json(['code'=>0, 'msg'=>'调用成功', 'data'=>[]]);
+                }else{
+                    return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
+                }
+            }
+        }else{
+            return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
+        }
     }
 }
