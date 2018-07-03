@@ -22,4 +22,15 @@ class BootsController extends Controller{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
     }
+    
+    /**
+    * 分析获得优惠券
+    * @date: 2018年7月3日 下午2:42:16
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function share(Request $request){
+        $uid = $request->param('uid', '', 'intval');
+    }
 }
