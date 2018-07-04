@@ -53,4 +53,24 @@ class BootsController extends Controller{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
     }
+
+    /**
+     * 获取用户 优惠券
+     * @param Request $request
+     * @return \think\response\Json
+     * User: 离殇<pengxuancom@163.com>
+     */
+    public function   get_share(Request $request){
+
+        $uid = $request->param('uid');
+
+        if(empty($uid))  return json(['code'=>1,'msg'=>'缺少参数']);
+
+        $num = db("coupon")->where(['uid'=>$uid])->value("coupon_num");
+        if($num){
+            return json(['code'=>0,'msg'=>'success','data'=>$num]);
+        }else{
+            return json(['code'=>1,'msg'=>'没有数据']);
+        }
+    }
 }
