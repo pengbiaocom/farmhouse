@@ -45,7 +45,7 @@ class ConfigController extends BackstageController
             $Config = new ConfigModel();
             $data   = $this->request->param();
             if ($data) {
-                if ($Config->allowField(true)->save()) {
+                if ($Config->allowField(true)->save($data)) {
                     cache('DB_CONFIG_DATA', null);
                     $this->success(lang('_SUCCESS_ADD_'), url('index'));
                 } else {
