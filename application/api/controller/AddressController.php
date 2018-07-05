@@ -249,6 +249,8 @@ class AddressController extends Controller{
 
         $old = db("receiving_address")->where(['uid'=>$data['uid'],'is_default'=>1])->find();
 
+        if($old['id']==$data['id'])  return json(['code'=>0,'msg'=>'设置成功']);
+
         if(db("receiving_address")->where(['uid'=>$data['uid'],'id'=>$data['id']])->update(['is_default'=>1])){
             db("receiving_address")->where(['uid'=>$data['uid'],'id'=>$old['id']])->update(['is_default'=>0]);
             return json(['code'=>0,'msg'=>'设置成功']);
