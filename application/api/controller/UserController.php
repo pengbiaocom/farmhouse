@@ -64,11 +64,81 @@ class UserController extends  Controller{
         }
     }
 
+    /**
+     * 查询订单列表
+     * @param  uid 用户id  status 订单状态   limit 每页数量  page 当前页
+     * @param Request $request
+     * @return \think\response\Json
+     * User: 离殇<pengxuancom@163.com>
+     */
     public function order_list(Request $request){
+        $uid = $request->param("uid");
 
+        $status = $request->param('status');
+
+        $limit = $request->param('limit', 10, 'intval');
+        $page = $request->param('page', 1, 'intval');
+
+        if(empty($uid))  return json(['code'=>1,'msg'=>'缺少必要参数']);
+
+        $map = "uid=".$uid;
+
+        if($status != 'all'){
+            $map .= " and status=".$status;
+        }
+
+        $order_list = db("order")->where($map)->order("create_time desc")->page($page, $limit)->select();
+
+        if($order_list){
+            return json(['code'=>0,'msg'=>'success','data'=>$order_list,'paginate'=>['page'=>sizeof($order_list) < 10 ? $page : $page+1, 'limit'=>$limit]]);
+        }else{
+            return json(['code'=>1,'msg'=>'没有订单']);
+        }
     }
 
+    /**
+     * 订单详情
+     * @param  order_id  订单id
+     * @param Request $request
+     * @return \think\response\Json
+     * User: 离殇<pengxuancom@163.com>
+     */
     public function order_detail(Request $request){
+         $order_id = $request->param('order_id');
+
+        if(empty($order_id))  return json(['code'=>1,'msg'=>'缺少必要参数']);
+
+        $detail = db("order")->where(['id'=>$order_id])->find();
+
+        if($detail){
+            return json(['code'=>0,'msg'=>'success','data'=>$detail]);
+        }else{
+            return json(['code'=>1,'msg'=>'没有查询到数据']);
+        }
+    }
+
+    /**
+     * 订单删除
+     * @param Request $request
+     * @return \think\response\Json
+     * @throws \think\Exception
+     * User: 离殇<pengxuancom@163.com>
+     */
+    public function  order_delete(Request $request){
+       $order_id = $request->param('order_id');
+
+       if(empty($order_id))  return json(['code'=>1,'msg'=>'缺少必要参数']);
+
+        $detail = db("order")->where(['id'=>$order_id])->find();
+       if($detail['status']==0){
+           if(db("order")->where(['id'=>$order_id])->delete()){
+               return json(['code'=>0,'msg'=>'删除成功！']);
+           }else{
+               return json(['code'=>1,'msg'=>'删除失败！']);
+           }
+       }else{
+           return json(['code'=>1,'msg'=>'没有支付的订单才可以删除']);
+       }
 
     }
 
