@@ -6,6 +6,8 @@ use think\Request;
 use app\common\model\CurlModel;
 use app\common\model\ProductModel;
 use app\common\model\OrderModel;
+use app\common\model\CouponModel;
+use think\Db;
 
 class OrderController extends Controller{
     private $wx_key = "";//申请支付后有给予一个商户账号和密码，登陆后自己设置key
@@ -23,20 +25,21 @@ class OrderController extends Controller{
         
         //分析订单数据
         $total_fee = $this->total_fee($uid, $product_info, $address_id, $coupon_num, $remark);
+        if($total_fee == -2) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'存在限购商品或者某商品库存不足']]);
         if($total_fee == -1) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'下单失败']]);
         if($total_fee == 0) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'参数异常']]);
         
         
         //这里是按照顺序的 因为下面的签名是按照顺序 排序错误 肯定出错
         $post['appid'] = $this->appid;
-        $post['body'] = "";//描述
+        $post['body'] = "益丰农舍-商品购买";//描述
         $post['mch_id'] = "";//商户号
         $post['nonce_str'] = $this->nonce_str();//随机字符串
         $post['notify_url'] = "";//回调地址自己填写
         $post['openid'] = "";//用户在商户appid下的唯一标识
-        $post['out_trade_no'] = time();//商户订单号
+        $post['out_trade_no'] = $total_fee['out_trade_no'];//商户订单号
         $post['spbill_create_ip'] = get_client_ip();//终端的ip
-        $post['total_fee'] = $total_fee;//因为充值金额最小是1 而且单位为分 如果是充值1元所以这里需要*100
+        $post['total_fee'] = $total_fee['total_fee'];//因为充值金额最小是1 而且单位为分 如果是充值1元所以这里需要*100
         $post['trade_type'] = "JSAPI";//交易类型 默认
         $sign = $this->sign($post);//签名        
         
@@ -70,12 +73,12 @@ class OrderController extends Controller{
     * @return:
     */
     private function total_fee($uid, $product_info, $address_id, $coupon_num, $remark){
-        $username = get_username($uid);
+        $user = Db::table('__UCENTER_MEMBER__')->alias('um')->field("um.id,um.username,c.coupon_num")->join('__COUPON__ c', 'um.id = c.uid', 'LEFT')->where('um.id = ' . $uid)->find();
         $freight = modC('FREIGHT_QUOTA', 0);//默认为0，没有满免
         $coupon_max = modC('COUPON_MAXCOUNT', 5);//最大使用优惠券的数量   默认为5
         $coupon_price = modC('COUPON_DENOMINATION', 0.01);//没设置的情况下默认为1分钱
         
-        if(!empty($username) && $username != 'admin' && $coupon_num <= $coupon_max){
+        if(!empty($user['id']) && $user['id'] != 1 && intval($coupon_num) <= $coupon_max){
             $total_fee = 0;//订单总价
             $productList = [];//商品信息
             $order_data = [];//订单数据
@@ -95,7 +98,19 @@ class OrderController extends Controller{
             $products = $productModel::all(function($query) use($productIds){
                 $query->where('id', 'in', $productIds);
             });
+            
+            $productModel->startTrans();
             foreach($products as $item=>$product){
+                //判断限购、库存
+                if($product->stock < $productArr[$product->id] || ($product->isXg == 1 && $productArr[$product->id] > 1)){
+                    $productModel->rollback();
+                    return -2;
+                }else{
+                    if(!$productModel->where('id', $product->id)->setDec('stock', $productArr[$product->id])){
+                        $productModel->rollback();
+                    }
+                }
+                
                 $total_fee += $product->price*$productArr[$product->id];
                 $productList[] = [
                     'name'=>$product->name,
@@ -110,6 +125,7 @@ class OrderController extends Controller{
             $order_data['address_id'] = $address_id;
             $order_data['remark'] = $remark;
             $order_data['create_time'] = time();
+            $order_data['out_trade_no'] = 'YF'.time();
 
             //处理运费满减
             if($total_fee < $freight) {
@@ -119,6 +135,13 @@ class OrderController extends Controller{
             
             //处理优惠券
             if($coupon_num >0) {
+                $couponModel = new CouponModel();
+                $couponModel->startTrans();
+                if(!$couponModel->where('uid', $uid)->setDec('coupon_num', $coupon_num)){
+                    $couponModel->rollBack();
+                    $productModel->rollback();
+                }
+                
                 $total_fee -= $coupon_num*$coupon_price;
             }
             
@@ -126,9 +149,17 @@ class OrderController extends Controller{
             
             $orderModel = new OrderModel();
             $orderModel->data($order_data);
+            
+            $orderModel->startTrans();
             if($orderModel->save()){
-                return $total_fee;
+                $orderModel->commit();
+                $couponModel->commit();
+                $productModel->commit();
+                return ['total_fee'=>$total_fee, 'out_trade_no'=>$order_data['out_trade_no']];
             }else{
+                $orderModel->rollback();
+                $couponModel->rollBack();
+                $productModel->rollback();
                 return -1;
             }
         }else{
