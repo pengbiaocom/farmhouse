@@ -32,16 +32,4 @@ class OrderModel extends BaseModel
         $lists = db("order")->field($field)->where($map)->order($order)->limit($limit)->select();
         return $lists;
     }
-
-    public function getData($id)
-    {
-        if ($id > 0) {
-            $map['id'] = $id;
-            $data = db("order")->where($map)->find();
-            return $data;
-        }
-        return null;
-    }
-
-
 } 

@@ -4,8 +4,6 @@ namespace app\common\model;
 
 class ProductModel extends BaseModel
 {
-
-
     public function editData($data)
     {
         if (!mb_strlen($data['description'], 'utf-8')) {
@@ -37,7 +35,7 @@ class ProductModel extends BaseModel
         return $lists;
     }
 
-    public function getData($id)
+    public function getInfoData($id)
     {
         if ($id > 0) {
             $map['id'] = $id;
@@ -46,6 +44,4 @@ class ProductModel extends BaseModel
         }
         return null;
     }
-
-
 } 

@@ -5,6 +5,7 @@ use think\Controller;
 use think\Request;
 use app\common\model\CurlModel;
 use app\common\model\ProductModel;
+use app\common\model\OrderModel;
 
 class OrderController extends Controller{
     private $wx_key = "";//申请支付后有给予一个商户账号和密码，登陆后自己设置key
@@ -22,6 +23,8 @@ class OrderController extends Controller{
         
         //分析订单数据
         $total_fee = $this->total_fee($uid, $product_info, $address_id, $coupon_num, $remark);
+        if($total_fee == -1) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'下单失败']]);
+        if($total_fee == 0) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'参数异常']]);
         
         
         //这里是按照顺序的 因为下面的签名是按照顺序 排序错误 肯定出错
@@ -68,7 +71,15 @@ class OrderController extends Controller{
     */
     private function total_fee($uid, $product_info, $address_id, $coupon_num, $remark){
         $username = get_username($uid);
-        if(!empty($username) && $username != 'admin'){
+        $freight = modC('FREIGHT_QUOTA', 0);//默认为0，没有满免
+        $coupon_max = modC('COUPON_MAXCOUNT', 5);//最大使用优惠券的数量   默认为5
+        $coupon_price = modC('COUPON_DENOMINATION', 0.01);//没设置的情况下默认为1分钱
+        
+        if(!empty($username) && $username != 'admin' && $coupon_num <= $coupon_max){
+            $total_fee = 0;//订单总价
+            $productList = [];//商品信息
+            $order_data = [];//订单数据
+            
             $product_info = json_decode($product_info, true);
             $productArr = [];
             $productIds = [];
@@ -79,16 +90,48 @@ class OrderController extends Controller{
                 }
             }
             
+            
             $productModel = new ProductModel();
-            $products = $productModel::all($productIds);
+            $products = $productModel::all(function($query) use($productIds){
+                $query->where('id', 'in', $productIds);
+            });
             foreach($products as $item=>$product){
-                dump($product);
-                dump($product->name);
-                dump($product['name']);
+                $total_fee += $product->price*$productArr[$product->id];
+                $productList[] = [
+                    'name'=>$product->name,
+                    'price'=>$product->price,
+                    'num'=>$productArr[$product->id]
+                ];
             }
-            echo 1;exit;
+            
+            $order_data['uid'] = $uid;
+            $order_data['product_info'] = json_encode($productList);
+            $order_data['coupon'] = $coupon_num;
+            $order_data['address_id'] = $address_id;
+            $order_data['create_time'] = time();
+
+            //处理运费满减
+            if($total_fee < $freight) {
+                $total_fee += 2;//如果总价没到满免运费的情况下，统一收取2元的运费
+                $order_data['freight'] = 2;
+            }
+            
+            //处理优惠券
+            if($coupon_num >0) {
+                $total_fee -= $coupon_num*$coupon_price;
+            }
+            
+            $order_data['total_fee'] = $total_fee;
+            
+            $orderModel = new OrderModel();
+            $orderModel->data($order_data);
+            if($user->save()){
+                return $total_fee;
+            }else{
+                return -1;
+            }
         }else{
-            return 40001;//错误的用户ID
+            return 0;//错误的用户ID
         }
     }
     
