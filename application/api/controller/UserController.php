@@ -6,7 +6,7 @@ use think\Request;
 use app\common\model\CurlModel;
 use app\common\model\UcenterMemberModel;
 
-class UserController extends  Controller{
+class UserController extends Controller{
     private $appid = 'wx25fdd247f54f5841';
     private $secret = '53552dcaee42df51c56366daaded9a07';
     private $sessionKey = '';

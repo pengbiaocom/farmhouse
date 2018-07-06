@@ -4,6 +4,7 @@ namespace app\api\controller;
 use think\Controller;
 use think\Request;
 use app\common\model\CurlModel;
+use app\common\model\ProductModel;
 
 class OrderController extends Controller{
     private $wx_key = "";//申请支付后有给予一个商户账号和密码，登陆后自己设置key
@@ -11,9 +12,16 @@ class OrderController extends Controller{
     
     public function create_order(Request $request){
         //接收订单信息
+        $uid = $request->param('uid', '', 'intval');
+        $product_info = $request->param('product_info', '', 'op_t');
+        $address_id = $request->param('address_id', '', 'intval');
+        $coupon_num = $request->param('coupon_num', 0, 'intval');
+        $remark = $request->param('remark', '', 'op_t');
         
+        if(empty($uid) || empty($product_info) || empty($address_id)) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'参数错误']]);
         
         //分析订单数据
+        $total_fee = $this->total_fee($uid, $product_info, $address_id, $coupon_num, $remark);
         
         
         //这里是按照顺序的 因为下面的签名是按照顺序 排序错误 肯定出错
@@ -25,7 +33,7 @@ class OrderController extends Controller{
         $post['openid'] = "";//用户在商户appid下的唯一标识
         $post['out_trade_no'] = time();//商户订单号
         $post['spbill_create_ip'] = get_client_ip();//终端的ip
-        $post['total_fee'] = $this->total_fee();//因为充值金额最小是1 而且单位为分 如果是充值1元所以这里需要*100
+        $post['total_fee'] = $total_fee;//因为充值金额最小是1 而且单位为分 如果是充值1元所以这里需要*100
         $post['trade_type'] = "JSAPI";//交易类型 默认
         $sign = $this->sign($post);//签名        
         
@@ -58,8 +66,30 @@ class OrderController extends Controller{
     * @param: variable
     * @return:
     */
-    private function total_fee(){
-        return 0.01;
+    private function total_fee($uid, $product_info, $address_id, $coupon_num, $remark){
+        $username = get_username($uid);
+        if(!empty($username) && $username != 'admin'){
+            $product_info = json_decode($product_info, true);
+            $productArr = [];
+            $productIds = [];
+            if(sizeof($product_info) > 0){
+                foreach ($product_info as $key=>$val){
+                    $productArr[$val['good_id']] = $val['num'];
+                    $productIds[] = $val['good_id'];
+                }
+            }
+            
+            $productModel = new ProductModel();
+            $products = $productModel::all($productIds);
+            foreach($products as $item=>$product){
+                dump($product);
+                dump($product->name);
+                dump($product['name']);
+            }
+            echo 1;exit;
+        }else{
+            return 40001;//错误的用户ID
+        }
     }
     
     /**
