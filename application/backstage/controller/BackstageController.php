@@ -11,36 +11,36 @@ class backstageController extends BaseController{
 
     public function _initialize(){
         header("Content-type: text/html; charset=utf-8");
-        // »ñÈ¡µ±Ç°ÓÃ»§ID
+        // è·å–å½“å‰ç”¨æˆ·ID
         define('UID', is_login());
 
-        if (!UID) { // »¹Ã»µÇÂ¼ Ìø×ªµ½µÇÂ¼Ò³Ãæ
+        if (!UID) { // è¿˜æ²¡ç™»å½• è·³è½¬åˆ°ç™»å½•é¡µé¢
             $this->redirect('Login/index');
         }
-        /* ¶ÁÈ¡Êı¾İ¿âÖĞµÄÅäÖÃ */
+        /* è¯»å–æ•°æ®åº“ä¸­çš„é…ç½® */
         $config = cache('DB_CONFIG_DATA');
         if (!$config) {
             $config = controller("common/ConfigApi")->lists();
             cache('DB_CONFIG_DATA', $config);
         }
-        config($config); //Ìí¼ÓÅäÖÃ
+        config($config); //æ·»åŠ é…ç½®
 
-        // ÊÇ·ñÊÇ³¬¼¶¹ÜÀíÔ±
+        // æ˜¯å¦æ˜¯è¶…çº§ç®¡ç†å‘˜
         define('IS_ROOT', is_administrator());
         if (!IS_ROOT && config('ADMIN_ALLOW_IP')) {
-            // ¼ì²éIPµØÖ··ÃÎÊ
+            // æ£€æŸ¥IPåœ°å€è®¿é—®
             if (!in_array(get_client_ip(), explode(',', config('ADMIN_ALLOW_IP')))) {
                 $this->error(lang('_FORBID_403_'));
             }
         }
-        // ¼ì²â·ÃÎÊÈ¨ÏŞ
+        // æ£€æµ‹è®¿é—®æƒé™
         $access = $this->accessControl();
         if ($access === false) {
             $this->error(lang('_FORBID_403_'));
         } elseif ($access === null) {
-            $dynamic = $this->checkDynamic();//¼ì²â·ÖÀàÀ¸Ä¿ÓĞ¹ØµÄ¸÷Ïî¶¯Ì¬È¨ÏŞ
+            $dynamic = $this->checkDynamic();//æ£€æµ‹åˆ†ç±»æ ç›®æœ‰å…³çš„å„é¡¹åŠ¨æ€æƒé™
             if ($dynamic === null) {
-                //¼ì²â·Ç¶¯Ì¬È¨ÏŞ
+                //æ£€æµ‹éåŠ¨æ€æƒé™
                 $rule = strtolower(Request()->module() . '/' . Request()->controller() . '/' . Request()->action());
                 if (!$this->checkRule($rule, ['in', '1,2'])) {
                     $this->error(lang('_VISIT_NOT_AUTH_'));
@@ -58,10 +58,10 @@ class backstageController extends BaseController{
 
         $this->assign('__CONTROLLER__',strtolower(Request()->controller()));
 
-        //µ¼ÈëÄ£¿éÓïÑÔ°ü
+        //å¯¼å…¥æ¨¡å—è¯­è¨€åŒ…
         import_lang(ucfirst(Request()->controller()));
 
-        //µ¼Èë¹«¹²Ä£¿éÓïÑÔ°ü
+        //å¯¼å…¥å…¬å…±æ¨¡å—è¯­è¨€åŒ…
         import_lang("common");
 
     }
@@ -92,16 +92,16 @@ class backstageController extends BaseController{
     }
 
     /**
-     * È¨ÏŞ¼ì²â
-     * @param $rule ¼ì²âµÄ¹æÔò
+     * æƒé™æ£€æµ‹
+     * @param $rule æ£€æµ‹çš„è§„åˆ™
      * @param string $type
-     * @param string $mode checkÄ£Ê½
+     * @param string $mode checkæ¨¡å¼
      * @return bool
      */
     final protected function checkRule($rule, $type ='', $mode = 'url')
     {
         if (IS_ROOT) {
-            return true;//¹ÜÀíÔ±ÔÊĞí·ÃÎÊÈÎºÎÒ³Ãæ
+            return true;//ç®¡ç†å‘˜å…è®¸è®¿é—®ä»»ä½•é¡µé¢
         }
         static $Auth = null;
         if (!$Auth) {
@@ -115,53 +115,53 @@ class backstageController extends BaseController{
     }
 
     /**
-     * ¼ì²âÊÇ·ñÊÇĞèÒª¶¯Ì¬ÅĞ¶ÏµÄÈ¨ÏŞ
+     * æ£€æµ‹æ˜¯å¦æ˜¯éœ€è¦åŠ¨æ€åˆ¤æ–­çš„æƒé™
      * @return boolean|null
-     *      ·µ»ØtrueÔò±íÊ¾µ±Ç°·ÃÎÊÓĞÈ¨ÏŞ
-     *      ·µ»ØfalseÔò±íÊ¾µ±Ç°·ÃÎÊÎŞÈ¨ÏŞ
-     *      ·µ»Ønull£¬Ôò»á½øÈëcheckRule¸ù¾İ½ÚµãÊÚÈ¨ÅĞ¶ÏÈ¨ÏŞ
+     *      è¿”å›trueåˆ™è¡¨ç¤ºå½“å‰è®¿é—®æœ‰æƒé™
+     *      è¿”å›falseåˆ™è¡¨ç¤ºå½“å‰è®¿é—®æ— æƒé™
+     *      è¿”å›nullï¼Œåˆ™ä¼šè¿›å…¥checkRuleæ ¹æ®èŠ‚ç‚¹æˆæƒåˆ¤æ–­æƒé™
      */
     protected function checkDynamic()
     {
         if (IS_ROOT) {
-            return true;//¹ÜÀíÔ±ÔÊĞí·ÃÎÊÈÎºÎÒ³Ãæ
+            return true;//ç®¡ç†å‘˜å…è®¸è®¿é—®ä»»ä½•é¡µé¢
         }
-        return null;//²»Ã÷,ĞècheckRule
+        return null;//ä¸æ˜,éœ€checkRule
     }
     /**
-     * action·ÃÎÊ¿ØÖÆ,ÔÚ **µÇÂ½³É¹¦** ºóÖ´ĞĞµÄµÚÒ»ÏîÈ¨ÏŞ¼ì²âÈÎÎñ
+     * actionè®¿é—®æ§åˆ¶,åœ¨ **ç™»é™†æˆåŠŸ** åæ‰§è¡Œçš„ç¬¬ä¸€é¡¹æƒé™æ£€æµ‹ä»»åŠ¡
      *
-     * @return boolean|null  ·µ»ØÖµ±ØĞëÊ¹ÓÃ `===` ½øĞĞÅĞ¶Ï
+     * @return boolean|null  è¿”å›å€¼å¿…é¡»ä½¿ç”¨ `===` è¿›è¡Œåˆ¤æ–­
      *
-     *   ·µ»Ø **false**, ²»ÔÊĞíÈÎºÎÈË·ÃÎÊ(³¬¹Ü³ıÍâ)
-     *   ·µ»Ø **true**, ÔÊĞíÈÎºÎ¹ÜÀíÔ±·ÃÎÊ,ÎŞĞèÖ´ĞĞ½ÚµãÈ¨ÏŞ¼ì²â
-     *   ·µ»Ø **null**, ĞèÒª¼ÌĞøÖ´ĞĞ½ÚµãÈ¨ÏŞ¼ì²â¾ö¶¨ÊÇ·ñÔÊĞí·ÃÎÊ
+     *   è¿”å› **false**, ä¸å…è®¸ä»»ä½•äººè®¿é—®(è¶…ç®¡é™¤å¤–)
+     *   è¿”å› **true**, å…è®¸ä»»ä½•ç®¡ç†å‘˜è®¿é—®,æ— éœ€æ‰§è¡ŒèŠ‚ç‚¹æƒé™æ£€æµ‹
+     *   è¿”å› **null**, éœ€è¦ç»§ç»­æ‰§è¡ŒèŠ‚ç‚¹æƒé™æ£€æµ‹å†³å®šæ˜¯å¦å…è®¸è®¿é—®
      */
     final protected function accessControl()
     {
         if (IS_ROOT) {
-            return true;//¹ÜÀíÔ±ÔÊĞí·ÃÎÊÈÎºÎÒ³Ãæ
+            return true;//ç®¡ç†å‘˜å…è®¸è®¿é—®ä»»ä½•é¡µé¢
         }
         $allow = config('ALLOW_VISIT');
         $deny = config('DENY_VISIT');
         $check = strtolower(Request()->controller() . '/' . Request()->action());
         if (!empty($deny) && in_array_case($check, $deny)) {
-            return false;//·Ç³¬¹Ü½ûÖ¹·ÃÎÊdenyÖĞµÄ·½·¨
+            return false;//éè¶…ç®¡ç¦æ­¢è®¿é—®denyä¸­çš„æ–¹æ³•
         }
         if (!empty($allow) && in_array_case($check, $allow)) {
             return true;
         }
-        return null;//ĞèÒª¼ì²â½ÚµãÈ¨ÏŞ
+        return null;//éœ€è¦æ£€æµ‹èŠ‚ç‚¹æƒé™
     }
 
     /**
-     * ¶ÔÊı¾İ±íÖĞµÄµ¥ĞĞ»ò¶àĞĞ¼ÇÂ¼Ö´ĞĞĞŞ¸Ä GET²ÎÊıidÎªÊı×Ö»ò¶ººÅ·Ö¸ôµÄÊı×Ö
+     * å¯¹æ•°æ®è¡¨ä¸­çš„å•è¡Œæˆ–å¤šè¡Œè®°å½•æ‰§è¡Œä¿®æ”¹ GETå‚æ•°idä¸ºæ•°å­—æˆ–é€—å·åˆ†éš”çš„æ•°å­—
      *
-     * @param string $model Ä£ĞÍÃû³Æ,¹©Mº¯ÊıÊ¹ÓÃµÄ²ÎÊı
-     * @param array $data ĞŞ¸ÄµÄÊı¾İ
-     * @param array $where ²éÑ¯Ê±µÄwhere()·½·¨µÄ²ÎÊı
-     * @param array $msg Ö´ĞĞÕıÈ·ºÍ´íÎóµÄÏûÏ¢ array('success'=>'','error'=>'', 'url'=>'','ajax'=>false)
-     *                     urlÎªÌø×ªÒ³Ãæ,ajaxÊÇ·ñajax·½Ê½(Êı×ÖÔòÎªµ¹Êı¼ÆÊ±ÃëÊı)
+     * @param string $model æ¨¡å‹åç§°,ä¾›Må‡½æ•°ä½¿ç”¨çš„å‚æ•°
+     * @param array $data ä¿®æ”¹çš„æ•°æ®
+     * @param array $where æŸ¥è¯¢æ—¶çš„where()æ–¹æ³•çš„å‚æ•°
+     * @param array $msg æ‰§è¡Œæ­£ç¡®å’Œé”™è¯¯çš„æ¶ˆæ¯ array('success'=>'','error'=>'', 'url'=>'','ajax'=>false)
+     *                     urlä¸ºè·³è½¬é¡µé¢,ajaxæ˜¯å¦ajaxæ–¹å¼(æ•°å­—åˆ™ä¸ºå€’æ•°è®¡æ—¶ç§’æ•°)
      */
     final protected function editRow($model, $data, $where, $msg)
     {
@@ -179,39 +179,39 @@ class backstageController extends BaseController{
     }
 
     /**
-     * ½ûÓÃÌõÄ¿
-     * @param string $model Ä£ĞÍÃû³Æ,¹©Dº¯ÊıÊ¹ÓÃµÄ²ÎÊı
-     * @param array $where ²éÑ¯Ê±µÄ where()·½·¨µÄ²ÎÊı
-     * @param array $msg Ö´ĞĞÕıÈ·ºÍ´íÎóµÄÏûÏ¢,¿ÉÒÔÉèÖÃËÄ¸öÔªËØ array('success'=>'','error'=>'', 'url'=>'','ajax'=>false)
-     *                     urlÎªÌø×ªÒ³Ãæ,ajaxÊÇ·ñajax·½Ê½(Êı×ÖÔòÎªµ¹Êı¼ÆÊ±ÃëÊı)
+     * ç¦ç”¨æ¡ç›®
+     * @param string $model æ¨¡å‹åç§°,ä¾›Då‡½æ•°ä½¿ç”¨çš„å‚æ•°
+     * @param array $where æŸ¥è¯¢æ—¶çš„ where()æ–¹æ³•çš„å‚æ•°
+     * @param array $msg æ‰§è¡Œæ­£ç¡®å’Œé”™è¯¯çš„æ¶ˆæ¯,å¯ä»¥è®¾ç½®å››ä¸ªå…ƒç´  array('success'=>'','error'=>'', 'url'=>'','ajax'=>false)
+     *                     urlä¸ºè·³è½¬é¡µé¢,ajaxæ˜¯å¦ajaxæ–¹å¼(æ•°å­—åˆ™ä¸ºå€’æ•°è®¡æ—¶ç§’æ•°)
      */
-    protected function forbid($model, $where = [], $msg = ['success' => '×´Ì¬½ûÓÃ³É¹¦£¡', 'error' => '×´Ì¬½ûÓÃÊ§°Ü£¡'])
+    protected function forbid($model, $where = [], $msg = ['success' => 'çŠ¶æ€ç¦ç”¨æˆåŠŸï¼', 'error' => 'çŠ¶æ€ç¦ç”¨å¤±è´¥ï¼'])
     {
         $data = ['status' => 0];
         $this->editRow($model, $data, $where, $msg);
     }
 
     /**
-     * »Ö¸´ÌõÄ¿
-     * @param string $model Ä£ĞÍÃû³Æ,¹©Dº¯ÊıÊ¹ÓÃµÄ²ÎÊı
-     * @param array $where ²éÑ¯Ê±µÄwhere()·½·¨µÄ²ÎÊı
-     * @param array $msg Ö´ĞĞÕıÈ·ºÍ´íÎóµÄÏûÏ¢ array('success'=>'','error'=>'', 'url'=>'','ajax'=>false)
-     *                     urlÎªÌø×ªÒ³Ãæ,ajaxÊÇ·ñajax·½Ê½(Êı×ÖÔòÎªµ¹Êı¼ÆÊ±ÃëÊı)
+     * æ¢å¤æ¡ç›®
+     * @param string $model æ¨¡å‹åç§°,ä¾›Då‡½æ•°ä½¿ç”¨çš„å‚æ•°
+     * @param array $where æŸ¥è¯¢æ—¶çš„where()æ–¹æ³•çš„å‚æ•°
+     * @param array $msg æ‰§è¡Œæ­£ç¡®å’Œé”™è¯¯çš„æ¶ˆæ¯ array('success'=>'','error'=>'', 'url'=>'','ajax'=>false)
+     *                     urlä¸ºè·³è½¬é¡µé¢,ajaxæ˜¯å¦ajaxæ–¹å¼(æ•°å­—åˆ™ä¸ºå€’æ•°è®¡æ—¶ç§’æ•°)
      */
-    protected function resume($model, $where = [], $msg = ['success' => '×´Ì¬»Ö¸´³É¹¦£¡', 'error' => '×´Ì¬»Ö¸´Ê§°Ü£¡'])
+    protected function resume($model, $where = [], $msg = ['success' => 'çŠ¶æ€æ¢å¤æˆåŠŸï¼', 'error' => 'çŠ¶æ€æ¢å¤å¤±è´¥ï¼'])
     {
         $data = ['status' => 1];
         $this->editRow($model, $data, $where, $msg);
     }
 
     /**
-     * »¹Ô­ÌõÄ¿
-     * @param string $model Ä£ĞÍÃû³Æ,¹©Dº¯ÊıÊ¹ÓÃµÄ²ÎÊı
-     * @param array $where ²éÑ¯Ê±µÄwhere()·½·¨µÄ²ÎÊı
-     * @param array $msg Ö´ĞĞÕıÈ·ºÍ´íÎóµÄÏûÏ¢ array('success'=>'','error'=>'', 'url'=>'','ajax'=>false)
-     *                     urlÎªÌø×ªÒ³Ãæ,ajaxÊÇ·ñajax·½Ê½(Êı×ÖÔòÎªµ¹Êı¼ÆÊ±ÃëÊı)
+     * è¿˜åŸæ¡ç›®
+     * @param string $model æ¨¡å‹åç§°,ä¾›Då‡½æ•°ä½¿ç”¨çš„å‚æ•°
+     * @param array $where æŸ¥è¯¢æ—¶çš„where()æ–¹æ³•çš„å‚æ•°
+     * @param array $msg æ‰§è¡Œæ­£ç¡®å’Œé”™è¯¯çš„æ¶ˆæ¯ array('success'=>'','error'=>'', 'url'=>'','ajax'=>false)
+     *                     urlä¸ºè·³è½¬é¡µé¢,ajaxæ˜¯å¦ajaxæ–¹å¼(æ•°å­—åˆ™ä¸ºå€’æ•°è®¡æ—¶ç§’æ•°)
      */
-    protected function restore($model, $where = [], $msg = ['success' => '×´Ì¬»¹Ô­³É¹¦£¡', 'error' => '×´Ì¬»¹Ô­Ê§°Ü£¡'])
+    protected function restore($model, $where = [], $msg = ['success' => 'çŠ¶æ€è¿˜åŸæˆåŠŸï¼', 'error' => 'çŠ¶æ€è¿˜åŸå¤±è´¥ï¼'])
     {
         $data = ['status' => 1];
         $where = array_merge(['status' => -1], $where);
@@ -219,20 +219,20 @@ class backstageController extends BaseController{
     }
 
     /**
-     * ÌõÄ¿¼ÙÉ¾³ı
-     * @param string $model Ä£ĞÍÃû³Æ,¹©Dº¯ÊıÊ¹ÓÃµÄ²ÎÊı
-     * @param array $where ²éÑ¯Ê±µÄwhere()·½·¨µÄ²ÎÊı
-     * @param array $msg Ö´ĞĞÕıÈ·ºÍ´íÎóµÄÏûÏ¢ array('success'=>'','error'=>'', 'url'=>'','ajax'=>false)
-     *                     urlÎªÌø×ªÒ³Ãæ,ajaxÊÇ·ñajax·½Ê½(Êı×ÖÔòÎªµ¹Êı¼ÆÊ±ÃëÊı)
+     * æ¡ç›®å‡åˆ é™¤
+     * @param string $model æ¨¡å‹åç§°,ä¾›Då‡½æ•°ä½¿ç”¨çš„å‚æ•°
+     * @param array $where æŸ¥è¯¢æ—¶çš„where()æ–¹æ³•çš„å‚æ•°
+     * @param array $msg æ‰§è¡Œæ­£ç¡®å’Œé”™è¯¯çš„æ¶ˆæ¯ array('success'=>'','error'=>'', 'url'=>'','ajax'=>false)
+     *                     urlä¸ºè·³è½¬é¡µé¢,ajaxæ˜¯å¦ajaxæ–¹å¼(æ•°å­—åˆ™ä¸ºå€’æ•°è®¡æ—¶ç§’æ•°)
      */
-    protected function delete($model, $where = [], $msg = ['success' => 'É¾³ı³É¹¦£¡', 'error' => 'É¾³ıÊ§°Ü£¡'])
+    protected function delete($model, $where = [], $msg = ['success' => 'åˆ é™¤æˆåŠŸï¼', 'error' => 'åˆ é™¤å¤±è´¥ï¼'])
     {
         $data = ['status'=>-1];
         $this->editRow($model, $data, $where, $msg);
     }
 
     /**
-     * ÉèÖÃÒ»Ìõ»òÕß¶àÌõÊı¾İµÄ×´Ì¬
+     * è®¾ç½®ä¸€æ¡æˆ–è€…å¤šæ¡æ•°æ®çš„çŠ¶æ€
      */
     public function setStatus($Model = '')
     {
@@ -283,7 +283,7 @@ class backstageController extends BaseController{
         return $addons;
     }
 
-    /**»ñÈ¡Ä£¿éÁĞ±í£¬ÓÃÓÚÏÔÊ¾ÔÚ×ó²à
+    /**è·å–æ¨¡å—åˆ—è¡¨ï¼Œç”¨äºæ˜¾ç¤ºåœ¨å·¦ä¾§
      */
     public function getModules()
     {
@@ -316,7 +316,7 @@ class backstageController extends BaseController{
     public function getSubMenus($pid)
     {
         $menus = [];
-        //Éú³ÉchildÊ÷
+        //ç”Ÿæˆchildæ ‘
         $menuModel = new MenuModel();
         $groups = $menuModel->where("pid = {$pid}")->distinct(true)->field("`groups`")->order('sort asc')->select();
 
@@ -325,17 +325,17 @@ class backstageController extends BaseController{
         } else {
             $groups = [];
         }
-        //»ñÈ¡¶ş¼¶·ÖÀàµÄºÏ·¨url
+        //è·å–äºŒçº§åˆ†ç±»çš„åˆæ³•url
         $where = [];
         $where['pid'] = $pid;
         $where['hide'] = 0;
-        if (!config('DEVELOP_MODE')) { // ÊÇ·ñ¿ª·¢ÕßÄ£Ê½
+        if (!config('DEVELOP_MODE')) { // æ˜¯å¦å¼€å‘è€…æ¨¡å¼
             $where['is_dev'] = 0;
         }
         $second_urls = $menuModel->where($where)->find();
 
         if (!IS_ROOT) {
-            // ¼ì²â²Ëµ¥È¨ÏŞ
+            // æ£€æµ‹èœå•æƒé™
             $to_check_urls = [];
             foreach ($second_urls as $key => $to_check_url) {
                 if (stripos($to_check_url, Request()->module()) !== 0) {
@@ -347,12 +347,12 @@ class backstageController extends BaseController{
                     $to_check_urls[] = $to_check_url;
             }
         }
-        // °´ÕÕ·Ö×éÉú³É×Ó²Ëµ¥Ê÷
+        // æŒ‰ç…§åˆ†ç»„ç”Ÿæˆå­èœå•æ ‘
         foreach ($groups as $g) {
             $map = ['groups' => $g];
             if (isset($to_check_urls)) {
                 if (empty($to_check_urls)) {
-                    // Ã»ÓĞÈÎºÎÈ¨ÏŞ
+                    // æ²¡æœ‰ä»»ä½•æƒé™
                     continue;
                 } else {
                     $map['url'] = ['in', $to_check_urls];
@@ -360,7 +360,7 @@ class backstageController extends BaseController{
             }
             $map['pid'] = $pid;
             $map['hide'] = 0;
-            if (!config('DEVELOP_MODE')) { // ÊÇ·ñ¿ª·¢ÕßÄ£Ê½
+            if (!config('DEVELOP_MODE')) { // æ˜¯å¦å¼€å‘è€…æ¨¡å¼
                 $map['is_dev'] = 0;
             }
             $menuList = $menuModel->where($map)->field('id,pid,title,url,tip')->order('sort asc')->select()->toArray();
@@ -374,7 +374,7 @@ class backstageController extends BaseController{
     }
 
     /**
-     * »ñÈ¡¿ØÖÆÆ÷²Ëµ¥Êı×é,¶ş¼¶²Ëµ¥ÔªËØÎ»ÓÚÒ»¼¶²Ëµ¥µÄ'_child'ÔªËØÖĞ
+     * è·å–æ§åˆ¶å™¨èœå•æ•°ç»„,äºŒçº§èœå•å…ƒç´ ä½äºä¸€çº§èœå•çš„'_child'å…ƒç´ ä¸­
      * @param string $controller
      * @return bool|mixed
      */
@@ -385,10 +385,10 @@ class backstageController extends BaseController{
         $tag = 'ADMIN_MENU_LIST' . is_login() . $controller;
         $menus = cache($tag);
         if ($menus === false) {
-            // »ñÈ¡Ö÷²Ëµ¥
+            // è·å–ä¸»èœå•
             $where['pid'] = 0;
 
-            if (!config('DEVELOP_MODE')) { // ÊÇ·ñ¿ª·¢ÕßÄ£Ê½
+            if (!config('DEVELOP_MODE')) { // æ˜¯å¦å¼€å‘è€…æ¨¡å¼
                 $where['is_dev'] = 0;
             }
             $menus['main'] = $menuModel->where($where)->order('sort asc')->select()->toArray();
@@ -399,9 +399,9 @@ class backstageController extends BaseController{
                 }
             }
             unset($v);
-            $menus['child'] = []; //ÉèÖÃ×Ó½Úµã
+            $menus['child'] = []; //è®¾ç½®å­èŠ‚ç‚¹
 
-            //¸ßÁÁÖ÷²Ëµ¥
+            //é«˜äº®ä¸»èœå•
             $current = $menuModel->where("url like '{$controller}/" . Request()->action() . "%' OR url like '%/{$controller}/" . Request()->action() . "%'  ")->field('id')->find();
 
             if ($current) {
@@ -415,15 +415,15 @@ class backstageController extends BaseController{
                     if (stripos($item['url'], Request()->module()) !== 0) {
                         $item['url'] = Request()->module() . '/' . $item['url'];
                     }
-                    // ÅĞ¶ÏÖ÷²Ëµ¥È¨ÏŞ
+                    // åˆ¤æ–­ä¸»èœå•æƒé™
                     if (!IS_ROOT && !$this->checkRule($item['url'], AuthRuleModel::RULE_MAIN, null)) {
                         unset($menus['main'][$key]);
-                        continue;//¼ÌĞøÑ­»·
+                        continue;//ç»§ç»­å¾ªç¯
                     }
-                    // »ñÈ¡µ±Ç°Ö÷²Ëµ¥µÄ×Ó²Ëµ¥Ïî
+                    // è·å–å½“å‰ä¸»èœå•çš„å­èœå•é¡¹
                     if ($item['title'] == $nav_first_title) {
                         $menus['main'][$key]['class'] = 'layui-this';
-                        //Éú³ÉchildÊ÷
+                        //ç”Ÿæˆchildæ ‘
                         $groups = $menuModel->where("pid = {$item['id']}")->distinct(true)->field("`groups`")->order('sort asc')->select()->toArray();
 
                         if ($groups) {
@@ -432,17 +432,17 @@ class backstageController extends BaseController{
                             $groups = [];
                         }
 
-                        //»ñÈ¡¶ş¼¶·ÖÀàµÄºÏ·¨url
+                        //è·å–äºŒçº§åˆ†ç±»çš„åˆæ³•url
                         $where = [];
                         $where['pid'] = $item['id'];
                         $where['hide'] = 0;
-                        if (!config('DEVELOP_MODE')) { // ÊÇ·ñ¿ª·¢ÕßÄ£Ê½
+                        if (!config('DEVELOP_MODE')) { // æ˜¯å¦å¼€å‘è€…æ¨¡å¼
                             $where['is_dev'] = 0;
                         }
                         $second_urls = $menuModel->where($where)->find();
 
                         if (!IS_ROOT) {
-                            // ¼ì²â²Ëµ¥È¨ÏŞ
+                            // æ£€æµ‹èœå•æƒé™
                             $to_check_urls = [];
                             foreach ($second_urls as $key => $to_check_url) {
                                 if (stripos($to_check_url, Request()->module()) !== 0) {
@@ -454,12 +454,12 @@ class backstageController extends BaseController{
                                     $to_check_urls[] = $to_check_url;
                             }
                         }
-                        // °´ÕÕ·Ö×éÉú³É×Ó²Ëµ¥Ê÷
+                        // æŒ‰ç…§åˆ†ç»„ç”Ÿæˆå­èœå•æ ‘
                         foreach ($groups as $g) {
                             $map = ['groups' => $g];
                             if (isset($to_check_urls)) {
                                 if (empty($to_check_urls)) {
-                                    // Ã»ÓĞÈÎºÎÈ¨ÏŞ
+                                    // æ²¡æœ‰ä»»ä½•æƒé™
                                     continue;
                                 } else {
                                     $map['url'] = ['in', $to_check_urls];
@@ -467,7 +467,7 @@ class backstageController extends BaseController{
                             }
                             $map['pid'] = $item['id'];
                             $map['hide'] = 0;
-                            if (!config('DEVELOP_MODE')) { // ÊÇ·ñ¿ª·¢ÕßÄ£Ê½
+                            if (!config('DEVELOP_MODE')) { // æ˜¯å¦å¼€å‘è€…æ¨¡å¼
                                 $map['is_dev'] = 0;
                             }
                             $menuList = $menuModel->where($map)->field('id,pid,title,url,tip')->order('sort asc')->select()->toArray();
@@ -484,11 +484,11 @@ class backstageController extends BaseController{
     }
 
     /**
-     * ·µ»ØºóÌ¨½ÚµãÊı¾İ
-     * @param boolean $tree ÊÇ·ñ·µ»Ø¶àÎ¬Êı×é½á¹¹(Éú³É²Ëµ¥Ê±ÓÃµ½),Îªfalse·µ»ØÒ»Î¬Êı×é(Éú³ÉÈ¨ÏŞ½ÚµãÊ±ÓÃµ½)
+     * è¿”å›åå°èŠ‚ç‚¹æ•°æ®
+     * @param boolean $tree æ˜¯å¦è¿”å›å¤šç»´æ•°ç»„ç»“æ„(ç”Ÿæˆèœå•æ—¶ç”¨åˆ°),ä¸ºfalseè¿”å›ä¸€ç»´æ•°ç»„(ç”Ÿæˆæƒé™èŠ‚ç‚¹æ—¶ç”¨åˆ°)
      * @retrun array
      *
-     * ×¢Òâ,·µ»ØµÄÖ÷²Ëµ¥½ÚµãÊı×éÖĞÓĞ'controller'ÔªËØ,ÒÔ¹©Çø·Ö×Ó½ÚµãºÍÖ÷½Úµã
+     * æ³¨æ„,è¿”å›çš„ä¸»èœå•èŠ‚ç‚¹æ•°ç»„ä¸­æœ‰'controller'å…ƒç´ ,ä»¥ä¾›åŒºåˆ†å­èŠ‚ç‚¹å’Œä¸»èŠ‚ç‚¹
      */
     final protected function returnNodes($tree = true)
     {
@@ -524,21 +524,21 @@ class backstageController extends BaseController{
     }
 
     /**
-     * Í¨ÓÃ·ÖÒ³ÁĞ±íÊı¾İ¼¯»ñÈ¡·½·¨
+     * é€šç”¨åˆ†é¡µåˆ—è¡¨æ•°æ®é›†è·å–æ–¹æ³•
      *
-     *  ¿ÉÒÔÍ¨¹ıurl²ÎÊı´«µİwhereÌõ¼ş,ÀıÈç:  userList.html?name=asdfasdfasdfddds
-     *  ¿ÉÒÔÍ¨¹ıurl¿ÕÖµÅÅĞò×Ö¶ÎºÍ·½Ê½,ÀıÈç: userList.html?_field=id&_order=asc
-     *  ¿ÉÒÔÍ¨¹ıurl²ÎÊırÖ¸¶¨Ã¿Ò³Êı¾İÌõÊı,ÀıÈç: userList.html?r=5
+     *  å¯ä»¥é€šè¿‡urlå‚æ•°ä¼ é€’whereæ¡ä»¶,ä¾‹å¦‚:  userList.html?name=asdfasdfasdfddds
+     *  å¯ä»¥é€šè¿‡urlç©ºå€¼æ’åºå­—æ®µå’Œæ–¹å¼,ä¾‹å¦‚: userList.html?_field=id&_order=asc
+     *  å¯ä»¥é€šè¿‡urlå‚æ•°ræŒ‡å®šæ¯é¡µæ•°æ®æ¡æ•°,ä¾‹å¦‚: userList.html?r=5
      *
-     * @param sting|Model $model Ä£ĞÍÃû»òÄ£ĞÍÊµÀı
-     * @param array $where where²éÑ¯Ìõ¼ş(ÓÅÏÈ¼¶: $where>$_REQUEST>Ä£ĞÍÉè¶¨)
-     * @param array|string $order ÅÅĞòÌõ¼ş,´«ÈënullÊ±Ê¹ÓÃsqlÄ¬ÈÏÅÅĞò»òÄ£ĞÍÊôĞÔ(ÓÅÏÈ¼¶×î¸ß);
-     *                              ÇëÇó²ÎÊıÖĞÈç¹ûÖ¸¶¨ÁË_orderºÍ_fieldÔò¾İ´ËÅÅĞò(ÓÅÏÈ¼¶µÚ¶ş);
-     *                              ·ñÔòÊ¹ÓÃ$order²ÎÊı(Èç¹û$order²ÎÊı,ÇÒÄ£ĞÍÒ²Ã»ÓĞÉè¶¨¹ıorder,ÔòÈ¡Ö÷¼ü½µĞò);
-     * @param boolean $field µ¥±íÄ£ĞÍÓÃ²»µ½¸Ã²ÎÊı,ÒªÓÃÔÚ¶à±íjoinÊ±Îªfield()·½·¨Ö¸¶¨²ÎÊı
+     * @param sting|Model $model æ¨¡å‹åæˆ–æ¨¡å‹å®ä¾‹
+     * @param array $where whereæŸ¥è¯¢æ¡ä»¶(ä¼˜å…ˆçº§: $where>$_REQUEST>æ¨¡å‹è®¾å®š)
+     * @param array|string $order æ’åºæ¡ä»¶,ä¼ å…¥nullæ—¶ä½¿ç”¨sqlé»˜è®¤æ’åºæˆ–æ¨¡å‹å±æ€§(ä¼˜å…ˆçº§æœ€é«˜);
+     *                              è¯·æ±‚å‚æ•°ä¸­å¦‚æœæŒ‡å®šäº†_orderå’Œ_fieldåˆ™æ®æ­¤æ’åº(ä¼˜å…ˆçº§ç¬¬äºŒ);
+     *                              å¦åˆ™ä½¿ç”¨$orderå‚æ•°(å¦‚æœ$orderå‚æ•°,ä¸”æ¨¡å‹ä¹Ÿæ²¡æœ‰è®¾å®šè¿‡order,åˆ™å–ä¸»é”®é™åº);
+     * @param boolean $field å•è¡¨æ¨¡å‹ç”¨ä¸åˆ°è¯¥å‚æ•°,è¦ç”¨åœ¨å¤šè¡¨joinæ—¶ä¸ºfield()æ–¹æ³•æŒ‡å®šå‚æ•°
      *
      * @return array|false
-     * ·µ»ØÊı¾İ¼¯
+     * è¿”å›æ•°æ®é›†
      */
     protected function lists($model, $where = array(), $order = '', $field = true)
     {

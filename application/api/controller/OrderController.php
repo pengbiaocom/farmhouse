@@ -74,11 +74,21 @@ class OrderController extends Controller{
     */
     private function total_fee($uid, $product_info, $address_id, $coupon_num, $remark){
         $user = Db::table('__UCENTER_MEMBER__')->alias('um')->field("um.id,um.username,c.coupon_num")->join('__COUPON__ c', 'um.id = c.uid', 'LEFT')->where('um.id = ' . $uid)->find();
-        $freight = modC('FREIGHT_QUOTA', 0);//默认为0，没有满免
-        $coupon_max = modC('COUPON_MAXCOUNT', 5);//最大使用优惠券的数量   默认为5
-        $coupon_price = modC('COUPON_DENOMINATION', 0.01);//没设置的情况下默认为1分钱
         
-        if(!empty($user['id']) && $user['id'] != 1 && intval($coupon_num) <= $coupon_max){
+        /* 读取数据库中的配置 */
+        $config = cache('DB_CONFIG_DATA');
+        if (!$config) {
+            $config = controller("common/ConfigApi")->lists();
+            cache('DB_CONFIG_DATA', $config);
+        }
+        config($config); //添加配置
+        
+        $freight = config('FREIGHT_QUOTA');//默认为0，没有满免
+        $coupon_max = config('COUPON_MAXCOUNT');//最大使用优惠券的数量   默认为5
+        $coupon_price = config('COUPON_DENOMINATION');//没设置的情况下默认为1分钱
+        $coupon_num = intval($coupon_num);
+        
+        if(!empty($user['id']) && $user['id'] != 1 && $coupon_num <= $coupon_max && $coupon_num <= $user['coupon_num']){
             $total_fee = 0;//订单总价
             $productList = [];//商品信息
             $order_data = [];//订单数据
@@ -134,9 +144,9 @@ class OrderController extends Controller{
             }
             
             //处理优惠券
-            if($coupon_num >0) {
-                $couponModel = new CouponModel();
-                $couponModel->startTrans();
+            $couponModel = new CouponModel();
+            $couponModel->startTrans();
+            if($coupon_num > 0) {
                 if(!$couponModel->where('uid', $uid)->setDec('coupon_num', $coupon_num)){
                     $couponModel->rollBack();
                     $productModel->rollback();
