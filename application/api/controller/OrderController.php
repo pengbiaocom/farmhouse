@@ -10,9 +10,15 @@ class OrderController extends Controller{
     private $appid = 'wx25fdd247f54f5841';//小程序id
     
     public function create_order(Request $request){
+        //接收订单信息
+        
+        
+        //分析订单数据
+        
+        
         //这里是按照顺序的 因为下面的签名是按照顺序 排序错误 肯定出错
         $post['appid'] = $this->appid;
-        $post['body'] = "腾讯充值中心-QQ会员充值";//描述
+        $post['body'] = "";//描述
         $post['mch_id'] = "";//商户号
         $post['nonce_str'] = $this->nonce_str();//随机字符串
         $post['notify_url'] = "";//回调地址自己填写
