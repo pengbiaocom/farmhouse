@@ -108,6 +108,7 @@ class OrderController extends Controller{
             $order_data['product_info'] = json_encode($productList);
             $order_data['coupon'] = $coupon_num;
             $order_data['address_id'] = $address_id;
+            $order_data['remark'] = $remark;
             $order_data['create_time'] = time();
 
             //处理运费满减
@@ -125,7 +126,7 @@ class OrderController extends Controller{
             
             $orderModel = new OrderModel();
             $orderModel->data($order_data);
-            if($user->save()){
+            if($orderModel->save()){
                 return $total_fee;
             }else{
                 return -1;
