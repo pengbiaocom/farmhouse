@@ -41,7 +41,21 @@ class OrderController extends Controller{
         $post['spbill_create_ip'] = get_client_ip();//终端的ip
         $post['total_fee'] = $total_fee['total_fee'];//因为充值金额最小是1 而且单位为分 如果是充值1元所以这里需要*100
         $post['trade_type'] = "JSAPI";//交易类型 默认
-        $sign = $this->sign($post);//签名        
+        $post['sign'] = $this->sign($post);//签名        
+        
+        return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$post]);
+    }
+    
+    /**
+    * 预支付
+    * @date: 2018年7月9日 下午2:18:42
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function payment(Request $request){
+        $payInfo = $request->param('payInfo', '', 'op_t');
+        $post = json_decode($payInfo, true);
         
         $post_xml = '<xml>
            <appid>'.$post['appid'].'</appid>
