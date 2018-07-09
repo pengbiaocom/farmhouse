@@ -8,6 +8,7 @@ use app\common\model\ProductModel;
 use app\common\model\OrderModel;
 use app\common\model\CouponModel;
 use think\Db;
+use app\common\model\UcenterMemberModel;
 
 class OrderController extends Controller{
     private $wx_key = "";//申请支付后有给予一个商户账号和密码，登陆后自己设置key
@@ -29,21 +30,7 @@ class OrderController extends Controller{
         if($total_fee == -1) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'下单失败']]);
         if($total_fee == 0) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'参数异常']]);
         
-        
-        //这里是按照顺序的 因为下面的签名是按照顺序 排序错误 肯定出错
-        $post['appid'] = $this->appid;
-        $post['body'] = "益丰农舍-商品购买";//描述
-        $post['mch_id'] = "";//商户号
-        $post['nonce_str'] = $this->nonce_str();//随机字符串
-        $post['notify_url'] = "";//回调地址自己填写
-        $post['openid'] = "";//用户在商户appid下的唯一标识
-        $post['out_trade_no'] = $total_fee['out_trade_no'];//商户订单号
-        $post['spbill_create_ip'] = get_client_ip();//终端的ip
-        $post['total_fee'] = $total_fee['total_fee'];//因为充值金额最小是1 而且单位为分 如果是充值1元所以这里需要*100
-        $post['trade_type'] = "JSAPI";//交易类型 默认
-        $post['sign'] = $this->sign($post);//签名        
-        
-        return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$post]);
+        return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$total_fee]);
     }
     
     /**
@@ -54,8 +41,33 @@ class OrderController extends Controller{
     * @return:
     */
     public function payment(Request $request){
-        $payInfo = $request->param('payInfo', '', 'op_t');
-        $post = json_decode($payInfo, true);
+        $out_trade_no = $request->param('out_trade_no', '', 'op_t');
+        $uid = $request->param('uid', '', 'intval');
+        
+        //查询数据，进行预支付
+        $orderModel = new OrderModel();
+        $order = $orderModel::get(function($query) use($out_trade_no){
+            $query->where('out_trade_no', $out_trade_no);
+        });
+        
+        $ucenterMemberModel = new UcenterMemberModel();
+        $user = $ucenterMemberModel::get(function($query) use($uid){
+            $query->where('uid', $uid);
+        });
+        
+        //这里是按照顺序的 因为下面的签名是按照顺序 排序错误 肯定出错
+        $post['appid'] = $this->appid;
+        $post['body'] = "益丰农舍-商品购买";//描述
+        $post['mch_id'] = "";//商户号
+        $post['nonce_str'] = $this->nonce_str();//随机字符串
+        $post['notify_url'] = "";//回调地址自己填写
+        $post['openid'] = $user->openid;//用户在商户appid下的唯一标识
+        $post['out_trade_no'] = $order->out_trade_no;//商户订单号
+        $post['spbill_create_ip'] = get_client_ip();//终端的ip
+        $post['total_fee'] = $order->total_fee;//因为充值金额最小是1 而且单位为分 如果是充值1元所以这里需要*100
+        $post['trade_type'] = "JSAPI";//交易类型 默认
+        $sign = $this->sign($post);//签名
+        
         
         $post_xml = '<xml>
            <appid>'.$post['appid'].'</appid>
@@ -149,7 +161,7 @@ class OrderController extends Controller{
             $order_data['address_id'] = $address_id;
             $order_data['remark'] = $remark;
             $order_data['create_time'] = time();
-            $order_data['out_trade_no'] = 'YF'.time();
+            $order_data['out_trade_no'] = 'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);;
 
             //处理运费满减
             if($total_fee < $freight) {
@@ -175,7 +187,7 @@ class OrderController extends Controller{
             $orderModel->data($order_data);
             
             $orderModel->startTrans();
-            if($orderModel->save()){
+            if($order_id = $orderModel->save()){
                 $orderModel->commit();
                 $couponModel->commit();
                 $productModel->commit();
