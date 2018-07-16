@@ -136,7 +136,9 @@ class DistrictController extends BackstageController{
     public function setval(){
         $data = Request()->param();
         $districtModel = new DistrictModel();
-        $districtModel->where('id='.$data['id'])->save([$data['name']=>$data['value']]);
+        $districtModel->save([$data['name']=>$data['value']], function($query) use($data){
+            $query->where('id', $data['id']);
+        });
         redirect($_SERVER['HTTP_REFERER']);
     }
 
