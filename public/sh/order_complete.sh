@@ -1,4 +1,3 @@
 #!/bin/bash
-cd /data/www/datacenter
-php think console --cronName wechat
+/usr/bin/curl http://api.chouvc.com/api/Boots/complete_change
 
