@@ -212,7 +212,7 @@ class ProductController extends BackstageController{
         }else{
             $data = [];
             if($aId){
-                $data=$productModel->getData($aId);
+                $data=$productModel->getInfoData($aId);
             }
             $category=$CategoryModel->getCategoryList(['status'=>['egt',0]],1);
             $options= [];
