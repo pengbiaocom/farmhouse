@@ -14,7 +14,12 @@ class BootsController extends Controller{
     * @return:
     */
     public function index(){
-        $config = controller('common/ConfigApi')->lists();
+        $config = cache('DB_CONFIG_DATA');
+        if (!$config) {
+            $config = controller("common/ConfigApi")->lists();
+            cache('DB_CONFIG_DATA', $config);
+        }
+        config($config); //添加配置        
         
         if($config){
             //可以处理需要的数据
