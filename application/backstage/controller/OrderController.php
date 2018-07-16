@@ -10,12 +10,11 @@ class OrderController extends BackstageController{
         $r = config("LIST_ROWS");
         $orderModel = new OrderModel();
 
+        $map = array();
         $keyword = input('keyword','','op_t');
         if(!empty($keyword)){
-            $map[] = "(name like '%".$keyword."%' or id=".intval($keyword)." )";
+            $map['out_trade_no'] = array('like', $keyword);
         }
-
-        $map['status']=1;
 
         list($list,$totalCount)=$orderModel->getListByPage($map,'create_time desc','*',$r);
 
@@ -24,24 +23,29 @@ class OrderController extends BackstageController{
             foreach($list as $key=>$row){
                 $list[$key]['statustext'] =$statustext[$row['status']];
                 $list[$key]['refundtext'] = $row['refund']==0 ? '未退还':'已退还';
+                $list[$key]['nickname'] = get_nickname($row['uid']);
+                
+                $product_info = json_decode($row['product_info'], true);
+                $list[$key]['goods_info'] = "";
+                foreach ($product_info as $item){
+                    $list[$key]['goods_info'] .= $item['name'] . '*' . $item['num'] . '<br/>';
+                }
             }
         }
-
+        
         $builder=new BackstageListBuilder();
         $builder->title('订单列表')
+            ->keyId('out_trade_no', '订单编号')
             ->data($list)
             ->setSearchPostUrl(url('order/index'))
-            ->searchText('','keyword','text','订单名称/编号')
-            ->buttonDelete(url('order/edit'),'退款')
-            ->keyId()
-            ->keyText('name','商品名称')
-            ->keyText('uid','用户名称')
-            ->keyText('price','价格')
-            ->keyText('product_num','商品价格')
+            ->searchText('','keyword','text','订单编号')
+            ->keyText('nickname','用户名称')
+            ->keyText('goods_info','商品信息')
+            ->keyText('total_fee','订单价格')
             ->keyText('statustext','状态')
-            ->keyText('refundtext','退款')
             ->keyCreateTime()
-            ->keyDoActionEdit('order/edit?id=###','退还');
+            ->keyDoActionEdit('order/edit?id=###','编辑')
+            ->keyDoActionEdit('order/print?id=###','打印');
         $builder->pagination($totalCount);
         return $builder->show();
     }
