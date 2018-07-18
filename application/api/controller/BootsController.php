@@ -39,6 +39,7 @@ class BootsController extends Controller{
     */
     public function share(Request $request){
         $uid = $request->param('uid', '', 'intval');
+        $uid = intval($uid);
         
         if(!empty($uid)){
             $model = db('coupon', [], false);
