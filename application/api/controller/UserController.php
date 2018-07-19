@@ -127,10 +127,7 @@ class UserController extends Controller{
                 $pos_district = db("district")->where(['id'=>$address_info['pos_district']])->value("name");
                 $street_id = db("district")->where(['id'=>$address_info['street_id']])->value("name");
 
-                $address_info['province_name'] = $pos_province;
-                $address_info['city_name'] = $pos_city;
-                $address_info['district_name'] = $pos_district;
-                $address_info['street_name']  = $street_id;
+                $address_info['address'] = $pos_province.$pos_city.$pos_district.$street_id.$address_info['pos_community'];
                 $detail['address'] = $address_info;
             }
             return json(['code'=>0,'msg'=>'success','data'=>$detail]);

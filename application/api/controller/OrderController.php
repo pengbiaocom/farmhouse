@@ -155,7 +155,7 @@ class OrderController extends Controller{
                 $productList[] = [
                     'id'=>$product->id,
                     'name'=>$product->name,
-                    'cover'=>get_cover(explode(',', $item['cover'])[0], 'path'),
+                    'cover'=>get_cover(explode(',', $product['cover'])[0], 'path'),
                     'price'=>$product->price,
                     'num'=>$productArr[$product->id]
                 ];
