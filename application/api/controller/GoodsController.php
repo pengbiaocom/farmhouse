@@ -142,6 +142,26 @@ class GoodsController extends Controller{
     * @return:
     */
     public function addRank(Request $request){
+        $gid = $request->param('gid', 0, 'intval');
+        $uid = $request->param('uid', 0, 'intval');
+        $rank = $request->param('rank', 1, 'intval');
+        $message = $request->param('message', '', 'op_t');
         
+        if($gid == 0 || $uid == 0 || empty($message)) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
+        
+        $data['gid'] = $gid;
+        $data['uid'] = $uid;
+        $data['rank'] = $rank;
+        $data['message'] = $message;
+        $data['addtime'] = time();
+        
+        $commentsModel = new CommentsModel();
+        $commentsModel->data($data);
+        
+        if($commentsModel->save()){
+            return json(['code'=>0,'msg'=>'评价成功']);
+        }else{
+            return json(['code'=>1,'msg'=>'评价失败']);
+        }
     }
 }
