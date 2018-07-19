@@ -137,6 +137,29 @@ class UserController extends Controller{
     }
 
     /**
+     * 确认收货
+     * @param Request $request
+     * @return \think\response\Json
+     * @throws \think\Exception
+     * User: 离殇<pengxuancom@163.com>
+     */
+    public function order_delivery(Request $request){
+        $order_id = $request->param('id');
+        $uid = $request->param("uid");
+        if(empty($order_id) && empty($uid))  return json(['code'=>1,'msg'=>'缺少必要参数']);
+        $detail = db("order")->where(['id'=>$order_id,'uid'=>$uid])->find();
+        if($detail){
+            if(db("order")->where(['id'=>$order_id,'uid'=>$uid])->update(['status'=>3])){
+                return json(['code'=>0,'msg'=>'操作成功']);
+            }else{
+                return json(['code'=>1,'msg'=>'操作失败']);
+            }
+        }else{
+            return json(['code'=>1,'msg'=>'没有查询到数据']);
+        }
+    }
+
+    /**
      * 订单删除
      * @param Request $request
      * @return \think\response\Json
