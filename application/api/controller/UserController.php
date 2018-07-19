@@ -90,6 +90,12 @@ class UserController extends Controller{
         $order_list = db("order")->where($map)->order("create_time desc")->page($page, $limit)->select();
 
         if($order_list){
+            $status_text = ['待付款','待发货','待收货','已完成'];
+            foreach($order_list as $key=>$row){
+                $order_list[$key]['create_time'] = date("Y-m-d H:i:s",$row['create_time']);
+                $order_list[$key]['product_info'] = json_decode($row['product_info'],true);
+                $order_list[$key]['statusStr'] = $status_text[$row['status']];
+            }
             return json(['code'=>0,'msg'=>'success','data'=>$order_list,'paginate'=>['page'=>sizeof($order_list) < 10 ? $page : $page+1, 'limit'=>$limit]]);
         }else{
             return json(['code'=>1,'msg'=>'没有订单']);
@@ -104,13 +110,29 @@ class UserController extends Controller{
      * User: 离殇<pengxuancom@163.com>
      */
     public function order_detail(Request $request){
-         $order_id = $request->param('order_id');
+         $order_id = $request->param('id');
 
         if(empty($order_id))  return json(['code'=>1,'msg'=>'缺少必要参数']);
-
+        $status_text = ['待付款','待发货','待收货','已完成'];
         $detail = db("order")->where(['id'=>$order_id])->find();
 
         if($detail){
+            $detail['create_time'] = date("Y-m-d H:i:s",$detail['create_time']);
+            $detail['product_info'] = json_decode($detail['product_info'],true);
+            $detail['statusStr'] = $status_text[$detail['status']];
+            $address_info = db("receiving_address")->where(['id'=>$detail['address_id']])->find();
+            if($address_info){
+                $pos_province = db("district")->where(['id'=>$address_info['pos_province']])->value("name");
+                $pos_city = db("district")->where(['id'=>$address_info['pos_city']])->value("name");
+                $pos_district = db("district")->where(['id'=>$address_info['pos_district']])->value("name");
+                $street_id = db("district")->where(['id'=>$address_info['street_id']])->value("name");
+
+                $address_info['province_name'] = $pos_province;
+                $address_info['city_name'] = $pos_city;
+                $address_info['district_name'] = $pos_district;
+                $address_info['street_name']  = $street_id;
+                $detail['address'] = $address_info;
+            }
             return json(['code'=>0,'msg'=>'success','data'=>$detail]);
         }else{
             return json(['code'=>1,'msg'=>'没有查询到数据']);

@@ -17,7 +17,7 @@ class OrderController extends Controller{
     public function create_order(Request $request){
         //接收订单信息
         $uid = $request->param('uid', '', 'intval');
-        $product_info = $request->param('product_info', '', 'op_t');
+        $product_info = $request->param('product_info/a');
         $address_id = $request->param('address_id', '', 'intval');
         $coupon_num = $request->param('coupon_num', 0, 'intval');
         $remark = $request->param('remark', '', 'op_t');
@@ -120,7 +120,7 @@ class OrderController extends Controller{
             $productList = [];//商品信息
             $order_data = [];//订单数据
             
-            $product_info = json_decode($product_info, true);
+//            $product_info = json_decode($product_info, true);
             $productArr = [];
             $productIds = [];
             if(sizeof($product_info) > 0){
