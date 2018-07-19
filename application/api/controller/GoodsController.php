@@ -3,7 +3,6 @@ namespace app\api\controller;
 
 use think\Controller;
 use think\Request;
-use app\common\model\CommentsModel;
 
 class GoodsController extends Controller{
     /**
