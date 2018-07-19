@@ -3,6 +3,7 @@ namespace app\api\controller;
 
 use think\Controller;
 use think\Request;
+use app\common\model\CommentsModel;
 
 class GoodsController extends Controller{
     /**
@@ -100,5 +101,47 @@ class GoodsController extends Controller{
         }else{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
+    }
+    
+    /**
+    * 商品评价
+    * @date: 2018年7月19日 下午2:23:40
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function goodRank(Request $request){
+        $gid = $request->param('id', 0, 'intval');
+        $rank = $request->param('rank', 1, 'intval');
+        $limit = $request->param('limit', 10, 'intval');
+        $page = $request->param('page', 1, 'intval');
+        
+        if($gid == 0) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
+        
+        $commentsModel = new CommentsModel();
+        $ranks = $commentsModel::all(function($query) use($gid,$rank,$page,$limit){
+            $query->where('gid', $gid);
+            $query->where('rank', $rank);
+            $query->where('status', 1);
+            $query->order('addtime desc');
+            $query->limit(($page-1)*$limit, $limit);
+        });
+        
+        if(!empty($ranks)){
+            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$ranks, 'paginate'=>array('page'=>sizeof($list) < 10 ? $page : $page+1, 'limit'=>$limit)]);
+        }else{
+            return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
+        }
+    }
+    
+    /**
+    * 添加评价
+    * @date: 2018年7月19日 下午2:24:12
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function addRank(Request $request){
+        
     }
 }
