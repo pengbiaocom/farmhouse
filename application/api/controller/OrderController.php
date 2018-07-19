@@ -151,8 +151,11 @@ class OrderController extends Controller{
                 }
                 
                 $total_fee += $product->price*$productArr[$product->id];
+                
                 $productList[] = [
+                    'id'=>$product->id,
                     'name'=>$product->name,
+                    'cover'=>get_cover(explode(',', $item['cover'])[0], 'path'),
                     'price'=>$product->price,
                     'num'=>$productArr[$product->id]
                 ];
