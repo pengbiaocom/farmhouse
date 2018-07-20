@@ -11,7 +11,7 @@ use think\Db;
 use app\common\model\UcenterMemberModel;
 
 class OrderController extends Controller{
-    private $wx_key = '6ba57bc32cfd5044f8710f09ff86c664abf443b07e3279a383a1fe9dadd0a1a3';//申请支付后有给予一个商户账号和密码，登陆后自己设置key
+    private $wx_key = '6ba57bc32cfd5044f8710f09ff86c664';//申请支付后有给予一个商户账号和密码，登陆后自己设置key
     private $appid = 'wxa6737565830cae42';//小程序id
     private $mch_id = '1509902681';
     
@@ -96,6 +96,8 @@ class OrderController extends Controller{
         
         
         $curlModel = new CurlModel();
+        $curlModel->set_ssl_peer(true);
+        $curlModel->set_ssl_host(2);
         $response = $curlModel->post_single(self::API_URL_PREFIX.self::UNIFIEDORDER_URL,$post_xml);
         var_dump($response);
     }
