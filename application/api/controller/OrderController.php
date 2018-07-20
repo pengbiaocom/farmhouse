@@ -50,7 +50,6 @@ class OrderController extends Controller{
     * @return:
     */
     public function payment(Request $request){
-        header( 'Content-Type:text/html;charset=utf-8 ');
         $out_trade_no = $request->param('out_trade_no', '', 'op_t');
         $uid = $request->param('uid', '', 'intval');
         
@@ -92,13 +91,11 @@ class OrderController extends Controller{
            <spbill_create_ip><![CDATA['.$post['spbill_create_ip'].']]></spbill_create_ip>
            <total_fee><![CDATA['.$post['total_fee'].']]></total_fee>
            <trade_type><![CDATA['.$post['trade_type'].']]></trade_type>
-           <sign>'.$sign.'</sign>
-        </xml> ';
+           <sign><![CDATA['.$sign.']]></sign>
+        </xml>';
         
         
         $curlModel = new CurlModel();
-        $curlModel->set_ssl_host(true);
-        $curlModel->set_ssl_peer(true);
         $response = $curlModel->post_single(self::API_URL_PREFIX.self::UNIFIEDORDER_URL,$post_xml);
         var_dump($response);
     }
@@ -246,14 +243,18 @@ class OrderController extends Controller{
     */
     private function sign($data){
         $stringA = '';
+        
+        ksort($data);
+        
         foreach ($data as $key=>$value){
             if(!$value) continue;
+            
             if($stringA) $stringA .= '&'.$key."=".$value;
+            
             else $stringA = $key."=".$value;
         }
         
-        $wx_key = $this->wx_key;
-        $stringSignTemp = $stringA.'&key='.$wx_key;
+        $stringSignTemp = $stringA.'&key='.$this->wx_key;
         return strtoupper(md5($stringSignTemp));
     } 
 }
