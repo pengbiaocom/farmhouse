@@ -42,6 +42,30 @@ class CommentController extends Controller{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
     }
+
+    /**
+     * 获取 评论数量
+     * @param Request $request
+     * @return \think\response\Json
+     */
+    public function get_commentnum(Request $request){
+        $gid = $request->param('id', 0, 'intval');
+
+        if($gid == 0) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
+
+        $commentsModel = new CommentsModel();
+        $commentNums[0] = $commentsModel->where(['gid'=>$gid,'rank'=>1])->count();
+
+        $commentNums[1] = $commentsModel->where(['gid'=>$gid,'rank'=>2])->count();
+
+        $commentNums[2] = $commentsModel->where(['gid'=>$gid,'rank'=>3])->count();
+
+        if($commentNums){
+            return json(['code'=>0,'msg'=>'success','data'=>$commentNums]);
+        }else{
+            return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
+        }
+    }
     
     /**
     * 添加评价
