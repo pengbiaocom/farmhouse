@@ -90,7 +90,7 @@ class UserController extends Controller{
         $order_list = db("order")->where($map)->order("create_time desc")->page($page, $limit)->select();
 
         if($order_list){
-            $status_text = ['待付款','待发货','待收货','已完成'];
+            $status_text = ['待付款','待发货','待收货','待评价','已完成'];
             foreach($order_list as $key=>$row){
                 $order_list[$key]['create_time'] = date("Y-m-d H:i:s",$row['create_time']);
                 $order_list[$key]['product_info'] = json_decode($row['product_info'],true);
@@ -113,7 +113,7 @@ class UserController extends Controller{
          $order_id = $request->param('id');
 
         if(empty($order_id))  return json(['code'=>1,'msg'=>'缺少必要参数']);
-        $status_text = ['待付款','待发货','待收货','已完成'];
+        $status_text = ['待付款','待发货','待收货','待评价','已完成'];
         $detail = db("order")->where(['id'=>$order_id])->find();
 
         if($detail){

@@ -85,7 +85,6 @@ class CommentController extends Controller{
         $orderId = $request->param('orderId',0,'intval');
         $uid = $request->param('uid',0,'intval');
         $reputations = $request->param('reputations/a');
-
         if($orderId == 0 || $uid == 0 || empty($reputations)) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
 
         $data = [];
