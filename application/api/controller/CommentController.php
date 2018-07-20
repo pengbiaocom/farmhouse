@@ -73,4 +73,43 @@ class CommentController extends Controller{
             return json(['code'=>1,'msg'=>'评价失败']);
         }
     }
+
+
+    /**
+     * 商品评价添加
+     * @param Request $request
+     * @return \think\response\Json
+     * User: 离殇<pengxuancom@163.com>
+     */
+    public function reputation(Request $request){
+        $orderId = $request->param('orderId',0,'intval');
+        $uid = $request->param('uid',0,'intval');
+        $reputations = $request->param('reputations/a');
+
+        if($orderId == 0 || $uid == 0 || empty($reputations)) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
+
+        $data = [];
+        $commentsModel = new CommentsModel();
+        $res = 0;
+        foreach($reputations as $row){
+            $data['orderid'] = $orderId;
+            $data['gid'] = $row['id'];
+            $data['rank'] = $row['reputation'];
+            $data['message'] = $row['remark'];
+            $data['uid'] = $uid;
+            $data['addtime'] = time();
+            $commentsModel->data($data);
+            if($commentsModel->save()){
+                $res++;
+            }
+        }
+
+        if($res==count($reputations)){
+            db("order")->where(['id'=>$orderId,'uid'=>$uid])->update(['status'=>4]);
+            return json(['code'=>0,'msg'=>'评价成功']);
+        }else{
+            return json(['code'=>1,'msg'=>'评价失败']);
+        }
+
+    }
 }
