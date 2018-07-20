@@ -11,15 +11,16 @@ use think\Db;
 use app\common\model\UcenterMemberModel;
 
 class OrderController extends Controller{
-    private $wx_key = "6ba57bc32cfd5044f8710f09ff86c664abf443b07e3279a383a1fe9dadd0a1a3";//申请支付后有给予一个商户账号和密码，登陆后自己设置key
+    private $wx_key = '6ba57bc32cfd5044f8710f09ff86c664abf443b07e3279a383a1fe9dadd0a1a3';//申请支付后有给予一个商户账号和密码，登陆后自己设置key
     private $appid = 'wxa6737565830cae42';//小程序id
+    private $mch_id = '1509902681';
     
     //接口API URL前缀
     const API_URL_PREFIX = 'https://api.mch.weixin.qq.com';
     //下单地址URL
-    const UNIFIEDORDER_URL = "/pay/unifiedorder";
+    const UNIFIEDORDER_URL = '/pay/unifiedorder';
     //查询订单URL
-    const ORDERQUERY_URL = "/pay/orderquery";
+    const ORDERQUERY_URL = '/pay/orderquery';
     
     public function create_order(Request $request){
         //接收订单信息
@@ -49,6 +50,7 @@ class OrderController extends Controller{
     * @return:
     */
     public function payment(Request $request){
+        header( 'Content-Type:text/html;charset=utf-8 ');
         $out_trade_no = $request->param('out_trade_no', '', 'op_t');
         $uid = $request->param('uid', '', 'intval');
         
@@ -66,30 +68,30 @@ class OrderController extends Controller{
         
         //这里是按照顺序的 因为下面的签名是按照顺序 排序错误 肯定出错
         $post['appid'] = $this->appid;
-        $post['body'] = "益丰农舍-商品购买";//描述
-        $post['mch_id'] = "1509902681";//商户号
+        $post['body'] = '益丰农舍-商品购买';//描述
+        $post['mch_id'] = $this->mch_id;//商户号
         $post['nonce_str'] = $this->nonce_str();//随机字符串
-        $post['notify_url'] = "";//回调地址自己填写
+        $post['notify_url'] = 'http://api.chouvc.com';//回调地址自己填写
         $post['openid'] = $user->openid;//用户在商户appid下的唯一标识
         $post['out_trade_no'] = $order->out_trade_no;//商户订单号
         $post['spbill_create_ip'] = get_client_ip();//终端的ip
         $post['total_fee'] = $order->total_fee*100;//因为充值金额最小是1 而且单位为分 如果是充值1元所以这里需要*100
-        $post['trade_type'] = "JSAPI";//交易类型 默认
+        $post['trade_type'] = 'JSAPI';//交易类型 默认
         
         $sign = $this->sign($post);//签名
         
         
         $post_xml = '<xml>
-           <appid>'.$post['appid'].'</appid>
-           <body>'.$post['body'].'</body>
-           <mch_id>'.$post['mch_id'].'</mch_id>
-           <nonce_str>'.$post['nonce_str'].'</nonce_str>
-           <notify_url>'.$post['notify_url'].'</notify_url>
-           <openid>'.$post['openid'].'</openid>
-           <out_trade_no>'.$post['out_trade_no'].'</out_trade_no>
-           <spbill_create_ip>'.$post['spbill_create_ip'].'</spbill_create_ip>
-           <total_fee>'.$post['total_fee'].'</total_fee>
-           <trade_type>'.$post['trade_type'].'</trade_type>
+           <appid><![CDATA['.$post['appid'].']]></appid>
+           <body><![CDATA['.$post['body'].']]></body>
+           <mch_id><![CDATA['.$post['mch_id'].']]></mch_id>
+           <nonce_str><![CDATA['.$post['nonce_str'].']]></nonce_str>
+           <notify_url><![CDATA['.$post['notify_url'].']]></notify_url>
+           <openid><![CDATA['.$post['openid'].']]></openid>
+           <out_trade_no><![CDATA['.$post['out_trade_no'].']]></out_trade_no>
+           <spbill_create_ip><![CDATA['.$post['spbill_create_ip'].']]></spbill_create_ip>
+           <total_fee><![CDATA['.$post['total_fee'].']]></total_fee>
+           <trade_type><![CDATA['.$post['trade_type'].']]></trade_type>
            <sign>'.$sign.'</sign>
         </xml> ';
         
