@@ -7,8 +7,8 @@ use app\common\model\CurlModel;
 use app\common\model\UcenterMemberModel;
 
 class UserController extends Controller{
-    private $appid = 'wx25fdd247f54f5841';
-    private $secret = '53552dcaee42df51c56366daaded9a07';
+    private $appid = 'wxa6737565830cae42';
+    private $secret = '2db64a778849a93bf4481a5815427a54';
     private $sessionKey = '';
     
     public function login(Request $request){
