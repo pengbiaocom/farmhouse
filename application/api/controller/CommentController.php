@@ -21,7 +21,7 @@ class CommentController extends Controller{
     */
     public function goodRank(Request $request){
         $gid = $request->param('id', 0, 'intval');
-        $rank = $request->param('rank', 1, 'intval');
+        $rank = $request->param('idx_value', 0, 'intval');
         $limit = $request->param('limit', 10, 'intval');
         $page = $request->param('page', 1, 'intval');
         
@@ -30,13 +30,19 @@ class CommentController extends Controller{
         $commentsModel = new CommentsModel();
         $ranks = $commentsModel::all(function($query) use($gid,$rank,$page,$limit){
             $query->where('gid', $gid);
-            $query->where('rank', $rank);
+            if(!empty($rank)){
+                $query->where('rank', $rank);
+            }
             $query->where('status', 1);
             $query->order('addtime desc');
             $query->limit(($page-1)*$limit, $limit);
         });
         
         if(!empty($ranks)){
+            foreach($ranks as $key=>$row){
+                $ranks[$key]['addtime'] = date("Y-m-d H:i:s",$row['addtime']);
+                $ranks[$key]['buyer_nickname'] = db("member")->where(['uid'=>$row['uid']])->value('nickname');
+            }
             return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$ranks, 'paginate'=>array('page'=>sizeof($ranks) < 10 ? $page : $page+1, 'limit'=>$limit)]);
         }else{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
@@ -135,4 +141,6 @@ class CommentController extends Controller{
         }
 
     }
+
+
 }

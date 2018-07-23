@@ -96,7 +96,7 @@
                         </td>
                         <td>{$vo['level']}</td>
                         <td align="center">
-                            <a href="<?php showSetValUrl('is_show',$vo);?>" title="开启">开启</a>&nbsp;
+                            <a class="ajax-get" href="<?php showSetValUrl('is_show',$vo);?>" title="开启"><?php if($vo['is_show']==1){ echo '开启'; }else{ echo '隐藏'; } ?></a>&nbsp;
                             <a href="{:url('District/edit?id='.$vo['id'])}" >编辑</a>&nbsp;
                             <a href="{:url('District/del?&id='.$vo['id'])}" class="confirm ajax-get">删除</a>
                         </td>

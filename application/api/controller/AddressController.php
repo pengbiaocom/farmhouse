@@ -13,7 +13,7 @@ class AddressController extends Controller{
 
     public function get_provinces(){
 
-        $district = db("district")->where(['level'=>1,'is_show'=>0])->order("id asc")->select();
+        $district = db("district")->where(['level'=>1,'is_show'=>1])->order("id asc")->select();
 
         return json($district);
     }
@@ -23,8 +23,7 @@ class AddressController extends Controller{
 
         if(empty($upid))  $upid = 110000;
 
-
-        $district = db("district")->where(['level'=>2,'upid'=>$upid,'is_show'=>0])->order("id asc")->select();
+        $district = db("district")->where(['level'=>2,'upid'=>$upid,'is_show'=>1])->order("id asc")->select();
 
         return json($district);
     }
@@ -34,7 +33,7 @@ class AddressController extends Controller{
 
         if(empty($upid))  $upid = 110100;
 
-        $district = db("district")->where(['level'=>3,'upid'=>$upid,'is_show'=>0])->order("id asc")->select();
+        $district = db("district")->where(['level'=>3,'upid'=>$upid,'is_show'=>1])->order("id asc")->select();
 
         return json($district);
     }
@@ -45,7 +44,7 @@ class AddressController extends Controller{
 
         if(empty($upid))  return json(['code'=>1,'msg'=>'缺少参数']);
 
-        $district = db("district")->where(['level'=>4,'upid'=>$upid,'is_show'=>0])->order("id asc")->select();
+        $district = db("district")->where(['level'=>4,'upid'=>$upid,'is_show'=>1])->order("id asc")->select();
 
         return json(['code'=>0,'data'=>$district]);
     }

@@ -41,12 +41,11 @@ class DistrictModel extends BaseModel{
      * @return int
      */
     function add($arr){
-
-        $classId = $this->isUpdate(false)->save($arr);
+        $classId = db("District")->insertGetId($arr);
         if($classId){
             $idList = $this->getAllParentId($arr['upid']).','.$classId.',';
             $savearr['level'] = strlen($idList)-strlen(str_replace(',','',$idList));
-            $this->isUpdate(true)->where('id='.$classId)->save(['level'=>$savearr['level']]);
+            db("District")->where('id='.$classId)->update(['level'=>$savearr['level']]);
         }
         return $classId;
     }

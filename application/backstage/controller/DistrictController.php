@@ -54,6 +54,7 @@ class DistrictController extends BackstageController{
             $data['name']=input('post.name','','op_t');
             $data['level']=input('post.level',0,'intval');
             $data['upid']=input('post.upid',0,'intval');
+            $data['is_show']=input('post.is_show',0,'intval');
             $this->check($data);
             if($districtModel->add($data)){
                 $this->success("添加成功",Cookie('__forward__'));
@@ -66,12 +67,14 @@ class DistrictController extends BackstageController{
             if(empty($curclass)) $curclass = [['id'=>0,'name'=>'根目录','level'=>0]];
             $options[$curclass['id']]=$curclass['name'];
             $data = [];
+            $show_text = ['隐藏','显示'];
             $builder=new BackstageConfigBuilder();
             $builder->title('新增')
                 ->data($data)
                 ->keyText('name','地区名称','用于显示的文字')
                 ->keyText('level','级数','分层级数')->keyDefault('level',$curclass['level']+1)
                 ->keySelect('upid','上级分类','',$options)
+                ->keySelect('is_show','上级分类','',$show_text)
                 ->buttonSubmit()->buttonBack();
             return $builder->show();
         }
@@ -136,10 +139,13 @@ class DistrictController extends BackstageController{
     public function setval(){
         $data = Request()->param();
         $districtModel = new DistrictModel();
-        $districtModel->save([$data['name']=>$data['value']], function($query) use($data){
+        if($districtModel->save([$data['name']=>$data['value']], function($query) use($data){
             $query->where('id', $data['id']);
-        });
-        redirect($_SERVER['HTTP_REFERER']);
+        })){
+            $this->success("操作成功",Cookie('__forward__'));
+        }else{
+            $this->error("操作失败");
+        }
     }
 
     /**
