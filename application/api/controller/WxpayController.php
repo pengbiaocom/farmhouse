@@ -113,15 +113,7 @@ class WxpayController extends Controller{
 
         $data['paySign'] = self::makeSign($data);
 
-        $arr['appId'] = $data['appId'];
-        $arr['timeStamp'] = $data['timeStamp'];
-        $arr['nonceStr'] = $data['nonceStr'];
-        $arr['package'] = $data['package'];
-        $arr['signType'] = $data['signType'];
-        $arr['paySign'] = $data['paySign'];
-        $arr['prepayId'] = $prepay_id;
-
-        return json(['code'=>0,'data'=>$arr]);
+        return json(['code'=>0,'data'=>$data]);
     }
 
     //微信支付回调验证
