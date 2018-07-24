@@ -184,7 +184,7 @@ class BootsController extends Controller{
                             foreach ($array as $val) {
                                 list($k, $v) = explode('|', $val);
                                 if($product['sales'] >= $k){
-                                    $curr_price = $v;
+                                    $curr_price = number_format($v,2,".","");
                                 }
                             }
                         }
