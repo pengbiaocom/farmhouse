@@ -108,6 +108,7 @@ class BootsController extends Controller{
             
             $is_update = $orderModel->save(['status'=>2],function($query){
                 $query->where('status',1);
+                $query->where('create_time', 'between', [$priv_time-86400, $priv_time]);
             });
             
             if($is_update) {
@@ -144,6 +145,7 @@ class BootsController extends Controller{
             
             $is_update = $orderModel->save(['status'=>3],function($query){
                 $query->where('status',2);
+                $query->where('create_time', 'between', [$priv_time-86400, $priv_time]);
             });
             
             if($is_update) {
@@ -232,7 +234,12 @@ class BootsController extends Controller{
                 }
                 
                 
-                dump($funds);
+                //开始生成数据
+                if(sizeof($funds) > 0){
+                    foreach ($funds as $fund){
+                        dump($fund);
+                    }
+                }
             }
         }
     }
