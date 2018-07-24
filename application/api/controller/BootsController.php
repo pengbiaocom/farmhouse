@@ -5,6 +5,7 @@ use think\Controller;
 use think\Request;
 use app\common\model\OrderModel;
 use app\common\model\ProductModel;
+use app\common\model\FundsModel;
 
 class BootsController extends Controller{
     /**
@@ -164,9 +165,18 @@ class BootsController extends Controller{
     * @return:
     */
     public function fund_change(){
+        /* 读取数据库中的配置 */
+        $config = cache('DB_CONFIG_DATA');
+        if (!$config) {
+            $config = controller("common/ConfigApi")->lists();
+            cache('DB_CONFIG_DATA', $config);
+        }
+        config($config); //添加配置        
+        
+        $fund_time = config('FUND_TIME');
         $curr = date('H:i');
         $priv_time = strtotime(date('Y-m-d 0:0:0'));
-        if(1==1){//$curr === '20:00'
+        if($curr === $fund_time){
             //先把当天的商品数据获取到    获取到当天销量、价格阶段
             $prices = [];
             $funds = [];
@@ -208,7 +218,8 @@ class BootsController extends Controller{
                         
                         if(!isset($funds[$order['uid']])){
                             $funds[$order['uid']]['uid'] = $order['uid'];
-                            $funds[$order['uid']]['time'] = date('Y年m月d日');
+                            $funds[$order['uid']]['date'] = date('Ymd');
+                            $funds[$order['uid']]['date_str'] = date('Y年m月d日');
 
                             foreach ($order['product_info'] as $item){
                                 $item['sales'] = $prices[$item['id']]['sales'];
@@ -236,8 +247,30 @@ class BootsController extends Controller{
                 
                 //开始生成数据
                 if(sizeof($funds) > 0){
+                    $error = 0;
+                    $fundsModel = new FundsModel();
                     foreach ($funds as $fund){
-                        dump($fund);
+                        $info = $fundsModel::get(function($query) use($fund){
+                            $query->where('uid', $fund['uid']);
+                            $query->where('date', $fund['date']);
+                        });
+                        
+                        if(empty($info)){
+                            $data['uid'] = $fund['uid'];
+                            $data['date'] = $fund['date'];
+                            $data['date_str'] = $fund['date_str'];
+                            $data['product_info'] = json_encode($fund['product_info']);
+                            $data['addtime'] = time();
+                            
+                            $fundsModel->data($data);
+                            if(!$fundsModel->save()) $error += 1;
+                        }
+                    }
+                    
+                    if($error > 0){
+                        $this->writeGetDataLog('生成用户退款明细数据失败');
+                    }else{
+                        $this->writeGetDataLog('生成用户退款明细数据成功');
                     }
                 }
             }
