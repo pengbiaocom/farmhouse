@@ -4,6 +4,7 @@ namespace app\api\controller;
 use think\Controller;
 use think\Request;
 use app\common\model\OrderModel;
+use app\common\model\ProductModel;
 
 class BootsController extends Controller{
     /**
@@ -149,6 +150,89 @@ class BootsController extends Controller{
                 $this->writeGetDataLog('将待收货切换为已收货成功');
             }else{
                 $this->writeGetDataLog('将待收货切换为已收货失败');                
+            }
+        }
+    }
+    
+    /**
+    * 生成退款明细数据
+    * @date: 2018年7月24日 上午11:51:59
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function fund_change(){
+        $curr = date('H:i');
+        $priv_time = strtotime(date('Y-m-d 0:0:0'));
+        if(1==1){//$curr === '20:00'
+            //先把当天的商品数据获取到    获取到当天销量、价格阶段
+            $prices = [];
+            $funds = [];
+            
+            $productModel = new ProductModel();
+            $products = $productModel::all(function($query){
+                $query->field("id,price,price_line,sales");
+                $query->where('status', 1);
+            });
+            if($products){
+                foreach ($products as $product){
+                    $curr_price = $product['price'];
+                    if(!empty($product['price_line'])){
+                        $array = preg_split('/[,;\r\n]+/', trim($product['price_line'], ",;\r\n"));
+                    
+                        if(strpos($product['price_line'],'|')){
+                            foreach ($array as $val) {
+                                list($k, $v) = explode('|', $val);
+                                if($product['sales'] >= $k){
+                                    $curr_price = number_format($v,2,".","");
+                                }
+                            }
+                        }
+                    }
+                    $prices[$product['id']] = ['price'=>$product['price'], 'curr_price'=>$curr_price, 'sales'=>$product['sales']];
+                }
+                
+
+                //获取到当天的所有订单，并把所涉及到的用户分组，每个用户内的商品进行处理
+                $orderModel = new OrderModel();
+                $orders = $orderModel::all(function($query) use($priv_time){
+                    $query->where('status', 4);
+                    $query->where('create_time', 'between', [$priv_time, $priv_time+86400]);
+                });
+                
+                if($orders){
+                    foreach ($orders as $order){
+                        $order['product_info'] = json_decode($order['product_info'], true);
+                        
+                        if(!isset($funds[$order['uid']])){
+                            $funds[$order['uid']]['uid'] = $order['uid'];
+                            $funds[$order['uid']]['time'] = date('Y年m月d日');
+
+                            foreach ($order['product_info'] as $item){
+                                $item['sales'] = $prices[$item['id']]['sales'];
+                                $item['curr_price'] = $prices[$item['id']]['curr_price'];
+                                $item['num'] = intval($item['num']);
+                                
+                                $funds[$order['uid']]['product_info'][$item['id']] = $item;
+                            }
+                        }else{
+                            foreach ($order['product_info'] as $item){
+                                if(isset($funds[$order['uid']]['product_info'][$item['id']])){
+                                    $funds[$order['uid']]['product_info'][$item['id']]['num'] += $item['num'];
+                                }else{
+                                    $item['sales'] = $prices[$item['id']]['sales'];
+                                    $item['curr_price'] = $prices[$item['id']]['curr_price'];
+                                    $item['num'] = intval($item['num']);
+                                    
+                                    $funds[$order['uid']]['product_info'][$item['id']] = $item;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                
+                dump($funds);
             }
         }
     }

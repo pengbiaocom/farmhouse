@@ -40,7 +40,7 @@ class GoodsController extends Controller{
                         $value  = array();
                         foreach ($array as $val) {
                             list($k, $v) = explode('|', $val);
-                            $value[$k]   = $v;
+                            $value[$k]   = number_format($v,2,".","");
                         }
             
                         $item['price_line'] = $value;
@@ -89,7 +89,7 @@ class GoodsController extends Controller{
                     $value  = array();
                     foreach ($array as $val) {
                         list($k, $v) = explode('|', $val);
-                        $value[$k]   = $v;
+                        $value[$k]   = number_format($v,2,".","");
                     }
             
                     $info['price_line'] = $value;
