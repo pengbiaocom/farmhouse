@@ -1,3 +1,3 @@
 #!/bin/bash
-/usr/bin/curl http://api.chouvc.com/api/Boots/complete_change
+/usr/bin/curl https://api.yifengzhonggou.com/api/Boots/complete_change
 
