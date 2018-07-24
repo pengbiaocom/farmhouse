@@ -177,7 +177,16 @@ class WxpayController extends Controller{
     public function updateDB($order_sn,$openid,$total_fee,$transaction_id){
 
         $orderModel = new OrderModel();
+        $order_info = $orderModel->where(['out_trade_no'=>$order_sn])->find();
         $orderModel->where(['out_trade_no'=>$order_sn])->update(['status'=>4]);
+
+        if($order_info['product_info']){
+            $product_info = json_decode($order_info['product_info'],true);
+            foreach($product_info as $key=>$row){
+                db("product")->where(['id'=>$row['id']])->setInc("total_sales",$row['num']);
+                db("product")->where(['id'=>$row['id']])->setInc("sales",$row['num']);
+            }
+        }
 
         $data['out_trade_no'] = $order_sn;
         $data['openid']   = $openid;

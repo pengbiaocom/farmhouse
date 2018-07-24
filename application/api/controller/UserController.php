@@ -84,10 +84,15 @@ class UserController extends Controller{
         $map = "uid=".$uid;
 
         if($status != 'all'){
-            $map .= " and status=".$status;
+            if($status == 3){
+                $map .= " and status in (3,4)";
+            }else{
+                $map .= " and status=".$status;
+            }
+
         }
 
-        $order_list = db("order")->where($map)->order("create_time desc")->page($page, $limit)->select();
+        $order_list = db("order")->where($map)->order("status asc,create_time desc")->page($page, $limit)->select();
 
         if($order_list){
             $status_text = ['待付款','待发货','待收货','待评价','已完成'];
