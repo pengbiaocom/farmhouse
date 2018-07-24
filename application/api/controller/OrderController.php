@@ -99,7 +99,22 @@ class OrderController extends Controller{
         $curlModel->set_ssl_peer(true);
         $curlModel->set_ssl_host(2);
         $response = $curlModel->post_single(self::API_URL_PREFIX.self::UNIFIEDORDER_URL,$post_xml);
-        var_dump($response);
+        
+        $response = json_decode(json_encode(simplexml_load_string($response, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+        
+        if($response['return_code'] != 'SUCCESS'){
+            return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'预支付失败']]);
+        }else{
+            $return = array();
+            $return['appId'] = $this->appid;
+            $return['timeStamp'] = time();
+            $return['nonceStr'] = $this->nonce_str();
+            $return['package'] = $response['prepay_id'];
+            $return['signType'] = 'MD5';
+            $return['paySign'] = $this->sign($return);
+            
+            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$return]);
+        }
     }
     
     /**
@@ -177,7 +192,7 @@ class OrderController extends Controller{
             $order_data['address_id'] = $address_id;
             $order_data['remark'] = $remark;
             $order_data['create_time'] = time();
-            $order_data['out_trade_no'] = 'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);;
+            $order_data['out_trade_no'] = 'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
 
             //处理运费满减
             if($total_fee < $freight) {
@@ -258,5 +273,5 @@ class OrderController extends Controller{
         
         $stringSignTemp = $stringA.'&key='.$this->wx_key;
         return strtoupper(md5($stringSignTemp));
-    } 
+    }
 }
