@@ -154,6 +154,25 @@ class BootsController extends Controller{
     }
     
     /**
+    * 生成退款明细数据
+    * @date: 2018年7月24日 上午11:51:59
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function fund_change(){
+        $curr = date('H:i');
+        if($curr === '20:00'){
+            $orderModel = new OrderModel();
+            $order = $orderModel::get(function($query) use($out_trade_no,$uid){
+                $query->where('status', 4);
+            });
+            
+            dump($order);
+        }
+    }
+    
+    /**
      * 抓取数据日志写入
      * @param string $content 待写入的内容
      * @param string $root 下级目录
