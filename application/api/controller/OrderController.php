@@ -3,25 +3,12 @@ namespace app\api\controller;
 
 use think\Controller;
 use think\Request;
-use app\common\model\CurlModel;
 use app\common\model\ProductModel;
 use app\common\model\OrderModel;
 use app\common\model\CouponModel;
 use think\Db;
-use app\common\model\UcenterMemberModel;
 
 class OrderController extends Controller{
-    private $wx_key = '6ba57bc32cfd5044f8710f09ff86c664';//申请支付后有给予一个商户账号和密码，登陆后自己设置key
-    private $appid = 'wxa6737565830cae42';//小程序id
-    private $mch_id = '1509902681';
-    
-    //接口API URL前缀
-    const API_URL_PREFIX = 'https://api.mch.weixin.qq.com';
-    //下单地址URL
-    const UNIFIEDORDER_URL = '/pay/unifiedorder';
-    //查询订单URL
-    const ORDERQUERY_URL = '/pay/orderquery';
-    
     public function create_order(Request $request){
         //接收订单信息
         $uid = $request->param('uid', '', 'intval');
@@ -40,81 +27,6 @@ class OrderController extends Controller{
         if($total_fee == 0) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'参数异常']]);
         
         return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$total_fee]);
-    }
-    
-    /**
-    * 预支付
-    * @date: 2018年7月9日 下午2:18:42
-    * @author: onep2p <324834500@qq.com>
-    * @param: variable
-    * @return:
-    */
-    public function payment(Request $request){
-        $out_trade_no = $request->param('out_trade_no', '', 'op_t');
-        $uid = $request->param('uid', '', 'intval');
-        
-        //查询数据，进行预支付
-        $orderModel = new OrderModel();
-        $order = $orderModel::get(function($query) use($out_trade_no,$uid){
-            $query->where('out_trade_no', $out_trade_no);
-            $query->where('uid', $uid);
-        });
-        
-        $ucenterMemberModel = new UcenterMemberModel();
-        $user = $ucenterMemberModel::get(function($query) use($uid){
-            $query->where('id', $uid);
-        });
-        
-        //这里是按照顺序的 因为下面的签名是按照顺序 排序错误 肯定出错
-        $post['appid'] = $this->appid;
-        $post['body'] = '益丰农舍-商品购买';//描述
-        $post['mch_id'] = $this->mch_id;//商户号
-        $post['nonce_str'] = $this->nonce_str();//随机字符串
-        $post['notify_url'] = 'http://api.chouvc.com';//回调地址自己填写
-        $post['openid'] = $user->openid;//用户在商户appid下的唯一标识
-        $post['out_trade_no'] = $order->out_trade_no;//商户订单号
-        $post['spbill_create_ip'] = get_client_ip();//终端的ip
-        $post['total_fee'] = $order->total_fee*100;//因为充值金额最小是1 而且单位为分 如果是充值1元所以这里需要*100
-        $post['trade_type'] = 'JSAPI';//交易类型 默认
-        
-        $sign = $this->sign($post);//签名
-        
-        
-        $post_xml = '<xml>
-           <appid><![CDATA['.$post['appid'].']]></appid>
-           <body><![CDATA['.$post['body'].']]></body>
-           <mch_id><![CDATA['.$post['mch_id'].']]></mch_id>
-           <nonce_str><![CDATA['.$post['nonce_str'].']]></nonce_str>
-           <notify_url><![CDATA['.$post['notify_url'].']]></notify_url>
-           <openid><![CDATA['.$post['openid'].']]></openid>
-           <out_trade_no><![CDATA['.$post['out_trade_no'].']]></out_trade_no>
-           <spbill_create_ip><![CDATA['.$post['spbill_create_ip'].']]></spbill_create_ip>
-           <total_fee><![CDATA['.$post['total_fee'].']]></total_fee>
-           <trade_type><![CDATA['.$post['trade_type'].']]></trade_type>
-           <sign><![CDATA['.$sign.']]></sign>
-        </xml>';
-        
-        
-        $curlModel = new CurlModel();
-        $curlModel->set_ssl_peer(true);
-        $curlModel->set_ssl_host(2);
-        $response = $curlModel->post_single(self::API_URL_PREFIX.self::UNIFIEDORDER_URL,$post_xml);
-        
-        $response = json_decode(json_encode(simplexml_load_string($response, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
-        
-        if($response['return_code'] != 'SUCCESS'){
-            return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'预支付失败']]);
-        }else{
-            $return = array();
-            $return['appId'] = $this->appid;
-            $return['timeStamp'] = time();
-            $return['nonceStr'] = $this->nonce_str();
-            $return['package'] = $response['prepay_id'];
-            $return['signType'] = 'MD5';
-            $return['paySign'] = $this->sign($return);
-            
-            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$return]);
-        }
     }
     
     /**
@@ -243,46 +155,5 @@ class OrderController extends Controller{
         }else{
             return 0;//错误的用户ID
         }
-    }
-    
-    /**
-    * 生成随机字符串
-    * @date: 2018年7月4日 上午9:09:32
-    * @author: onep2p <324834500@qq.com>
-    * @param: variable
-    * @return:
-    */
-    private function nonce_str(){
-        $result = '';
-        $str = 'QWERTYUIOPASDFGHJKLZXVBNMqwertyuioplkjhgfdsamnbvcxz';
-        for ($i=0;$i<32;$i++){
-            $result .= $str[rand(0,48)];
-        }
-        
-        return $result;
-    }
-    
-    /**
-    * 签名函数
-    * @date: 2018年7月4日 上午9:10:06
-    * @author: onep2p <324834500@qq.com>
-    * @param: variable
-    * @return:
-    */
-    private function sign($data){
-        $stringA = '';
-        
-        ksort($data);
-        
-        foreach ($data as $key=>$value){
-            if(!$value) continue;
-            
-            if($stringA) $stringA .= '&'.$key."=".$value;
-            
-            else $stringA = $key."=".$value;
-        }
-        
-        $stringSignTemp = $stringA.'&key='.$this->wx_key;
-        return strtoupper(md5($stringSignTemp));
     }
 }
