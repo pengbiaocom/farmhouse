@@ -118,6 +118,17 @@ class OrderController extends Controller{
     }
     
     /**
+    * 退款明细
+    * @date: 2018年7月24日 上午9:12:16
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function refund(){
+        
+    }
+    
+    /**
     * 计算提交订单最终总价
     * @date: 2018年7月4日 上午9:41:29
     * @author: onep2p <324834500@qq.com>
