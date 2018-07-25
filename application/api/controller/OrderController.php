@@ -41,6 +41,9 @@ class OrderController extends Controller{
         $uid = $request->param('uid', '', 'intval');
         $limit = $request->param('limit', 10, 'intval');
         $page = $request->param('page', 1, 'intval');
+        
+        if(empty($uid)) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
+        
         $fundsModel = new FundsModel();
         
         $funds = $fundsModel::all(function($query) use($uid){
