@@ -7,6 +7,7 @@ use app\common\model\ProductModel;
 use app\common\model\OrderModel;
 use app\common\model\CouponModel;
 use think\Db;
+use app\common\model\FundsModel;
 
 class OrderController extends Controller{
     public function create_order(Request $request){
@@ -36,8 +37,20 @@ class OrderController extends Controller{
     * @param: variable
     * @return:
     */
-    public function refund(){
+    public function refund(Request $request){
+        $uid = $request->param('uid', '', 'intval');
+        $fundsModel = new FundsModel();
         
+        $funds = $fundsModel::all(function($query) use($uid){
+            $query->where('uid', $uid);
+            $query->where('date', '>', 0);
+        });
+        
+        if($funds){
+            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$funds]);
+        }else{
+            return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
+        }
     }
     
     /**
