@@ -247,8 +247,9 @@ class BootsController extends Controller{
                 
                 //开始生成数据
                 if(sizeof($funds) > 0){
-                    $error = 0;
                     $fundsModel = new FundsModel();
+                    
+                    $fundsList = [];
                     foreach ($funds as $fund){
                         $info = $fundsModel::get(function($query) use($fund){
                             $query->where('uid', $fund['uid']);
@@ -256,18 +257,18 @@ class BootsController extends Controller{
                         });
                         
                         if(empty($info)){
+                            $data = array();
                             $data['uid'] = $fund['uid'];
                             $data['date'] = $fund['date'];
                             $data['date_str'] = $fund['date_str'];
                             $data['product_info'] = json_encode($fund['product_info']);
                             $data['addtime'] = time();
                             
-                            $fundsModel->data($data);
-                            if(!$fundsModel->save()) $error += 1;
+                            $fundsList[] = $data;unset($data);
                         }
                     }
                     
-                    if($error > 0){
+                    if($fundsModel->saveAll($fundsList)){
                         $this->writeGetDataLog('生成用户退款明细数据失败');
                     }else{
                         $this->writeGetDataLog('生成用户退款明细数据成功');
