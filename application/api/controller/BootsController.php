@@ -105,8 +105,12 @@ class BootsController extends Controller{
         
         //检验时间正确,开始执行从待发货到待收货的变化
         if($collect_time === $curr_time){
+            $productModel = new ProductModel();
+            $productModel->save(['sales'=>0], function($query){
+                $query->where('id', '>', 0);
+            });
+
             $orderModel = new OrderModel();
-            
             $is_update = $orderModel->save(['status'=>2],function($query){
                 $query->where('status',1);
                 $query->where('create_time', 'between', [$priv_time-86400, $priv_time]);
