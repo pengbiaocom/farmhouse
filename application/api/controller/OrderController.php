@@ -39,15 +39,18 @@ class OrderController extends Controller{
     */
     public function refund(Request $request){
         $uid = $request->param('uid', '', 'intval');
+        $limit = $request->param('limit', 10, 'intval');
+        $page = $request->param('page', 1, 'intval');
         $fundsModel = new FundsModel();
         
         $funds = $fundsModel::all(function($query) use($uid){
             $query->where('uid', $uid);
             $query->where('date', '>', 0);
+            $query->limit(($page-1)*$limit, $limit);
         });
         
         if($funds){
-            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$funds]);
+            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$funds, 'paginate'=>array('page'=>sizeof($funds) < 10 ? $page : $page+1, 'limit'=>$limit)]);
         }else{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
