@@ -53,6 +53,10 @@ class OrderController extends Controller{
         });
         
         if($funds){
+            foreach ($funds as &$fund){
+                $fund['product_info'] = json_decode($fund['product_info'], true);
+            }
+            
             return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$funds, 'paginate'=>array('page'=>sizeof($funds) < $limit ? $page : $page+1, 'limit'=>$limit)]);
         }else{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
