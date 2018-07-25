@@ -71,7 +71,7 @@ class AddressController extends Controller{
                 $street_id = db("district")->where(['id'=>$row['street_id']])->value("name");
                 $address[$key]['address'] = $pos_province.$pos_city.$pos_district.$street_id.$row['pos_community'];
             }
-            return json(['code'=>0,'msg'=>'有数据','data'=>$address,'paginate'=>array('page'=>sizeof($address) < 10 ? $page : $page+1, 'limit'=>$limit)]);
+            return json(['code'=>0,'msg'=>'有数据','data'=>$address,'paginate'=>array('page'=>sizeof($address) < $limit ? $page : $page+1, 'limit'=>$limit)]);
         }else{
             return json(['code'=>1,'msg'=>'没有地址']);
         }

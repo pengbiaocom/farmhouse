@@ -102,7 +102,7 @@ class UserController extends Controller{
                 $order_list[$key]['product_info'] = json_decode($row['product_info'],true);
                 $order_list[$key]['statusStr'] = $status_text[$row['status']];
             }
-            return json(['code'=>0,'msg'=>'success','data'=>$order_list,'paginate'=>['page'=>sizeof($order_list) < 10 ? $page : $page+1, 'limit'=>$limit]]);
+            return json(['code'=>0,'msg'=>'success','data'=>$order_list,'paginate'=>['page'=>sizeof($order_list) < $limit ? $page : $page+1, 'limit'=>$limit]]);
         }else{
             return json(['code'=>1,'msg'=>'没有订单']);
         }

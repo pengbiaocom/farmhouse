@@ -43,7 +43,7 @@ class CommentController extends Controller{
                 $ranks[$key]['addtime'] = date("Y-m-d H:i:s",$row['addtime']);
                 $ranks[$key]['buyer_nickname'] = db("member")->where(['uid'=>$row['uid']])->value('nickname');
             }
-            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$ranks, 'paginate'=>array('page'=>sizeof($ranks) < 10 ? $page : $page+1, 'limit'=>$limit)]);
+            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$ranks, 'paginate'=>array('page'=>sizeof($ranks) < $limit ? $page : $page+1, 'limit'=>$limit)]);
         }else{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
