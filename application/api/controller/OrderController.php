@@ -46,7 +46,7 @@ class OrderController extends Controller{
         
         $fundsModel = new FundsModel();
         
-        $funds = $fundsModel::all(function($query) use($uid){
+        $funds = $fundsModel::all(function($query) use($uid,$page,$limit){
             $query->where('uid', $uid);
             $query->where('date', '>', 0);
             $query->limit(($page-1)*$limit, $limit);
