@@ -566,7 +566,7 @@ function query_user($fields = null, $uid = null)
  * @param string $format
  * @return bool|string 完整的时间显示
  */
-function time_format($time = NULL, $format = 'Y-m-d H:i:s')
+function time_format($time = NULL, $format = 'Y-m-d')
 {
     $time = $time === NULL ? time() : intval($time);
     return date($format, $time);

@@ -6,11 +6,7 @@
             <a href="{:url('Backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
             <a><cite>{$title}</cite></a>
         </div>
-        <!--<fieldset class="layui-elem-field layui-field-title">-->
-            <!--<legend>-->
-                <!--{$title|htmlspecialchars} <if condition="$suggest">（{$suggest|htmlspecialchars}）</if>-->
-            <!--</legend>-->
-        <!--</fieldset>-->
+
         <div class="with-padding" style="margin-bottom: 0px;">
             <div class="fl layui-form">
                 <div class="layui-btn-group" style="margin-bottom: 10px;">
@@ -73,9 +69,32 @@
                                 <div class="select_box">
                                     <php> $datetime_get = input($date_time['name']); </php>
                                     <input type="hidden" name="{$date_time.name}" value="{$datetime_get}"/>
-                                    <input style="width: 130px; float: none;" type="text" data-field-name="{$date_time.name}" class="form-datetime  layui-input" value="{$datetime_get|time_format}" placeholder="{$date_time.des}" />
+                                    <input type="text" data-field-name="{$date_time.name}" class="form-datetime  layui-input" value="{$datetime_get|time_format}" placeholder="{$date_time.des}" />
                                 </div>
                             </div>
+                            
+                            <script type="text/javascript">
+                            layui.use(['laydate'],function(){
+                            	var laydate = layui.laydate;
+	                            laydate.render({
+	                                elem: '.form-datetime' //指定元素
+	                                ,type: '{$date_time.type}'
+	                                ,theme: 'grid'
+	                                ,done:function(value){
+	                                    var fieldName = $(".form-datetime").attr('data-field-name');
+	                                    if(value==''){
+	                                        $('[name=' + fieldName + ']').val('');
+	                                        return true;
+	                                    }
+	                                    var date = new Date(value);
+	                                    var timestamp = date.getTime();
+	                                    $('[name=' + fieldName + ']').val(Math.floor(timestamp / 1000));
+	                                    
+	                                    $('#selectForm').submit();
+	                                }
+	                            });  
+                            });
+                            </script>
                         </volist>
                         <volist name="texts" id="text">
                             <div class="oneselect">
@@ -171,9 +190,7 @@
 
         //点击弹窗功能(解决显示不全的问题)
         layui.use(['layer','form','laydate'],function(){
-            var layer = layui.layer
-                   ,form = layui.form
-                    ,laydate = layui.laydate;
+            var layer = layui.layer,form = layui.form;
             $('[data-role="tdclick"]').dblclick(function(){
                 layer.open({
                     type: 1,
@@ -209,23 +226,6 @@
                         $(".search-input").attr("placeholder", "{:lang('_PLACEHOLDER_NONE_')}");
                 }
             });
-
-            laydate.render({
-                elem: '.form-datetime' //指定元素
-                ,type: 'date'
-                ,theme: 'grid'
-                ,done:function(value){
-                    var fieldName = $(".form-datetime").attr('data-field-name');
-                    if(value==''){
-                        $('[name=' + fieldName + ']').val('');
-                        return true;
-                    }
-                    var date = new Date(value);
-                    var timestamp = date.getTime();
-                    $('[name=' + fieldName + ']').val(Math.floor(timestamp / 1000));
-                }
-            });
-
         });
 
         $(document).on('submit', '.form-dont-clear-url-param', function(e){
