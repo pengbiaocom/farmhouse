@@ -44,7 +44,7 @@ class OrderController extends BackstageController{
         
         $builder=new BackstageListBuilder();
         $builder->title('订单列表')
-            ->ajaxButton('', '', '打印所选项', ['class'=>'layui-btn layui-btn-normal ajax-post tox-confirm', 'data-confirm'=>'是否要打印所选项小票'])
+            ->ajaxButton('', '', '打印所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印所选项小票'])
             ->buttonNew('', '打印筛选结果', [])
             ->buttonNew('', '退还所选项', [])
             ->buttonNew('', '退还筛选结果', [])
