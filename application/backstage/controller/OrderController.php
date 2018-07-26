@@ -18,7 +18,7 @@ class OrderController extends BackstageController{
 
         list($list,$totalCount)=$orderModel->getListByPage($map,'create_time desc','*',$r);
 
-        $statustext = [0=>"未发货",1=>'已发货',2=>'已收货',3=>'已完成'];
+        $statustext = [0=>"待付款",1=>'待发货',2=>'待收货',3=>'待评价',4=>'已完成'];
         if($list){
             foreach($list as $key=>$row){
                 $list[$key]['statustext'] =$statustext[$row['status']];
@@ -35,17 +35,21 @@ class OrderController extends BackstageController{
         
         $builder=new BackstageListBuilder();
         $builder->title('订单列表')
+            ->button('打印所选项', [])
+            ->button('打印筛选结果', [])
             ->keyId('out_trade_no', '订单编号')
-            ->data($list)
             ->setSearchPostUrl(url('order/index'))
+            ->searchSelect('订单状态', 'status', 'select', '', '', [['id'=>-1, 'value'=>'请选择'],['id'=>0,'value'=>'待付款'],['id'=>1,'value'=>'待发货'],['id'=>2,'value'=>'待收货'],['id'=>3,'value'=>'待评价'],['id'=>4,'value'=>'已完成']])
             ->searchText('','keyword','text','订单编号')
             ->keyText('nickname','用户名称')
             ->keyText('goods_info','商品信息')
+            ->keyText('coupon', '优惠券使用量')
+            ->keyText('freight', '运费')
             ->keyText('total_fee','订单价格')
+            ->keyHtml('remark', '备注信息')
             ->keyText('statustext','状态')
             ->keyCreateTime()
-            ->keyDoActionEdit('order/edit?id=###','编辑')
-            ->keyDoActionEdit('order/print?id=###','打印');
+            ->data($list);
         $builder->pagination($totalCount);
         return $builder->show();
     }

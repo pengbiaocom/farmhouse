@@ -5,9 +5,6 @@
         <div class="layui-elem-quote" >
             <a href="{:url('Backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
             <a><cite>{$title}</cite></a>
-            <div class="page-toolbar">
-                <include file="public/_addTo"/>
-            </div>
         </div>
         <!--<fieldset class="layui-elem-field layui-field-title">-->
             <!--<legend>-->
@@ -31,7 +28,8 @@
                         }
                         .oneselect .title{
                             float: left;
-                            line-height: 32px;
+                            line-height: 38px;
+                        	padding-right: 10px;
                         }
                         .oneselect .select_box{
                             float: left;
@@ -49,9 +47,9 @@
                     <form id="selectForm" method="get" action="{$searchPostUrl}" class="form-dont-clear-url-param">
                         <volist name="selects" id="select">
                             <div class="oneselect">
-                                <div class="title">{$select.title}</div>
+                                <div class="title">{$select.title}：</div>
                                 <div class="select_box">
-                                    <php> $select_get = input($select['name']); </php>
+                                    <php> $select_get = input($select['name'], -1);</php>
                                     <notempty name="select['attr']">
                                         <select name="{$select['name']}"  {$select['attr']}>
                                             <volist name="select['arrvalue']" id="svo">
