@@ -111,7 +111,7 @@ class BackstageListBuilder extends  BackstageBuilder{
      */
     public function ajaxButton($url, $params, $title, $attr = [])
     {
-        $attr['class'] = 'layui-btn layui-btn-normal ajax-post';
+        $attr['class'] = empty($attr['class']) ? 'layui-btn layui-btn-normal ajax-post' : $attr['class'];
         $attr['url'] = $this->addUrlParam($url, $params);
         $attr['target-form'] = 'ids';
         return $this->button($title, $attr);
