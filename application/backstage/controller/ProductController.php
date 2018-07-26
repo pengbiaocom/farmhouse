@@ -144,7 +144,7 @@ class ProductController extends BackstageController{
         $builder->title('商品列表')
             ->data($list)
             ->setSearchPostUrl(url('product/index'))
-            ->searchSelect('','cate','select','','',array_merge([['id'=>0,'value'=>lang('_EVERYTHING_')]],$optCategory))
+            ->searchSelect('分类','cate','select','','',array_merge([['id'=>0,'value'=>lang('_EVERYTHING_')]],$optCategory))
             ->searchText('','keyword','text','商品名称/编号')
             ->buttonNew(url('product/editproduct'))->buttonDelete(url('product/setproductstatus'))
             ->keyId()
