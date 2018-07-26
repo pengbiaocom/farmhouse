@@ -67,9 +67,9 @@
                                 </div>
                             </div>
                         </volist>
-                        <volist name="datetime"  id ="date_time">
+                        <volist name="datetime" id="date_time">
                             <div class="oneselect">
-                                <div class="title">{$date_time.title}</div>
+                                <div class="title">{$date_time.title}：</div>
                                 <div class="select_box">
                                     <php> $datetime_get = input($date_time['name']); </php>
                                     <input type="hidden" name="{$date_time.name}" value="{$datetime_get}"/>
