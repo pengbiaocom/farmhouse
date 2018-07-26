@@ -10,10 +10,18 @@ class OrderController extends BackstageController{
         $r = config("LIST_ROWS");
         $orderModel = new OrderModel();
 
-        $map = array();
+        $map = array();//定义条件数据
+        
+        //搜索
         $keyword = input('keyword','','op_t');
         if(!empty($keyword)){
             $map['out_trade_no'] = array('like', $keyword);
+        }
+        
+        //状态
+        $status = input('status', -1, 'intval');
+        if($status !== -1){
+            $map['status'] = array('EQ', $status);
         }
 
         list($list,$totalCount)=$orderModel->getListByPage($map,'create_time desc','*',$r);
