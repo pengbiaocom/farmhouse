@@ -212,7 +212,7 @@
 
             laydate.render({
                 elem: '.form-datetime' //指定元素
-                ,type: 'datetime'
+                ,type: 'date'
                 ,theme: 'grid'
                 ,done:function(value){
                     var fieldName = $(".form-datetime").attr('data-field-name');
@@ -289,19 +289,20 @@
                     target_url=target_url+'&'+query;
                 }
                 layer_open(target_url,data_title,'700px','620px');
-        });
-        $('.tox-confirm').click(function(e){
-            var text = $(this).attr('data-confirm');
-            var result = confirm(text);
-            if(result) {
-                return true;
-            } else {
-                e.stopImmediatePropagation();
-                e.stopPropagation();
-                e.preventDefault();
-                return false;
-            }
-        })
+	        });
+            
+	        $('.tox-confirm').click(function(e){
+	            var text = $(this).attr('data-confirm');
+	            var result = confirm(text);
+	            if(result) {
+	                return true;
+	            } else {
+	                e.stopImmediatePropagation();
+	                e.stopPropagation();
+	                e.preventDefault();
+	                return false;
+	            }
+	        });
         });
 
         $(document).ready(function () {
