@@ -7,35 +7,29 @@ use app\common\model\OrderModel;
 class OrderController extends BackstageController{
 
     private $config = [];
-    
-    protected function _initialize(){
-
-        //微信支付参数配置(appid,商户号,支付秘钥)
-        $config = [
-            'appid'=>'wxa6737565830cae42',
-            'pay_mchid'=>'1509902681',
-            'pay_apikey'=>'6ba57bc32cfd5044f8710f09ff86c664'
-        ];
-
-		$this->config = $config;
-	}
 
     public function   index(){
         $r = config("LIST_ROWS");
         $orderModel = new OrderModel();
 
         $map = array();//定义条件数据
-        
-        //搜索
-        $keyword = input('keyword','','op_t');
-        if(!empty($keyword)){
-            $map['out_trade_no'] = array('like', $keyword);
-        }
+        $select = array();
         
         //状态
         $status = input('status', -1, 'intval');
         if($status !== -1){
             $map['status'] = array('EQ', $status);
+            $select['status'] = $status;
+        }
+        
+        //时间
+        
+        
+        //搜索
+        $keyword = input('keyword','','op_t');
+        if(!empty($keyword)){
+            $map['out_trade_no'] = array('like', $keyword);
+            $select['out_trade_no'] = $keyword;
         }
 
         list($list,$totalCount)=$orderModel->getListByPage($map,'refund asc, printd asc, create_time desc','*',$r);
@@ -60,8 +54,8 @@ class OrderController extends BackstageController{
         $builder->title('订单列表')
             ->ajaxButton('', '', '打印所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印所选项小票'])
             ->ajaxButton('', '', '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果小票'])
-            ->ajaxButton('', '', '退还所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要退还所选项'])
-            ->ajaxButton('', '', '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果'])
+            ->ajaxButton(url('Order/refunds'), array(), '退还所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要退还所选项'])
+            ->ajaxButton(url('Order/refunds'), array($map), '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果'])
             ->keyId('out_trade_no', '订单编号')
             ->setSearchPostUrl(url('order/index'))
             ->searchDateTime('日期', 'create_time', 'date')
@@ -86,28 +80,60 @@ class OrderController extends BackstageController{
 
     }
     
-    public function refund(Request $request){
+    /**
+    * 获取满足条件的退款订单
+    * @date: 2018年7月27日 上午9:00:05
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function refunds(){
+        //微信支付参数配置(appid,商户号,支付秘钥)
+        $config = [
+            'appid'=>'wxa6737565830cae42',
+            'pay_mchid'=>'1509902681',
+            'pay_apikey'=>'6ba57bc32cfd5044f8710f09ff86c664'
+        ];
+
+		$this->config = $config;
+		
+		
+        dump($_REQUEST);
+    }
+    
+    /**
+    * 退款申请
+    * @date: 2018年7月27日 上午9:00:18
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    private function refund($orders){
         $config = $this->config;
         
         //退款申请参数构造
-        $refunddorder = array(
-            'appid'			=> $config['appid'],
-            'mch_id'		=> $config['pay_mchid'],
-            'nonce_str'		=> self::getNonceStr(),
-            'out_trade_no'	=> $order->out_trade_no,
-            'out_refund_no' => $order->out_trade_no . md5($order->out_trade_no),//退款唯一单号，系统生成
-            'total_fee'		=> $order->total_fee * 100,
-            'refund_fee'    => '',//退款金额,通过计算得到要退还的金额
-        );
-        
-        $refunddorder['sign'] = self::makeSign($refunddorder);
-        
-        //请求数据
-        $xmldata = self::array2xml($refunddorder);
-        $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
-        $res = self::postXmlCurl($xmldata, $url, true);
-        
-        var_dump($res);exit;
+        if(sizeof($orders) > 0){
+            foreach ($orders as $order){
+                $refunddorder = array(
+                    'appid'			=> $config['appid'],
+                    'mch_id'		=> $config['pay_mchid'],
+                    'nonce_str'		=> self::getNonceStr(),
+                    'out_trade_no'	=> $order->out_trade_no,
+                    'out_refund_no' => $order->out_trade_no . md5($order->out_trade_no),//退款唯一单号，系统生成
+                    'total_fee'		=> $order->total_fee * 100,
+                    'refund_fee'    => '',//退款金额,通过计算得到要退还的金额
+                );
+                
+                $refunddorder['sign'] = self::makeSign($refunddorder);
+                
+                //请求数据
+                $xmldata = self::array2xml($refunddorder);
+                $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
+                $res = self::postXmlCurl($xmldata, $url, true);
+                
+                var_dump($res);exit;                
+            }
+        }
     }
 
     /**
@@ -199,9 +225,9 @@ class OrderController extends BackstageController{
 			//设置证书
 			//使用证书：cert 与 key 分别属于两个.pem文件
 			curl_setopt($ch,CURLOPT_SSLCERTTYPE,'PEM');
-			curl_setopt($ch,CURLOPT_SSLCERT, WxPayConfig::SSLCERT_PATH);
+			curl_setopt($ch,CURLOPT_SSLCERT, './cert/apiclient_cert.pem');
 			curl_setopt($ch,CURLOPT_SSLKEYTYPE,'PEM');
-			curl_setopt($ch,CURLOPT_SSLKEY, WxPayConfig::SSLKEY_PATH);
+			curl_setopt($ch,CURLOPT_SSLKEY, './cert/apiclient_key.pem');
 		}
 		
 		//post提交方式

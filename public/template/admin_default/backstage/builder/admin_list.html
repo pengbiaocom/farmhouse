@@ -67,7 +67,7 @@
                             <div class="oneselect">
                                 <div class="title">{$date_time.title}：</div>
                                 <div class="select_box">
-                                    <php> $datetime_get = input($date_time['name']); </php>
+                                    <php> $datetime_get = input($date_time['name'], time()); </php>
                                     <input type="hidden" name="{$date_time.name}" value="{$datetime_get}"/>
                                     <input type="text" data-field-name="{$date_time.name}" class="form-datetime  layui-input" value="{$datetime_get|time_format}" placeholder="{$date_time.des}" />
                                 </div>
