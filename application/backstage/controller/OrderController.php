@@ -56,10 +56,10 @@ class OrderController extends BackstageController{
         
         $builder=new BackstageListBuilder();
         $builder->title('订单列表')
-            ->ajaxButton('', '', '打印所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印所选项小票'])
-            ->ajaxButton('', '', '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果小票'])
-            ->ajaxButton(url('Order/refunds'), array(), '退还所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要退还所选项'])
-            ->ajaxButton(url('Order/refunds'), $select, '退还筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果'])
+            ->buttonModalPopup(url('Order/print_select'), array(), '打印所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'target-form'=>'ids', 'data-confirm'=>'是否要打印所选项小票'])
+            ->buttonModalPopup('', $select, '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果小票'])
+            ->buttonModalPopup(url('Order/refunds'), array(), '退还所选项', ['class'=>'layui-btn ajax-post'])
+            ->buttonModalPopup(url('Order/refunds'), $select, '退还筛选结果', ['class'=>'layui-btn ajax-post'])
             ->keyId('out_trade_no', '订单编号')
             ->setSearchPostUrl(url('order/index'))
             ->searchDateTime('日期', 'create_time', 'date')
@@ -80,8 +80,27 @@ class OrderController extends BackstageController{
         return $builder->show();
     }
 
-    public function edit(){
-
+    /**
+    * 打印所选
+    * @date: 2018年7月27日 上午9:50:29
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function print_select(){
+        dump($_REQUEST);exit;
+        $this->fetch();
+    }
+    
+    /**
+    * 打印筛选结果
+    * @date: 2018年7月27日 上午9:50:55
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function print_search(){
+        
     }
     
     /**
@@ -100,9 +119,13 @@ class OrderController extends BackstageController{
         ];
 
 		$this->config = $config;
-		
-		
-        dump($_REQUEST);
+
+		for ($i = 1; $i <= 50; $i++) {
+		    ob_flush();
+		    flush();
+		    echo $i.'<br/>';
+		    sleep(rand(0, 1));
+		}
     }
     
     /**
