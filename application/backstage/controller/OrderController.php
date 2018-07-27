@@ -22,8 +22,12 @@ class OrderController extends BackstageController{
             $select['status'] = $status;
         }
         
-        //时间
-        
+        //时间   所选日期当天的订单
+        $create_time = input('create_time', strtotime(date('Y-m-d')), 'intval');
+        if(!empty($create_time)){
+            $map['create_time'] = array('between', [$create_time, $create_time+86400]);
+            $select['create_time'] = $create_time;
+        }
         
         //搜索
         $keyword = input('keyword','','op_t');
@@ -55,7 +59,7 @@ class OrderController extends BackstageController{
             ->ajaxButton('', '', '打印所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印所选项小票'])
             ->ajaxButton('', '', '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果小票'])
             ->ajaxButton(url('Order/refunds'), array(), '退还所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要退还所选项'])
-            ->ajaxButton(url('Order/refunds'), array($map), '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果'])
+            ->ajaxButton(url('Order/refunds'), $select, '退还筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果'])
             ->keyId('out_trade_no', '订单编号')
             ->setSearchPostUrl(url('order/index'))
             ->searchDateTime('日期', 'create_time', 'date')
