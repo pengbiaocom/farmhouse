@@ -26,6 +26,23 @@ class WxpayController extends Controller{
 		$this->config = $config;
 	}
 
+    function get_curr_time_section()
+    {
+        $checkDayStr = date('Y-m-d ',time());
+        $timeBegin1 = strtotime($checkDayStr."08:00".":00");
+        $timeEnd1 = strtotime($checkDayStr."20:00".":00");
+
+        $curr_time = time();
+
+        if($curr_time >= $timeBegin1 && $curr_time <= $timeEnd1)
+        {
+            return 1;
+        }
+
+        return 0;
+    }
+
+
     /**
      * 预支付请求接口(POST)
      * @param string $openid 	openid
@@ -35,7 +52,8 @@ class WxpayController extends Controller{
      * @return  json的数据
      */
     public function prepay(Request $request){
-
+        $result = $this->get_curr_time_section();
+        if($result==0)  return json(['code'=>1,'msg'=>'订单支付时间在8:00到20：00之间']);
         $config = $this->config;
         $uid = $request->param('uid', '', 'intval');
         $out_trade_no = $request->param('out_trade_no', '', 'op_t');
