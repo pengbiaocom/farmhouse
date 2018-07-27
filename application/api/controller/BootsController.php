@@ -6,6 +6,7 @@ use think\Request;
 use app\common\model\OrderModel;
 use app\common\model\ProductModel;
 use app\common\model\FundsModel;
+use app\common\model\CouponModel;
 
 class BootsController extends Controller{
     /**
@@ -41,18 +42,21 @@ class BootsController extends Controller{
     */
     public function share(Request $request){
         $uid = $request->param('uid', '', 'intval');
-        $uid = intval($uid);
         
         if(!empty($uid)){
-            $model = db('coupon', [], false);
-            if($num = $model->where('uid', '=', $uid)->value('coupon_num')){
-                if($model->where('uid', '=', $uid)->update(['coupon_num'=>$num+1])){
+            $couponModel = new CouponModel();
+            $userCoupon = $couponModel::get(function($query) use($uid){
+                $query->where('uid', $uid);
+            });
+            
+            if($userCoupon->uid > 0){
+                if($couponModel->where('uid', $uid)->setInc('coupon_num', 1)){
                     return json(['code'=>0, 'msg'=>'调用成功', 'data'=>[]]);
                 }else{
                     return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
                 }
             }else{
-                if($model->insert(['uid'=>$uid, 'coupon_num'=>1])){
+                if($couponModel->save(['uid'=>$uid, 'coupon_num'=>1])){
                     return json(['code'=>0, 'msg'=>'调用成功', 'data'=>[]]);
                 }else{
                     return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
