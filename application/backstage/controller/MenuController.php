@@ -29,6 +29,7 @@ class MenuController extends BackstageController {
         $map['pid'] =   $pid;
         if($title)
             $map['title'] = ['like',"%{$title}%"];
+
         $list       =   $menuModel->where($map)->field(true)->order('sort asc,id asc')->select()->toArray();
         int_to_string($list,['hide'=>[1=>lang('_YES_'),0=>lang('_NOT_')],'is_dev'=>[1=>lang('_YES_'),0=>lang('_NOT_')]]);
         if($list) {

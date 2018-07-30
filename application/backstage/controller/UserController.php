@@ -53,6 +53,9 @@ class UserController extends BackstageController{
                 break;
             default:
         }
+
+        $map['is_admin'] = 1;
+
         $memberModel = new MemberModel();
 
         list($list,$page)=$memberModel->getListPage($map,'',$r);
@@ -75,6 +78,7 @@ class UserController extends BackstageController{
         ];
         $builder = new BackstageListBuilder();
         return $builder->title(lang('_USER_LIST_'))
+            ->buttonNew(url('user/add'))
             ->suggest(lang('_PW_RESET_TIP_'))
             ->ajaxButton(url('User/changestatus'),['method'=>'resumeUser'],lang('_ENABLED_'))
             ->ajaxButton(url('User/changestatus'),['method'=>'forbidUser'],lang('_DISABLE_'))
@@ -99,6 +103,48 @@ class UserController extends BackstageController{
             ->keyDoActionAjax('User/initpass?id=###',lang('_PW_RESET_'),['class'=>'ajax-get confirm'])
             ->data($list)
             ->pagination($page)->show();
+    }
+
+    public function add(){
+        if($this->request->isPost()){
+            $data['username'] = trim($this->request->param('username'));
+            $data['password'] = trim($this->request->param('password'));
+            $data['mobile'] = trim($this->request->param('mobile'));
+            $passwd = trim($this->request->param('passwd'));
+            $nickname = trim($this->request->param('nickname'));
+            if(empty($data['username']))  return json(['code'=>1,'msg'=>'请填写用户名']);
+            if(empty($data['password']) || empty($passwd)) return json(['code'=>1,'msg'=>'请填写密码']);
+            if($data['password']!=$passwd)  return json(['code'=>1,'msg'=>'两次输入的密码不一致']);
+            $data['password'] = think_ucenter_md5($data['password'],UC_AUTH_KEY);
+            if(empty($nickname)) return json(['code'=>1,'msg'=>'请填写用户昵称']);
+
+            if($retult = db("member")->insertGetId(['nickname'=>$nickname,'is_admin'=>1])){
+                $data['id'] = $retult;
+                $data['reg_time'] = time();
+                $data['reg_ip'] = get_client_ip(1);
+                $data['status'] = 1;
+                if(db("ucenter_member")->insert($data)){
+                    return json(['code'=>0,'msg'=>'添加成功']);
+                }else{
+                    //如果注册失败，则回去Memeber表删除掉错误的记录
+                    db("member")->where(['uid' => $retult])->delete();
+                }
+            }else{
+                return json(['code'=>1,'msg'=>'添加管理员失败']);
+            }
+        }else{
+            $data=[];
+            $builder = new BackstageConfigBuilder();
+            $builder->title("新增管理员")
+                ->data($data)
+                ->keyText('username', "用户名")
+                ->keyText('nickname', "用户昵称")
+                ->keyText('mobile',lang('_MOBILE_PHONE_'))
+                ->keyPassword('password',"登录密码")
+                ->keyPassword('passwd',"重复密码")
+                ->buttonSubmit(url('user/add'))->buttonBack();
+            return $builder->show();
+        }
     }
 
     /**
