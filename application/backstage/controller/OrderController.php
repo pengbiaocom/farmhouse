@@ -58,7 +58,7 @@ class OrderController extends BackstageController{
         $builder=new BackstageListBuilder();
         $builder->title('订单列表')
             ->buttonModalPopup(url('Order/print_select'), array(), '打印所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-title'=>'打印所选项小票', 'target-form'=>'ids', 'data-confirm'=>'是否要打印所选项小票'])
-            ->buttonModalPopup('', $select, '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果小票'])
+            ->buttonModalPopup(url('Order/print_search'), $select, '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果小票'])
             ->buttonModalPopup(url('Order/refunds'), array(), '退还所选项', ['class'=>'layui-btn ajax-post'])
             ->buttonModalPopup(url('Order/refunds'), $select, '退还筛选结果', ['class'=>'layui-btn ajax-post'])
             ->keyId('out_trade_no', '订单编号')
@@ -96,9 +96,6 @@ class OrderController extends BackstageController{
             cache('DB_CONFIG_DATA', $config);
         }
         config($config); //添加配置
-        
-//         $mianyune = config('FREIGHT_QUOTA');
-//         $youhuijuan = config('COUPON_DENOMINATION');
         
         //加载商品应收单价（ID、price格式）
         $productModel = new ProductModel();
@@ -172,7 +169,86 @@ class OrderController extends BackstageController{
     * @return:
     */
     public function print_search(){
+        /* 读取数据库中的配置 */
+        $config = cache('DB_CONFIG_DATA');
+        if (!$config) {
+            $config = controller("common/ConfigApi")->lists();
+            cache('DB_CONFIG_DATA', $config);
+        }
+        config($config); //添加配置
         
+        //加载商品应收单价（ID、price格式）
+        $productModel = new ProductModel();
+        $prices = [];
+        $products = $productModel::all(function($query){
+            $query->field("id,price,price_line,sales");
+            $query->where('status', 1);
+        });
+        
+        if($products){
+            foreach ($products as $product){
+                $curr_price = $product['price'];
+                if(!empty($product['price_line'])){
+                    $array = preg_split('/[,;\r\n]+/', trim($product['price_line'], ",;\r\n"));
+            
+                    if(strpos($product['price_line'],'|')){
+                        foreach ($array as $val) {
+                            list($k, $v) = explode('|', $val);
+                            if($product['sales'] >= $k){
+                                $curr_price = number_format($v,2,".","");
+                            }
+                        }
+                    }
+                }
+                $prices[$product['id']] = ['price'=>$product['price'], 'curr_price'=>$curr_price, 'sales'=>$product['sales']];
+            }
+            
+            //筛选参数
+            $status = input('status', -1, 'intval');
+            $create_time = input('create_time', strtotime(date('Y-m-d')), 'intval');
+            $keyword = input('keyword','','op_t');
+            
+            //获取到满足条件的订单数据（包括订单数据、用户数据、地址数据）
+            $orderModel = new OrderModel();
+            $orders = $orderModel::all(function($query) use($status,$create_time,$keyword){
+                $query->alias('order');
+                $query->field("order.*,member.nickname,address.name as address_name,address.mobile as address_mobile,address.pos_community,province.name as province_name,city.name as city_name,district.name as district_name,street.name as street_name");
+                $query->join('__MEMBER__ member', 'order.uid = member.uid', 'LEFT');
+                $query->join('__RECEIVING_ADDRESS__ address', 'order.address_id = address.id', 'LEFT');
+                $query->join('__DISTRICT__ province', 'address.pos_province = province.id', 'LEFT');
+                $query->join('__DISTRICT__ city', 'address.pos_city = city.id', 'LEFT');
+                $query->join('__DISTRICT__ district', 'address.pos_district = district.id', 'LEFT');
+                $query->join('__DISTRICT__ street', 'address.street_id = street.id', 'LEFT');
+                
+                if($status != -1) $query->where('order.status', $status);
+                
+                if(!empty($create_time)) $query->where('order.create_time', 'between', [$create_time, $create_time+86400]);
+                
+                if(!empty($keyword)) $query->where('out_trade_no', 'like', '%'.$keyword.'%');
+                
+            });
+            
+            //分析整理最后需要打印的数据
+            foreach ($orders as &$item){
+                $item['create_time'] = date('Y-m-d H:i:s', $item['create_time']);
+        
+                $item['product_info'] = json_decode($item['product_info'], true);
+                $goods = [];
+                foreach ($item['product_info'] as $key=>$good){
+                    $good['curr_price'] = $prices[$good['id']]['curr_price'];
+                    $good['num_price'] = $prices[$good['id']]['curr_price'] * $good['num'];
+                    $goods[] = $good;
+                    unset($good);
+                }
+                $item['products'] = $goods;
+                unset($goods);unset($item['product_info']);
+            }
+        
+            $this->assign('orders', $orders);
+            $this->assign('config', $config);
+        }
+        
+        return $this->fetch('print_select');
     }
     
     /**
