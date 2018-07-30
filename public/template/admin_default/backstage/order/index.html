@@ -1,0 +1,135 @@
+<extend name="public/base"/>
+
+<block name="body">
+    <div class="layui-main">
+        <div class="layui-elem-quote" >
+            <a href="{:url('Backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+            <a><cite>订单列表</cite></a>
+            <div class="page-toolbar">
+                <include file="public/_addTo"/>
+            </div>
+        </div>
+        <div class="clearfix with-padding row">
+            <div class="col-xs-9">
+                <a class="layui-btn " href="{:url('add')}">{:lang('_ADD_WITH_SPACE_')}</a>
+                <a class="layui-btn  ajax-post confirm" url="{:url('del')}" target-form="ids" >{:lang('_DELETE_WITH_SPACE_')}</a>
+                <button class="layui-btn  list_sort" url="{:url('sort?group='.input('group'),'','')}">{:lang('_SORT_')}</button>
+                <!-- 高级搜索 -->
+            </div>
+            <div class="col-xs-3">
+                <div class="search-form fr cf">
+                    <div class="sleft">
+                        <div class="input-group">
+                            <input type="text" name="name" class="layui-input" value="{:input('name')}" placeholder="{:lang('_PLACEHOLDER_CONFIG_NAME_INPUT_')}">
+                             <span class="input-group-btn">
+                            <a class="layui-btn" href="javascript:;" id="search" url="{:url('config/index')}"><i
+                                    class="layui-icon">&#xe615;</i></a>
+                     </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="with-padding layui-form">
+            <table class="layui-table" lay-even>
+                <thead>
+                <tr>
+                <tr>
+                    <th>
+                        <input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose">
+                    </th>
+                    <th>订单编号</th>
+                    <th>用户名称</th>
+                    <th>商品信息</th>
+                    <th>优惠券使用量</th>
+                    <th>运费</th>
+                    <th>订单价格</th>
+                    <th>备注信息</th>
+                    <th>是否打印</th>
+                    <th>是否退款</th>
+                    <th>状态</th>
+                    <th>创建时间</th>
+                </tr>
+                </tr>
+                </thead>
+                <tbody>
+                <notempty name="list">
+                    <volist name="list" id="row">
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="ids" name="id[]" lay-skin="primary" value="{$row.out_trade_no}" />
+                            </td>
+                            <td>{$row.out_trade_no}</td>
+                            <td>{$row.nickname}</td>
+                            <td>{$row.goods_info}</td>
+                            <td>{$row.coupon}</td>
+                            <td>{$row.freight}</td>
+                            <td>{$row.total_fee}</td>
+                            <td>{$row.remark}</td>
+                            <td>{$row.printdtext}</td>
+                            <td>{$row.refundtext}</td>
+                            <td>{$row.statustext}</td>
+                            <td>{$row.create_time}</td>
+                        </tr>
+                    </volist>
+                    <else/>
+                    <td colspan="12" class="text-center"> {:lang('_ADMIN_USER_EMPTY_')}</td>
+                </notempty>
+                </tbody>
+            </table>
+            <div class="">
+                {$_page}
+            </div>
+        </div>
+    </div>
+
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        $(function () {
+            //搜索功能
+            $("#search").click(function () {
+                var url = $(this).attr('url');
+                var query = $('.search-form').find('input').serialize();
+                query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+                query = query.replace(/^&/g, '');
+                if (url.indexOf('?') > 0) {
+                    url += '&' + query;
+                } else {
+                    url += '?' + query;
+                }
+                window.location.href = url;
+            });
+            //回车搜索
+            $(".search-input").keyup(function (e) {
+                if (e.keyCode === 13) {
+                    $("#search").click();
+                    return false;
+                }
+            });
+            //点击排序
+            $('.list_sort').click(function () {
+                var url = $(this).attr('url');
+                var ids = $('.ids:checked');
+                var param = '';
+                if (ids.length > 0) {
+                    var str = new Array();
+                    ids.each(function () {
+                        str.push($(this).val());
+                    });
+                    param = str.join(',');
+                }
+
+                if (url != undefined && url != '') {
+                    window.location.href = url + '/ids/' + param;
+                }
+            });
+
+            //导航高亮
+            highlight_subnav('{:url("Config/index")}');
+
+        });
+    </script>
+</block>

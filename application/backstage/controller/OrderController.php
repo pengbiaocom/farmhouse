@@ -54,6 +54,10 @@ class OrderController extends BackstageController{
                 }
             }
         }
+
+        $this->assign('list', $list['list']);
+        $this->assign('_page',$list['page']);
+        return $this->fetch();
         
         $builder=new BackstageListBuilder();
         $builder->title('订单列表')
