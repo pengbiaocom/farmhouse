@@ -80,7 +80,7 @@ class WxpayController extends Controller{
             'out_trade_no'	=> $order->out_trade_no,
             'total_fee'		=> $order->total_fee * 100,
             'spbill_create_ip'	=> get_client_ip(),
-            'notify_url'	=> 'http://api.chouvc.com/api/Wxpay/notify',
+            'notify_url'	=> 'https://api.yifengzhonggou.com/api/Wxpay/notify',
             'trade_type'	=> 'JSAPI',
             'openid'		=> $user->openid
         );
