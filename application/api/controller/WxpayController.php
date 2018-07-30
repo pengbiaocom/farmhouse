@@ -53,7 +53,7 @@ class WxpayController extends Controller{
      */
     public function prepay(Request $request){
         $result = $this->get_curr_time_section();
-        if($result==0)  return json(['code'=>1,'msg'=>'订单支付时间在8:00到20：00之间']);
+        if($result==0)  return json(['code'=>0,'msg'=>'订单支付时间在8:00到20：00之间']);
         $config = $this->config;
         $uid = $request->param('uid', '', 'intval');
         $out_trade_no = $request->param('out_trade_no', '', 'op_t');
@@ -77,7 +77,7 @@ class WxpayController extends Controller{
             'mch_id'		=> $config['pay_mchid'],
             'nonce_str'		=> self::getNonceStr(),
             'body'			=> '益丰农舍-商品购买',
-            'out_trade_no'	=> $order->out_trade_no,
+            'out_trade_no'	=> $order->out_trade_no.'_'.rand(1,99999),
             'total_fee'		=> $order->total_fee * 100,
             'spbill_create_ip'	=> get_client_ip(),
             'notify_url'	=> 'https://api.yifengzhonggou.com/api/Wxpay/notify',
@@ -108,10 +108,9 @@ class WxpayController extends Controller{
         if(!empty($content['prepay_id'])){
             return self::pay($content['prepay_id']);
         }else{
-            return json(['code'=>1,'msg'=>'发起支付失败']);
+            return json(['code'=>0,'msg'=>'发起支付失败']);
         }
     }
-
 
     /**
      * 进行支付接口(POST)
@@ -131,7 +130,7 @@ class WxpayController extends Controller{
 
         $data['paySign'] = self::makeSign($data);
 
-        return json(['code'=>0,'data'=>$data]);
+        return json(['code'=>1,'data'=>$data]);
     }
 
     //微信支付回调验证
@@ -153,7 +152,8 @@ class WxpayController extends Controller{
         if ( ($sign===$data_sign) && ($data['return_code']=='SUCCESS') && ($data['result_code']=='SUCCESS') ) {
             $result = $data;
             //获取服务器返回的数据
-            $order_sn = $data['out_trade_no'];			//订单单号
+            $out_trade_no =  explode('_',$data['out_trade_no']);
+            $order_sn = $out_trade_no[0];			//订单单号
             $openid = $data['openid'];					//付款人openID
             $total_fee = $data['total_fee'];			//付款金额
             $transaction_id = $data['transaction_id']; 	//微信支付流水号
@@ -182,7 +182,7 @@ class WxpayController extends Controller{
      * @return  json的数据
      */
     protected function return_err($errMsg='error',$status=0){
-        exit(json_encode(array('status'=>$status,'result'=>'fail','errmsg'=>$errMsg)));
+        exit(json_encode(array('code'=>$status,'result'=>'fail','msg'=>$errMsg)));
     }
 
     /**
