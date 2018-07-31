@@ -30,9 +30,9 @@
         <div class="with-padding" style="margin-bottom: 0px;">
             <div class="fl layui-form">
             	<div class="layui-btn-group" style="margin-bottom: 10px;">
-	                <a class="layui-btn print-btn" data-confirm="confirm" url="{:url('Order/print_select')}">打印所选项</a>
-	                <a class="layui-btn print-btn" data-confirm="confirm" url="{:url('Order/print_search')}">打印筛选结果</a>
-	                <a class="layui-btn" data-confirm="confirm" url="{:url('Order/fund_select')}">退还所选项</a>
+	                <a class="layui-btn print-btn" data-confirm="打印s所选项" data-param="true" url="{:url('Order/print_select')}">打印所选项</a>
+	                <a class="layui-btn print-btn" data-confirm="打印筛选结果" url="{:url('Order/print_search')}">打印筛选结果</a>
+	                <a class="layui-btn" data-confirm="confirm" data-param="true" url="{:url('Order/fund_select')}">退还所选项</a>
 	                <a class="layui-btn" data-confirm="confirm" url="{:url('Order/fund_search')}">退还筛选结果</a>
 	                <!-- 高级搜索 -->
 	            </div>
@@ -182,6 +182,7 @@
             		var url = $(this).attr('url');
             		
             		var ids = $('.ids:checked');
+            		
                     var param = '';
                     if (ids.length > 0) {
                         var str = new Array();
@@ -189,6 +190,13 @@
                             str.push($(this).val());
                         });
                         param = str.join(',');
+                    }else{
+                    	//判断是否强制选择
+                		var isParam = $(this).attr('data-param');
+                    	if(isParam) {
+                    		layer.msg('你还没有选择要打印的订单'); 
+                    		return false;
+                    	}
                     }
             		
                     var query = $('#selectForm').serialize();
