@@ -318,7 +318,7 @@ class OrderController extends BackstageController{
                 'out_trade_no'	=> $order->out_trade_no,
                 'out_refund_no' => $order->out_trade_no . md5($order->out_trade_no),//退款唯一单号，系统生成
                 'total_fee'		=> $order->total_fee * 100,
-                'refund_fee'    => '1',//退款金额,通过计算得到要退还的金额
+                'refund_fee'    => $order->refund_fee * 100,//退款金额,通过计算得到要退还的金额
             );
             
             $refunddorder['sign'] = self::makeSign($refunddorder);

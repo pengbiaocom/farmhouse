@@ -166,7 +166,7 @@ class BootsController extends Controller{
     }
     
     /**
-    * 生成退款明细数据
+    * 生成退款明细数据[同时为每个订单刷入退款金额，并将未付款的订单销毁]
     * @date: 2018年7月24日 上午11:51:59
     * @author: onep2p <324834500@qq.com>
     * @param: variable
@@ -216,38 +216,56 @@ class BootsController extends Controller{
                 //获取到当天的所有订单，并把所涉及到的用户分组，每个用户内的商品进行处理
                 $orderModel = new OrderModel();
                 $orders = $orderModel::all(function($query) use($priv_time){
-                    $query->where('status', 4);
                     $query->where('create_time', 'between', [$priv_time, $priv_time+86400]);
                 });
                 
                 if($orders){
                     foreach ($orders as $order){
-                        $order['product_info'] = json_decode($order['product_info'], true);
-                        
-                        if(!isset($funds[$order['uid']])){
-                            $funds[$order['uid']]['uid'] = $order['uid'];
-                            $funds[$order['uid']]['date'] = date('Ymd');
-                            $funds[$order['uid']]['date_str'] = date('Y年m月d日');
-
-                            foreach ($order['product_info'] as $item){
-                                $item['sales'] = $prices[$item['id']]['sales'];
-                                $item['curr_price'] = $prices[$item['id']]['curr_price'];
-                                $item['num'] = intval($item['num']);
-                                
-                                $funds[$order['uid']]['product_info'][$item['id']] = $item;
-                            }
-                        }else{
-                            foreach ($order['product_info'] as $item){
-                                if(isset($funds[$order['uid']]['product_info'][$item['id']])){
-                                    $funds[$order['uid']]['product_info'][$item['id']]['num'] += $item['num'];
-                                }else{
+                        if($order['status'] > 0){
+                            $order['product_info'] = json_decode($order['product_info'], true);
+                            
+                            //刷入应退金额
+                            $fund_fee = 0;
+                            if(!isset($funds[$order['uid']])){
+                                $funds[$order['uid']]['uid'] = $order['uid'];
+                                $funds[$order['uid']]['date'] = date('Ymd');
+                                $funds[$order['uid']]['date_str'] = date('Y年m月d日');
+                            
+                                foreach ($order['product_info'] as $item){
+                                    $fund_fee += $prices[$item['id']]['curr_price']*$item['num'];
+                            
                                     $item['sales'] = $prices[$item['id']]['sales'];
                                     $item['curr_price'] = $prices[$item['id']]['curr_price'];
                                     $item['num'] = intval($item['num']);
-                                    
+                            
                                     $funds[$order['uid']]['product_info'][$item['id']] = $item;
                                 }
-                            } 
+                            }else{
+                                foreach ($order['product_info'] as $item){
+                                    $fund_fee += $prices[$item['id']]['curr_price']*$item['num'];
+                            
+                                    if(isset($funds[$order['uid']]['product_info'][$item['id']])){
+                                        $funds[$order['uid']]['product_info'][$item['id']]['num'] += $item['num'];
+                                    }else{
+                                        $item['sales'] = $prices[$item['id']]['sales'];
+                                        $item['curr_price'] = $prices[$item['id']]['curr_price'];
+                                        $item['num'] = intval($item['num']);
+                            
+                                        $funds[$order['uid']]['product_info'][$item['id']] = $item;
+                                    }
+                                }
+                            }
+                            
+                            //更改订单中的应退款金额
+                            $orderModel->where('id', $order['id'])->update(['refund_fee'=>$fund_fee]);                            
+                        }else{
+                            //这里是拿来做销毁的
+                            if($orderModel::destroy($order['id'])){
+                                if($order['coupon']>0){
+                                    $couponModel = new CouponModel();
+                                    $couponModel->where('uid', $order['uid'])->setInc('coupon_num', $order['coupon']);
+                                }
+                            }
                         }
                     }
                 }
