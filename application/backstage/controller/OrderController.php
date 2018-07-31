@@ -264,6 +264,10 @@ class OrderController extends BackstageController{
             
             //分析整理最后需要打印的数据
             foreach ($orders as &$item){
+                $orderModel->save(['printd'=>1],function($query) use($item){
+                    $query->where('id', $item['id']);
+                });
+                
                 $item['create_time'] = date('Y-m-d H:i:s', $item['create_time']);
         
                 $item['product_info'] = json_decode($item['product_info'], true);
