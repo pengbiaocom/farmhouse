@@ -1,81 +1,120 @@
 <extend name="public/base"/>
 
 <block name="body">
+	<style>
+		.select-param{
+			float: right;
+			margin-right: 15px;
+		}
+		.form-dont-clear-url-param .input-group{
+			width:200px;
+		}
+
+		.oneselect .title{
+			line-height: 38px;
+		}
+        .oneselect .btns{
+            float: left;
+            line-height: 32px;
+        }
+        .oneselect .select_box select{
+            min-width: 150px;
+        }		
+	</style>
+
     <div class="layui-main">
         <div class="layui-elem-quote" >
             <a href="{:url('Backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
             <a><cite>订单列表</cite></a>
-            <div class="page-toolbar">
-                <include file="public/_addTo"/>
-            </div>
         </div>
-        <div class="clearfix with-padding row">
-            <div class="col-xs-9">
-                <a class="layui-btn " href="{:url('add')}">{:lang('_ADD_WITH_SPACE_')}</a>
-                <a class="layui-btn  ajax-post confirm" url="{:url('del')}" target-form="ids" >{:lang('_DELETE_WITH_SPACE_')}</a>
-                <button class="layui-btn  list_sort" url="{:url('sort?group='.input('group'),'','')}">{:lang('_SORT_')}</button>
-                <!-- 高级搜索 -->
-            </div>
-            <div class="col-xs-3">
-                <div class="search-form fr cf">
-                    <div class="sleft">
-                        <div class="input-group">
-                            <input type="text" name="name" class="layui-input" value="{:input('name')}" placeholder="{:lang('_PLACEHOLDER_CONFIG_NAME_INPUT_')}">
-                             <span class="input-group-btn">
-                            <a class="layui-btn" href="javascript:;" id="search" url="{:url('config/index')}"><i
-                                    class="layui-icon">&#xe615;</i></a>
-                     </span>
-                        </div>
-                    </div>
-                </div>
+        <div class="with-padding" style="margin-bottom: 0px;">
+            <div class="fl layui-form">
+            	<div class="layui-btn-group" style="margin-bottom: 10px;">
+	                <a class="layui-btn print-btn" data-confirm="confirm" url="{:url('Order/print_select')}">打印所选项</a>
+	                <a class="layui-btn print-btn" data-confirm="confirm" url="{:url('Order/print_search')}">打印筛选结果</a>
+	                <a class="layui-btn" data-confirm="confirm" url="{:url('Order/fund_select')}">退还所选项</a>
+	                <a class="layui-btn" data-confirm="confirm" url="{:url('Order/fund_search')}">退还筛选结果</a>
+	                <!-- 高级搜索 -->
+	            </div>
+	            <div class="select-param">
+	                <form id="selectForm" method="get" class="form-dont-clear-url-param">
+	                	<div class="oneselect">
+	                		<div class="title">日期：</div>
+	                		<div class="select_box" style="width:100px;">
+	                			<php>$datetime_get = input('create_time', strtotime(date('Y-m-d'))); </php>
+	                			<input type="hidden" name="create_time" value="{$datetime_get}"/>
+	                			<input type="text" data-field-name="create_time" class="form-datetime  layui-input" value="{$datetime_get|time_format}" />
+	                		</div>
+	                	</div>
+	                	<div class="oneselect">
+	                		<div class="title">状态：</div>
+	                		<div class="select_box" style="width:100px;">
+	                			<php> $select_get = input('status', -1);</php>
+	                			<select name="status" lay-filter="select_text">
+	                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
+	                				<option value="0" <eq name="0" value="$select_get">selected</eq>>待付款</option>
+	                				<option value="1" <eq name="1" value="$select_get">selected</eq>>待发货</option>
+	                				<option value="2" <eq name="2" value="$select_get">selected</eq>>待收货</option>
+	                				<option value="3" <eq name="3" value="$select_get">selected</eq>>待评价</option>
+	                				<option value="4" <eq name="4" value="$select_get">selected</eq>>已完成</option>
+	                			</select>
+	                		</div>
+	                	</div>
+						<div class="oneselect">
+							<div class="select_box">
+								<php> $text_get = input('keyword'); </php>
+								<input style="float: none;width:180px;" type="text" name="keyword" class="layui-input"  value="{$text_get}" placeholder="订单编号" />
+							</div>
+                            <div class="btns">
+                                <button class="layui-btn layui-btn-primary" type="submit">
+                                    <i class="layui-icon">&#xe615;</i>
+                                </button>
+                            </div>
+						</div>					
+	                </form>
+	            </div>	            
             </div>
         </div>
 
         <div class="with-padding layui-form">
             <table class="layui-table" lay-even>
                 <thead>
-                <tr>
-                <tr>
-                    <th>
-                        <input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose">
-                    </th>
-                    <th>订单编号</th>
-                    <th>用户名称</th>
-                    <th>商品信息</th>
-                    <th>优惠券使用量</th>
-                    <th>运费</th>
-                    <th>订单价格</th>
-                    <th>备注信息</th>
-                    <th>是否打印</th>
-                    <th>是否退款</th>
-                    <th>状态</th>
-                    <th>创建时间</th>
-                </tr>
-                </tr>
+	                <tr>
+	                    <th><input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose"></th>
+	                    <th>订单编号</th>
+	                    <th>用户名称</th>
+	                    <th>商品信息</th>
+	                    <th>优惠券使用量</th>
+	                    <th>运费</th>
+	                    <th>订单价格</th>
+	                    <th>备注信息</th>
+	                    <th>是否打印</th>
+	                    <th>是否退款</th>
+	                    <th>状态</th>
+	                    <th>创建时间</th>
+	                </tr>
                 </thead>
                 <tbody>
-                <notempty name="list">
-                    <volist name="list" id="row">
-                        <tr>
-                            <td>
-                                <input type="checkbox" class="ids" name="id[]" lay-skin="primary" value="{$row.out_trade_no}" />
-                            </td>
-                            <td>{$row.out_trade_no}</td>
-                            <td>{$row.nickname}</td>
-                            <td>{$row.goods_info}</td>
-                            <td>{$row.coupon}</td>
-                            <td>{$row.freight}</td>
-                            <td>{$row.total_fee}</td>
-                            <td>{$row.remark}</td>
-                            <td>{$row.printdtext}</td>
-                            <td>{$row.refundtext}</td>
-                            <td>{$row.statustext}</td>
-                            <td>{$row.create_time}</td>
-                        </tr>
-                    </volist>
-                    <else/>
-                    <td colspan="12" class="text-center"> {:lang('_ADMIN_USER_EMPTY_')}</td>
-                </notempty>
+	                <notempty name="list">
+	                    <volist name="list" id="row">
+	                        <tr>
+	                            <td><input type="checkbox" class="ids" name="id[]" lay-skin="primary" value="{$row.id}" /></td>
+	                            <td>{$row.out_trade_no}</td>
+	                            <td>{$row.nickname}</td>
+	                            <td>{$row.goods_info}</td>
+	                            <td>{$row.coupon}</td>
+	                            <td>{$row.freight}</td>
+	                            <td>{$row.total_fee}</td>
+	                            <td>{$row.remark}</td>
+	                            <td>{$row.printdtext}</td>
+	                            <td>{$row.refundtext}</td>
+	                            <td>{$row.statustext}</td>
+	                            <td>{$row.create_time}</td>
+	                        </tr>
+	                    </volist>
+	                    <else/>
+	                    <td colspan="12" class="text-center"> {:lang('_ADMIN_USER_EMPTY_')}</td>
+	                </notempty>
                 </tbody>
             </table>
             <div class="">
@@ -88,11 +127,34 @@
 
 <block name="script">
     <script type="text/javascript">
+	    layui.use(['layer','form','laydate'],function(){
+	    	var layer = layui.layer,form = layui.form,laydate = layui.laydate;
+	    	
+            laydate.render({elem: '.form-datetime',type: 'date',theme: 'grid',done:function(value){
+                    var fieldName = $(".form-datetime").attr('data-field-name');
+                    if(value==''){
+                        $('[name=' + fieldName + ']').val('');
+                        return true;
+                    }
+                    var date = new Date(value);
+                    var timestamp = date.getTime();
+                    $('[name=' + fieldName + ']').val(Math.floor(timestamp / 1000));
+                    
+                    $('#selectForm').submit();
+                }
+            });	 
+
+            form.on('select(select_text)',function(data){
+                $('#selectForm').submit();
+            });   	
+	    });    
+    
+    
         $(function () {
             //搜索功能
             $("#search").click(function () {
                 var url = $(this).attr('url');
-                var query = $('.search-form').find('input').serialize();
+                var query = $('#selectForm').serialize();
                 query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
                 query = query.replace(/^&/g, '');
                 if (url.indexOf('?') > 0) {
@@ -102,6 +164,7 @@
                 }
                 window.location.href = url;
             });
+            
             //回车搜索
             $(".search-input").keyup(function (e) {
                 if (e.keyCode === 13) {
@@ -109,22 +172,44 @@
                     return false;
                 }
             });
-            //点击排序
-            $('.list_sort').click(function () {
-                var url = $(this).attr('url');
-                var ids = $('.ids:checked');
-                var param = '';
-                if (ids.length > 0) {
-                    var str = new Array();
-                    ids.each(function () {
-                        str.push($(this).val());
-                    });
-                    param = str.join(',');
-                }
-
-                if (url != undefined && url != '') {
-                    window.location.href = url + '/ids/' + param;
-                }
+            
+            //打印
+            $(".print-btn").click(function(){
+            	var text = $(this).attr('data-confirm');
+            	var result = confirm(text);
+            	
+            	if(result) {
+            		var url = $(this).attr('url');
+            		
+            		var ids = $('.ids:checked');
+                    var param = '';
+                    if (ids.length > 0) {
+                        var str = new Array();
+                        ids.each(function () {
+                            str.push($(this).val());
+                        });
+                        param = str.join(',');
+                    }
+            		
+                    var query = $('#selectForm').serialize();
+                    query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+                    query = query.replace(/^&/g, '');
+                    if (url.indexOf('?') > 0) {
+                        url += '&' + query;
+                    } else {
+                        url += '?' + query;
+                    }
+                    
+                    if(param != undefined && param != ''){
+                        if (url.indexOf('?') > 0) {
+                            url += '&ids=' + param;
+                        } else {
+                            url += '?dis' + param;
+                        }
+                    }
+                    
+                    window.open(url, '_blank', 'height=750, width=600, top=0, left=0, toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, status=no')
+            	}
             });
 
             //导航高亮

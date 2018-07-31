@@ -1,7 +1,6 @@
 <?php
 namespace app\backstage\controller;
 
-use app\backstage\builder\BackstageListBuilder;
 use app\common\model\OrderModel;
 use app\common\model\ProductModel;
 
@@ -14,27 +13,23 @@ class OrderController extends BackstageController{
         $orderModel = new OrderModel();
 
         $map = array();//定义条件数据
-        $select = array();
         
         //状态
         $status = input('status', -1, 'intval');
         if($status !== -1){
             $map['status'] = array('EQ', $status);
-            $select['status'] = $status;
         }
         
         //时间   所选日期当天的订单
         $create_time = input('create_time', strtotime(date('Y-m-d')), 'intval');
         if(!empty($create_time)){
             $map['create_time'] = array('between', [$create_time, $create_time+86400]);
-            $select['create_time'] = $create_time;
         }
         
         //搜索
         $keyword = input('keyword','','op_t');
         if(!empty($keyword)){
             $map['out_trade_no'] = array('like', $keyword);
-            $select['out_trade_no'] = $keyword;
         }
 
         list($list,$totalCount)=$orderModel->getListByPage($map,'refund asc, printd asc, create_time desc','*',$r);
@@ -55,34 +50,35 @@ class OrderController extends BackstageController{
             }
         }
 
-        $this->assign('list', $list['list']);
-        $this->assign('_page',$list['page']);
+        $this->assign('list', $list);
+        $this->assign('_page',$totalCount);
+        $this->assign('meta_title', '订单列表');
         return $this->fetch();
-        
-        $builder=new BackstageListBuilder();
-        $builder->title('订单列表')
-            ->buttonModalPopup(url('Order/print_select'), array(), '打印所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-title'=>'打印所选项小票', 'target-form'=>'ids', 'data-confirm'=>'是否要打印所选项小票'])
-            ->buttonModalPopup(url('Order/print_search'), $select, '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果小票'])
-            ->buttonModalPopup(url('Order/refunds'), array(), '退还所选项', ['class'=>'layui-btn ajax-post'])
-            ->buttonModalPopup(url('Order/refunds'), $select, '退还筛选结果', ['class'=>'layui-btn ajax-post'])
-            ->keyId('out_trade_no', '订单编号')
-            ->setSearchPostUrl(url('order/index'))
-            ->searchDateTime('日期', 'create_time', 'date')
-            ->searchSelect('订单状态', 'status', 'select', '', '', [['id'=>-1, 'value'=>'请选择'],['id'=>0,'value'=>'待付款'],['id'=>1,'value'=>'待发货'],['id'=>2,'value'=>'待收货'],['id'=>3,'value'=>'待评价'],['id'=>4,'value'=>'已完成']])
-            ->searchText('','keyword','text','订单编号')
-            ->keyText('nickname','用户名称')
-            ->keyText('goods_info','商品信息')
-            ->keyText('coupon', '优惠券使用量')
-            ->keyText('freight', '运费')
-            ->keyText('total_fee','订单价格')
-            ->keyHtml('remark', '备注信息')
-            ->keyText('printdtext','是否打印')
-            ->keyText('refundtext','是否退款')
-            ->keyText('statustext','状态')
-            ->keyCreateTime()
-            ->data($list);
-        $builder->pagination($totalCount);
-        return $builder->show();
+
+//         $builder=new BackstageListBuilder();
+//         $builder->title('订单列表')
+//             ->buttonModalPopup(url('Order/print_select'), array(), '打印所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-title'=>'打印所选项小票', 'target-form'=>'ids', 'data-confirm'=>'是否要打印所选项小票'])
+//             ->buttonModalPopup(url('Order/print_search'), $select, '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果小票'])
+//             ->buttonModalPopup(url('Order/refunds'), array(), '退还所选项', ['class'=>'layui-btn ajax-post'])
+//             ->buttonModalPopup(url('Order/refunds'), $select, '退还筛选结果', ['class'=>'layui-btn ajax-post'])
+//             ->keyId('out_trade_no', '订单编号')
+//             ->setSearchPostUrl(url('order/index'))
+//             ->searchDateTime('日期', 'create_time', 'date')
+//             ->searchSelect('订单状态', 'status', 'select', '', '', [['id'=>-1, 'value'=>'请选择'],['id'=>0,'value'=>'待付款'],['id'=>1,'value'=>'待发货'],['id'=>2,'value'=>'待收货'],['id'=>3,'value'=>'待评价'],['id'=>4,'value'=>'已完成']])
+//             ->searchText('','keyword','text','订单编号')
+//             ->keyText('nickname','用户名称')
+//             ->keyText('goods_info','商品信息')
+//             ->keyText('coupon', '优惠券使用量')
+//             ->keyText('freight', '运费')
+//             ->keyText('total_fee','订单价格')
+//             ->keyHtml('remark', '备注信息')
+//             ->keyText('printdtext','是否打印')
+//             ->keyText('refundtext','是否退款')
+//             ->keyText('statustext','状态')
+//             ->keyCreateTime()
+//             ->data($list);
+//         $builder->pagination($totalCount);
+//         return $builder->show();
     }
 
     /**
