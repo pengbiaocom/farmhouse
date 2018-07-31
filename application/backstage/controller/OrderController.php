@@ -285,11 +285,16 @@ class OrderController extends BackstageController{
         });        
 		
         foreach ($orders as $order){
-            if($order->status > 0){
-                $this->refund($order);
-                ob_flush();
-                flush();
-                echo '订单：'.$order->out_trade_no.'退还完成。<br/>';                
+            if($order->status > 0 && $order->refund == 0){
+                if($this->refund($order)){
+                    ob_flush();
+                    flush();
+                    echo '订单：'.$order->out_trade_no.'退款完成。<br/>';                    
+                }else{
+                    ob_flush();
+                    flush();
+                    echo '订单：'.$order->out_trade_no.'退款失败。<br/>';
+                }
             }
         }
     }
@@ -322,8 +327,17 @@ class OrderController extends BackstageController{
             $xmldata = self::array2xml($refunddorder);
             $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
             $res = self::postXmlCurl($xmldata, $url, true);
+            $resData = $this->xml2array($res);
             
-            var_dump($res);exit;            
+            if($resData['return_code'] === 'SUCCESS' && $resData['return_msg'] === 'OK' && $resData['result_code'] === 'SUCCESS'){
+                $orderModel = new OrderModel();
+                
+                $orderModel->where('out_trade_no', $resData['out_trade_no'])->update(['refund'=>1]);
+                
+                return true;
+            }
+            
+            return false;
         }
     }
 
@@ -387,6 +401,18 @@ class OrderController extends BackstageController{
         $s = preg_replace("/([\x01-\x08\x0b-\x0c\x0e-\x1f])+/", ' ', $s);
         return $level == 1 ? $s."</xml>" : $s;
     }
+    
+    /**
+     * 将xml转为array
+     * @param  string 	$xml xml字符串
+     * @return array    转换得到的数组
+     */
+    protected function xml2array($xml){
+        //禁止引用外部xml实体
+        libxml_disable_entity_loader(true);
+        $result= json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+        return $result;
+    }    
 
 	/**
 	 * 以post方式提交xml到对应的接口url
