@@ -30,49 +30,92 @@
         <div class="with-padding" style="margin-bottom: 0px;">
             <div class="fl layui-form">
             	<div class="layui-btn-group" style="margin-bottom: 10px;">
-	                <a class="layui-btn print-btn" data-confirm="打印s所选项" data-param="true" url="{:url('Order/print_select')}">打印所选项</a>
+	                <a class="layui-btn print-btn" data-confirm="打印所选项" data-param="true" url="{:url('Order/print_select')}">打印所选项</a>
 	                <a class="layui-btn print-btn" data-confirm="打印筛选结果" url="{:url('Order/print_search')}">打印筛选结果</a>
-	                <a class="layui-btn" data-confirm="confirm" data-param="true" url="{:url('Order/fund_select')}">退还所选项</a>
-	                <a class="layui-btn" data-confirm="confirm" url="{:url('Order/fund_search')}">退还筛选结果</a>
+	                <a class="layui-btn fund-btn" data-confirm="退还所选项" data-param="true" url="{:url('Order/fund_select')}">退还所选项</a>
+	                <a class="layui-btn fund-btn" data-confirm="退还筛选结果" url="{:url('Order/fund_search')}">退还筛选结果</a>
 	                <!-- 高级搜索 -->
 	            </div>
-	            <div class="select-param">
-	                <form id="selectForm" method="get" class="form-dont-clear-url-param">
-	                	<div class="oneselect">
-	                		<div class="title">日期：</div>
-	                		<div class="select_box" style="width:100px;">
-	                			<php>$datetime_get = input('create_time', strtotime(date('Y-m-d'))); </php>
-	                			<input type="hidden" name="create_time" value="{$datetime_get}"/>
-	                			<input type="text" data-field-name="create_time" class="form-datetime  layui-input" value="{$datetime_get|time_format}" />
-	                		</div>
-	                	</div>
-	                	<div class="oneselect">
-	                		<div class="title">状态：</div>
-	                		<div class="select_box" style="width:100px;">
-	                			<php> $select_get = input('status', -1);</php>
-	                			<select name="status" lay-filter="select_text">
-	                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
-	                				<option value="0" <eq name="0" value="$select_get">selected</eq>>待付款</option>
-	                				<option value="1" <eq name="1" value="$select_get">selected</eq>>待发货</option>
-	                				<option value="2" <eq name="2" value="$select_get">selected</eq>>待收货</option>
-	                				<option value="3" <eq name="3" value="$select_get">selected</eq>>待评价</option>
-	                				<option value="4" <eq name="4" value="$select_get">selected</eq>>已完成</option>
-	                			</select>
-	                		</div>
-	                	</div>
-						<div class="oneselect">
-							<div class="select_box">
-								<php> $text_get = input('keyword'); </php>
-								<input style="float: none;width:180px;" type="text" name="keyword" class="layui-input"  value="{$text_get}" placeholder="订单编号" />
-							</div>
-                            <div class="btns">
-                                <button class="layui-btn layui-btn-primary" type="submit">
-                                    <i class="layui-icon">&#xe615;</i>
-                                </button>
-                            </div>
-						</div>					
-	                </form>
-	            </div>	            
+	         </div>
+	         <div class="fl layui-form">
+                <form id="selectForm" method="get" class="form-dont-clear-url-param">
+                	<div class="oneselect" style="margin-left:0px;">
+                		<div class="title">区域：</div>
+                		<div class="select_box" style="width:100px;">
+                			<php> $select_get = input('pro', -1);</php>
+                			<select name="pro" lay-filter="select_text">
+                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
+                			</select>
+                		</div>
+                		<div class="select_box" style="width:100px;">
+                			<php> $select_get = input('city', -1);</php>
+                			<select name="city" lay-filter="select_text">
+                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
+                			</select>
+                		</div>
+                		<div class="select_box" style="width:100px;">
+                			<php> $select_get = input('dis', -1);</php>
+                			<select name="dis" lay-filter="select_text">
+                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
+                			</select>
+                		</div>              		
+                	</div>
+                	<div class="oneselect">
+                		<div class="title">日期：</div>
+                		<div class="select_box" style="width:100px;">
+                			<php>$datetime_get = input('create_time', strtotime(date('Y-m-d'))); </php>
+                			<input type="hidden" name="create_time" value="{$datetime_get}"/>
+                			<input type="text" data-field-name="create_time" class="form-datetime  layui-input" value="{$datetime_get|time_format}" />
+                		</div>
+                	</div>
+                	<div class="oneselect">
+                		<div class="title">订单：</div>
+                		<div class="select_box" style="width:100px;">
+                			<php> $select_get = input('status', -1);</php>
+                			<select name="status" lay-filter="select_text">
+                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
+                				<option value="0" <eq name="0" value="$select_get">selected</eq>>待付款</option>
+                				<option value="1" <eq name="1" value="$select_get">selected</eq>>待发货</option>
+                				<option value="2" <eq name="2" value="$select_get">selected</eq>>待收货</option>
+                				<option value="3" <eq name="3" value="$select_get">selected</eq>>待评价</option>
+                				<option value="4" <eq name="4" value="$select_get">selected</eq>>已完成</option>
+                			</select>
+                		</div>
+                	</div>
+                	<div class="oneselect">
+                		<div class="title">打印：</div>
+                		<div class="select_box" style="width:100px;">
+                			<php> $select_get = input('printd', -1);</php>
+                			<select name="printd" lay-filter="select_text">
+                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
+                				<option value="0" <eq name="0" value="$select_get">selected</eq>>未打印</option>
+                				<option value="1" <eq name="1" value="$select_get">selected</eq>>已打印</option>
+                			</select>
+                		</div>
+                	</div>
+                	<div class="oneselect">
+                		<div class="title">打印：</div>
+                		<div class="select_box" style="width:100px;">
+                			<php> $select_get = input('refund', -1);</php>
+                			<select name="refund" lay-filter="select_text">
+                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
+                				<option value="0" <eq name="0" value="$select_get">selected</eq>>未退款</option>
+                				<option value="1" <eq name="1" value="$select_get">selected</eq>>已退款</option>
+                			</select>
+                		</div>
+                	</div>
+					<div class="oneselect">
+						<div class="select_box">
+							<php> $text_get = input('keyword'); </php>
+							<input style="float: none;width:180px;" type="text" name="keyword" class="layui-input"  value="{$text_get}" placeholder="订单编号" />
+						</div>
+                           <div class="btns">
+                               <button class="layui-btn layui-btn-primary" type="submit">
+                                   <i class="layui-icon">&#xe615;</i>
+                               </button>
+                           </div>
+					</div>					
+                </form>	            
             </div>
         </div>
 
