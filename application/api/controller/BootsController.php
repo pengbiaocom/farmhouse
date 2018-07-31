@@ -115,7 +115,8 @@ class BootsController extends Controller{
             });
 
             $orderModel = new OrderModel();
-            $is_update = $orderModel->save(['status'=>2],function($query){
+            $priv_time = strtotime(date('Ymd'));
+            $is_update = $orderModel->save(['status'=>2],function($query) use($priv_time){
                 $query->where('status',1);
                 $query->where('create_time', 'between', [$priv_time-86400, $priv_time]);
             });
@@ -129,7 +130,7 @@ class BootsController extends Controller{
     }
     
     /**
-    * 已完成的变化-----订单处理
+    * 已完成的变化-----订单处理[同时要将超过7天的未评价的订单修改为已完成]
     * @date: 2018年7月16日 上午9:02:03
     * @author: onep2p <324834500@qq.com>
     * @param: variable
@@ -152,7 +153,14 @@ class BootsController extends Controller{
         if($complete_time === $curr_time){
             $orderModel = new OrderModel();
             
-            $is_update = $orderModel->save(['status'=>3],function($query){
+            //处理超过7天前的未评价订单
+            $priv_time = strtotime(date('Ymd'));
+            $orderModel->save(['status'=>5],function($query) use($priv_time){
+                $query->where('status',4);
+                $query->where('create_time', '<', $priv_time-86400*7);
+            });
+            
+            $is_update = $orderModel->save(['status'=>3],function($query) use($priv_time){
                 $query->where('status',2);
                 $query->where('create_time', 'between', [$priv_time-86400, $priv_time]);
             });
