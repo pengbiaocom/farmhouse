@@ -22,6 +22,7 @@ class ProductController extends BackstageController{
 
         return  $builder->title('商品分类')
             ->suggest('禁用、删除分类时会将分类下的商品转移到默认分类下')
+            ->isNext(1)
             ->buttonNew(url('product/add'))
             ->data($tree)->show();
     }

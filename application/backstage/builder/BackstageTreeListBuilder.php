@@ -12,6 +12,7 @@ class BackstageTreeListBuilder extends BackstageBuilder
     private $_setStatusUrl;
     private $_level = 2;
     private $_model = '';
+    private $_isNext = 0;
 
     private $_move=false;
     private $_merge=false;
@@ -29,6 +30,11 @@ class BackstageTreeListBuilder extends BackstageBuilder
      */
     public function suggest($suggest){
         $this->_suggest = $suggest;
+        return $this;
+    }
+
+    public function isNext($isNext){
+        $this->_isNext = $isNext;
         return $this;
     }
     /**
@@ -347,6 +353,7 @@ class BackstageTreeListBuilder extends BackstageBuilder
         $this->assign('title', $this->_title);
         $this->assign('meta_title', $this->_title);
         $this->assign('suggest', $this->_suggest);
+        $this->assign("isNext",$this->_isNext);
         $this->assign('keyList', $this->_keyList);
         $this->assign('buttonList', $this->_buttonList);
         $this->assign('pagination', $paginationHtml);

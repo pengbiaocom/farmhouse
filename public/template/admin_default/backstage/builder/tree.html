@@ -21,11 +21,14 @@
 					<span class="tab-sign"></span>
 					<input type="hidden" name="id" value="{$list.id}">
 					<input type="text" name="title" class="form-control text" style="width: 200px;display: inline-block" value="{$list.title}">
-                    <if condition="$level gt 0">
-                        <a class="add-sub-cate" title={:lang("_ADD_A_SUB_CATEGORY_WITH_DOUBLE_")} href="{:url('add'.$model.'?pid='.$list['id'])}">
-                            <i class="icon-plus"></i>
-                        </a>
-                    </if>
+					<if condition="$isNext eq 0">
+						<if condition="$level gt 0">
+							<a class="add-sub-cate" title={:lang("_ADD_A_SUB_CATEGORY_WITH_DOUBLE_")} href="{:url('add'.$model.'?pid='.$list['id'])}">
+								<i class="icon-plus"></i>
+							</a>
+						</if>
+					</if>
+
 					<span class="help-inline msg"></span>
 				</div>
 			</form>
