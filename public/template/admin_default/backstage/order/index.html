@@ -31,7 +31,7 @@
             <div class="fl layui-form">
             	<div class="layui-btn-group" style="margin-bottom: 10px;">
                     <if condition="$is_auth1 eq 0">
-                        <a class="layui-btn print-btn" data-confirm="打印所选项" data-param="true" url="{:url('Order/print_select')}">打印所选项</a>
+                        <a class="layui-btn print-btn" data-confirm="打印所选项" data-param="true" url="{:url('Order/print_search')}">打印所选项</a>
                     </if>
 	                <if condition="$is_auth2 eq 0">
                         <a class="layui-btn print-btn" data-confirm="打印筛选结果" url="{:url('Order/print_search')}">打印筛选结果</a>

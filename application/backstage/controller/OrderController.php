@@ -79,7 +79,7 @@ class OrderController extends BackstageController{
         }
 
         //检测动态权限
-        $rule1 = strtolower( 'backstage/order/print_select');
+        $rule1 = strtolower( 'backstage/order/print_search');
         $rule2 = strtolower( 'backstage/order/print_search');
         $rule3 = strtolower( 'backstage/order/refunds');
         $rule4 = strtolower( 'backstage/order/refunds');
@@ -110,31 +110,6 @@ class OrderController extends BackstageController{
         $this->assign('_page',$totalCount);
         $this->assign('meta_title', '订单列表');
         return $this->fetch();
-
-//         $builder=new BackstageListBuilder();
-//         $builder->title('订单列表')
-//             ->buttonModalPopup(url('Order/print_select'), array(), '打印所选项', ['class'=>'layui-btn ajax-post tox-confirm', 'data-title'=>'打印所选项小票', 'target-form'=>'ids', 'data-confirm'=>'是否要打印所选项小票'])
-//             ->buttonModalPopup(url('Order/print_search'), $select, '打印筛选结果', ['class'=>'layui-btn ajax-post tox-confirm', 'data-confirm'=>'是否要打印筛选结果小票'])
-//             ->buttonModalPopup(url('Order/refunds'), array(), '退还所选项', ['class'=>'layui-btn ajax-post'])
-//             ->buttonModalPopup(url('Order/refunds'), $select, '退还筛选结果', ['class'=>'layui-btn ajax-post'])
-//             ->keyId('out_trade_no', '订单编号')
-//             ->setSearchPostUrl(url('order/index'))
-//             ->searchDateTime('日期', 'create_time', 'date')
-//             ->searchSelect('订单状态', 'status', 'select', '', '', [['id'=>-1, 'value'=>'请选择'],['id'=>0,'value'=>'待付款'],['id'=>1,'value'=>'待发货'],['id'=>2,'value'=>'待收货'],['id'=>3,'value'=>'待评价'],['id'=>4,'value'=>'已完成']])
-//             ->searchText('','keyword','text','订单编号')
-//             ->keyText('nickname','用户名称')
-//             ->keyText('goods_info','商品信息')
-//             ->keyText('coupon', '优惠券使用量')
-//             ->keyText('freight', '运费')
-//             ->keyText('total_fee','订单价格')
-//             ->keyHtml('remark', '备注信息')
-//             ->keyText('printdtext','是否打印')
-//             ->keyText('refundtext','是否退款')
-//             ->keyText('statustext','状态')
-//             ->keyCreateTime()
-//             ->data($list);
-//         $builder->pagination($totalCount);
-//         return $builder->show();
     }
 
     /**
@@ -260,13 +235,14 @@ class OrderController extends BackstageController{
             }
             
             //筛选参数
+            $ids = input('ids', '', 'op_t');
             $status = input('status', -1, 'intval');
             $create_time = input('create_time', strtotime(date('Y-m-d')), 'intval');
             $keyword = input('keyword','','op_t');
             
             //获取到满足条件的订单数据（包括订单数据、用户数据、地址数据）
             $orderModel = new OrderModel();
-            $orders = $orderModel::all(function($query) use($status,$create_time,$keyword){
+            $orders = $orderModel::all(function($query) use($ids,$status,$create_time,$keyword){
                 $query->alias('order');
                 $query->field("order.*,member.nickname,address.name as address_name,address.mobile as address_mobile,address.pos_community,province.name as province_name,city.name as city_name,district.name as district_name,street.name as street_name");
                 $query->join('__MEMBER__ member', 'order.uid = member.uid', 'LEFT');
@@ -275,6 +251,8 @@ class OrderController extends BackstageController{
                 $query->join('__DISTRICT__ city', 'address.pos_city = city.id', 'LEFT');
                 $query->join('__DISTRICT__ district', 'address.pos_district = district.id', 'LEFT');
                 $query->join('__DISTRICT__ street', 'address.street_id = street.id', 'LEFT');
+                
+                if(!empty($ids)) $query->where('order.id', 'IN', $ids);
                 
                 if($status != -1) $query->where('order.status', $status);
                 
@@ -331,6 +309,8 @@ class OrderController extends BackstageController{
         //获取到满足条件的订单数据（包括订单数据、用户数据、地址数据）
         $orderModel = new OrderModel();
         $orders = $orderModel::all(function($query) use($ids,$status,$create_time,$keyword){
+            if(!empty($ids)) $query->where('id', 'in', $ids);
+            
             if($status != -1) $query->where('status', $status);
         
             if(!empty($create_time)) $query->where('create_time', 'between', [$create_time, $create_time+86400]);
@@ -350,6 +330,10 @@ class OrderController extends BackstageController{
                     flush();
                     echo '订单：'.$order->out_trade_no.'退款失败。<br/>';
                 }
+            }else{
+                ob_flush();
+                flush();
+                echo '订单：'.$order->out_trade_no.'退款失败（未支付订单）。<br/>';
             }
         }
     }
