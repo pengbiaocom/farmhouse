@@ -168,10 +168,10 @@ class Auth{
         if (isset($_authList[$uid.$t])) {
             return $_authList[$uid.$t];
         }
-        $session=session('_AUTH_LIST_'.$uid.$t);
-        if( $this->_config['AUTH_TYPE']==2 && isset($session)){
-            return session('_AUTH_LIST_'.$uid.$t);
-        }
+//        $session=session('_AUTH_LIST_'.$uid.$t);
+//        if( $this->_config['AUTH_TYPE']==2 && isset($session)){
+//            return session('_AUTH_LIST_'.$uid.$t);
+//        }
 
         //读取用户所属权限组
         $groups = $this->getGroups($uid);

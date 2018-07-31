@@ -3,6 +3,7 @@ namespace app\backstage\controller;
 
 use app\common\model\OrderModel;
 use app\common\model\ProductModel;
+use app\common\model\AuthRuleModel;
 
 class OrderController extends BackstageController{
 
@@ -77,6 +78,31 @@ class OrderController extends BackstageController{
             }
         }
 
+        //检测动态权限
+        $rule1 = strtolower( 'backstage/order/print_select');
+        $rule2 = strtolower( 'backstage/order/print_search');
+        $rule3 = strtolower( 'backstage/order/refunds');
+        $rule4 = strtolower( 'backstage/order/refunds');
+
+
+        $is_auth1 = $is_auth2 = $is_auth3 = $is_auth4 = 0;
+        if (!$this->checkRule($rule1, AuthRuleModel::RULE_URL, null)) {
+            $is_auth1 = 1;
+        }
+        if (!$this->checkRule($rule2, AuthRuleModel::RULE_URL, null)) {
+            $is_auth2 = 1;
+        }
+        if (!$this->checkRule($rule3, AuthRuleModel::RULE_URL, null)) {
+            $is_auth3 = 1;
+        }
+        if (!$this->checkRule($rule4, AuthRuleModel::RULE_URL, null)) {
+            $is_auth4 = 1;
+        }
+
+        $this->assign("is_auth1",$is_auth1);
+        $this->assign("is_auth2",$is_auth2);
+        $this->assign("is_auth3",$is_auth3);
+        $this->assign("is_auth4",$is_auth4);
         $this->assign("pro",$pro);
         $this->assign("city",$city);
         $this->assign("dis",$dis);

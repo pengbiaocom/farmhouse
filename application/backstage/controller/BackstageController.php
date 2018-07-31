@@ -317,8 +317,7 @@ class backstageController extends BaseController{
     {
         $menus = [];
         //生成child树
-        $menuModel = new MenuModel();
-        $groups = $menuModel->where("pid = {$pid}")->distinct(true)->field("`groups`")->order('sort asc')->select();
+        $groups = db("menu")->where("pid = {$pid}")->distinct(true)->field("`groups`")->order('sort asc')->select();
 
         if ($groups) {
             $groups = array_column($groups, 'groups');
@@ -332,7 +331,7 @@ class backstageController extends BaseController{
         if (!config('DEVELOP_MODE')) { // 是否开发者模式
             $where['is_dev'] = 0;
         }
-        $second_urls = $menuModel->where($where)->find();
+        $second_urls = db("menu")->where($where)->find();
 
         if (!IS_ROOT) {
             // 检测菜单权限
@@ -363,7 +362,7 @@ class backstageController extends BaseController{
             if (!config('DEVELOP_MODE')) { // 是否开发者模式
                 $map['is_dev'] = 0;
             }
-            $menuList = $menuModel->where($map)->field('id,pid,title,url,tip')->order('sort asc')->select()->toArray();
+            $menuList = db("menu")->where($map)->field('id,pid,title,url,tip')->order('sort asc')->select();
             $menus[$g] = list_to_tree($menuList, 'id', 'pid', 'operater', $pid);
             if (empty($menus[$g])) {
                 unset($menus[$g]);
@@ -383,7 +382,8 @@ class backstageController extends BaseController{
         $menuModel = new MenuModel();
         if(empty($controller)) $controller = Request()->controller();
         $tag = 'ADMIN_MENU_LIST' . is_login() . $controller;
-        $menus = cache($tag);
+//        $menus = cache($tag);
+        $menus = false;
         if ($menus === false) {
             // 获取主菜单
             $where['pid'] = 0;
@@ -391,7 +391,7 @@ class backstageController extends BaseController{
             if (!config('DEVELOP_MODE')) { // 是否开发者模式
                 $where['is_dev'] = 0;
             }
-            $menus['main'] = $menuModel->where($where)->order('sort asc')->select()->toArray();
+            $menus['main'] = db("menu")->where($where)->order('sort asc')->select();
             foreach ($menus['main'] as &$v) {
                 $v['children'] = $this->getSubMenus($v['id']);
                 if ($v['url'] == 'Addons/index') {
@@ -402,7 +402,7 @@ class backstageController extends BaseController{
             $menus['child'] = []; //设置子节点
 
             //高亮主菜单
-            $current = $menuModel->where("url like '{$controller}/" . Request()->action() . "%' OR url like '%/{$controller}/" . Request()->action() . "%'  ")->field('id')->find();
+            $current = db("menu")->where("url like '{$controller}/" . Request()->action() . "%' OR url like '%/{$controller}/" . Request()->action() . "%'  ")->field('id')->find();
 
             if ($current) {
                 $nav = $menuModel->getPath($current['id']);
@@ -424,7 +424,7 @@ class backstageController extends BaseController{
                     if ($item['title'] == $nav_first_title) {
                         $menus['main'][$key]['class'] = 'layui-this';
                         //生成child树
-                        $groups = $menuModel->where("pid = {$item['id']}")->distinct(true)->field("`groups`")->order('sort asc')->select()->toArray();
+                        $groups = db("menu")->where("pid = {$item['id']}")->distinct(true)->field("`groups`")->order('sort asc')->select();
 
                         if ($groups) {
                             $groups = array_column($groups, 'groups');
@@ -439,19 +439,20 @@ class backstageController extends BaseController{
                         if (!config('DEVELOP_MODE')) { // 是否开发者模式
                             $where['is_dev'] = 0;
                         }
-                        $second_urls = $menuModel->where($where)->find();
+                        $second_urls = db("menu")->where($where)->order('sort asc')->select();
 
                         if (!IS_ROOT) {
                             // 检测菜单权限
                             $to_check_urls = [];
                             foreach ($second_urls as $key => $to_check_url) {
-                                if (stripos($to_check_url, Request()->module()) !== 0) {
-                                    $rule = Request()->module() . '/' . $to_check_url;
+                                if (stripos($to_check_url['url'], Request()->module()) !== 0) {
+                                    $rule = Request()->module() . '/' . $to_check_url['url'];
                                 } else {
-                                    $rule = $to_check_url;
+                                    $rule = $to_check_url['url'];
                                 }
+
                                 if ($this->checkRule($rule, AuthRuleModel::RULE_URL, null))
-                                    $to_check_urls[] = $to_check_url;
+                                    $to_check_urls[] = $to_check_url['url'];
                             }
                         }
                         // 按照分组生成子菜单树
@@ -470,7 +471,8 @@ class backstageController extends BaseController{
                             if (!config('DEVELOP_MODE')) { // 是否开发者模式
                                 $map['is_dev'] = 0;
                             }
-                            $menuList = $menuModel->where($map)->field('id,pid,title,url,tip')->order('sort asc')->select()->toArray();
+                            $menuList = db("menu")->where($map)->field('id,pid,title,url,tip')->order('sort asc')->select();
+
                             $menus['child'][$g] = list_to_tree($menuList, 'id', 'pid', 'operater', $item['id']);
 
                         }
