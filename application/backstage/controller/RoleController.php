@@ -48,12 +48,9 @@ class RoleController extends BackstageController
 
         $builder = new BackstageListBuilder;
         $builder->title(lang('_IDENTITY_LIST_'));
-        $builder->buttonNew(url('role/editrole'))
-            ->setStatusUrl(url('setstatus'))
+        $builder->setStatusUrl(url('setstatus'))
             ->buttonEnable()
-            ->buttonDisable()
-            ->button(lang('_DELETE_'), ['class' => 'layui-btn layui-btn-danger ajax-post confirm', 'url' => url('setstatus', ['status' => -1]), 'target-form' => 'ids', 'confirm-info' => "确认删除身份？删除后不可恢复！"])
-            ->buttonSort(url('sort'));
+            ->buttonDisable();
         $builder->keyId()
             ->keyText('title', lang('_ROLE_NAME_'))
             ->keyText('name', lang('_ROLE_MARK_'))
@@ -61,8 +58,8 @@ class RoleController extends BackstageController
             ->keyText('description', lang('_DESCRIPTION_'))
             ->keyText('user_groups', lang('_DEFAULT_USER_GROUP_'))
             ->keyText('sort', lang('_SORT_'))
-            ->keyYesNo('invite', lang('_DO_YOU_NEED_AN_INVITATION_TO_REGISTER_'))
-            ->keyYesNo('audit', lang('_REGISTRATION_WILL_NEED_TO_AUDIT_'))
+//             ->keyYesNo('invite', lang('_DO_YOU_NEED_AN_INVITATION_TO_REGISTER_'))
+//             ->keyYesNo('audit', lang('_REGISTRATION_WILL_NEED_TO_AUDIT_'))
             ->keyStatus()
             ->keyCreateTime()
             ->keyUpdateTime()

@@ -17,10 +17,9 @@
         <a url="{:url('changestatus',array('method'=>'resumeGroup'))}" class="layui-btn layui-btn-normal ajax-post" target-form="ids" >{:lang('_ENABLE_WITH_SPACE_')}</a>
         <a url="{:url('changestatus',array('method'=>'forbidGroup'))}" class="layui-btn layui-btn-normal ajax-post" target-form="ids" >{:lang('_DISABLE_WITH_SPACE_')}</a>
         <a  url="{:url('changestatus',array('method'=>'deleteGroup'))}" class="layui-btn layui-btn-danger ajax-post confirm" target-form="ids" >{:lang('_DELETE_WITH_SPACE_')}</a>
-        &nbsp; &nbsp; &nbsp; &nbsp;
-        <a class="layui-btn layui-btn-normal" href="{:url('Backstage/menu/index')}">{:lang('_MENU_BG_MANAGER_')}</a>
-        <a class="layui-btn" href="{:url('Backstage/menu/add')}">{:lang('_MENU_NEW_')}</a>
-        <a class="layui-btn layui-btn-normal" href="{:url('addNode')}">{:lang('_AUTH_FG_NEW_')}</a>
+        <!-- <a class="layui-btn layui-btn-normal" href="{:url('Backstage/menu/index')}">{:lang('_MENU_BG_MANAGER_')}</a> -->
+        <!-- <a class="layui-btn" href="{:url('Backstage/menu/add')}">{:lang('_MENU_NEW_')}</a> -->
+        <!-- <a class="layui-btn layui-btn-normal" href="{:url('addNode')}">{:lang('_AUTH_FG_NEW_')}</a> -->
     </div>
 	<!-- 数据列表 -->
 	<div class="with-padding layui-form">
@@ -45,7 +44,7 @@
 			<td><span>{:mb_strimwidth($vo['description'],0,60,"...","utf-8")}</span></td>
             <td><span>{:$vo['end_time']==2000000000?'永久':time_format($vo['end_time'])}</span></td>
 			<td><a class=" layui-btn layui-btn-normal layui-btn-small" href="{:url('AuthManager/access?group_name='.$vo['title'].'&group_id='.$vo['id'])}" >后台权限管理</a>
-                <a class=" layui-btn  layui-btn-small" href="{:url('AuthManager/accessuser?group_name='.$vo['title'].'&group_id='.$vo['id'])}" >前台权限管理</a>
+                <!-- <a class=" layui-btn  layui-btn-small" href="{:url('AuthManager/accessuser?group_name='.$vo['title'].'&group_id='.$vo['id'])}" >前台权限管理</a> -->
 			<a class=" layui-btn layui-btn-danger layui-btn-small" href="{:url('AuthManager/user?group_name='.$vo['title'].'&group_id='.$vo['id'])}" >授权成员列表</a>
 			</td>
 			<td>{$vo.status_text}</td>
