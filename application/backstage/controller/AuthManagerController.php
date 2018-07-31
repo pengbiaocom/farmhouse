@@ -155,8 +155,8 @@ class AuthManagerController extends BackstageController
         $data['end_time'] = empty($data['end_time']) ? '2000000000':$data['end_time'];
         $authGroupModel = new AuthGroupModel();
 
-        $oldGroup = $authGroupModel->find($data['id']);
-        $data['rules'] = $this->getMergedRules($oldGroup['rules'], explode(',', $data['rules']), 'eq');
+//         $oldGroup = $authGroupModel->find($data['id']);
+//         $data['rules'] = $this->getMergedRules($oldGroup['rules'], explode(',', $data['rules']), 'eq');
         if (empty($data['id'])) {
             $r = $authGroupModel->allowField(true)->isUpdate(false)->save($data);
         } else {
