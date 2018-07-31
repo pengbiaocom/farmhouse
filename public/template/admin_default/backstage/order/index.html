@@ -42,21 +42,16 @@
                 	<div class="oneselect" style="margin-left:0px;">
                 		<div class="title">区域：</div>
                 		<div class="select_box" style="width:100px;">
-                			<php> $select_get = input('pro', -1);</php>
-                			<select name="pro" lay-filter="select_text">
-                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
+                			<select name="pro" lay-filter="select_text1">
+
                 			</select>
                 		</div>
                 		<div class="select_box" style="width:100px;">
-                			<php> $select_get = input('city', -1);</php>
-                			<select name="city" lay-filter="select_text">
-                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
+                			<select name="city" lay-filter="select_text2">
                 			</select>
                 		</div>
                 		<div class="select_box" style="width:100px;">
-                			<php> $select_get = input('dis', -1);</php>
                 			<select name="dis" lay-filter="select_text">
-                				<option value="-1" <eq name="-1" value="$select_get">selected</eq>>请选择</option>
                 			</select>
                 		</div>              		
                 	</div>
@@ -189,7 +184,76 @@
 
             form.on('select(select_text)',function(data){
                 $('#selectForm').submit();
-            });   	
+            });
+            form.on('select(select_text1)',function(data){
+                console.log(1)
+                $("select[name='city']").val(-1);
+                $('#selectForm').submit();
+            });
+
+            form.on('select(select_text2)',function(data){
+                console.log(1)
+                $("select[name='dis']").val(-1);
+                $('#selectForm').submit();
+            });
+
+            var province_id = "{$pro}";
+            $.post("{:url('District/get_province')}",{},function(res){
+                if(province_id==-1){
+                    $("select[name='pro']").append('<option value="-1" selected>请选择</option>');
+                }else{
+                    $("select[name='pro']").append('<option value="-1">请选择</option>');
+                }
+                if(res.code==0){
+                    $.each(res.data, function(i,val){
+                        if(province_id == val.id){
+                            $("select[name='pro']").append('<option value="'+val.id+'" selected>'+val.name+'</option>');
+                        }else{
+                            $("select[name='pro']").append('<option value="'+val.id+'">'+val.name+'</option>');
+                        }
+                    });
+                }
+
+                form.render("select");
+            });
+            var city_id = "{$city}";
+            $.post("{:url('District/get_citys')}",{upid:province_id},function(res){
+                if(city_id==-1){
+                    $("select[name='city']").append('<option value="-1" selected>请选择</option>');
+                }else{
+                    $("select[name='city']").append('<option value="-1">请选择</option>');
+                }
+                if(res.code==0){
+                    $.each(res.data, function(i,val){
+                        if(city_id == val.id){
+                            $("select[name='city']").append('<option value="'+val.id+'" selected>'+val.name+'</option>');
+                        }else{
+                            $("select[name='city']").append('<option value="'+val.id+'">'+val.name+'</option>');
+                        }
+                    });
+                }
+
+                form.render("select");
+            });
+            var dis_id = "{$dis}";
+            $.post("{:url('District/get_countys')}",{upid:city_id},function(res){
+                if(dis_id==-1){
+                    $("select[name='dis']").append('<option value="-1" selected>请选择</option>');
+                }else{
+                    $("select[name='dis']").append('<option value="-1">请选择</option>');
+                }
+                if(res.code==0){
+                    $.each(res.data, function(i,val){
+                        if(dis_id == val.id){
+                            $("select[name='dis']").append('<option value="'+val.id+'" selected>'+val.name+'</option>');
+                        }else{
+                            $("select[name='dis']").append('<option value="'+val.id+'">'+val.name+'</option>');
+                        }
+                    });
+                }
+
+                form.render("select");
+            });
 	    });    
     
     
@@ -311,7 +375,7 @@
             });
 
             //导航高亮
-            highlight_subnav('{:url("Config/index")}');
+            highlight_subnav('{:url("order/index")}');
 
         });
     </script>

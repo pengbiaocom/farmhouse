@@ -19,6 +19,31 @@ class OrderController extends BackstageController{
         if($status !== -1){
             $map['status'] = array('EQ', $status);
         }
+
+        $pro = input("pro",-1,'intval');
+        $city = input('city',-1,'intval');
+        $dis = input("dis",-1,'intval');
+
+        //区域
+        if($pro!=-1){
+            $wh['pos_province'] = $pro;
+            if($city!=-1) $wh['pos_city'] = $city;
+            if($dis!=-1)  $wh['pos_district'] = $dis;
+            $address = db("receiving_address")->field("id")->where($wh)->select();
+
+            if(!empty($address)){
+                $addressidlist = '';
+                foreach($address as $row){
+                    $addressidlist .= $row['id'].',';
+                }
+                $addressidlist = trim($addressidlist,',');
+                if(!empty($addressidlist)){
+                    $map['address_id'] = ['in',$addressidlist];
+                }
+            }else{
+                $map['address_id'] = ['in',-1];
+            }
+        }
         
         //时间   所选日期当天的订单
         $create_time = input('create_time', strtotime(date('Y-m-d')), 'intval');
@@ -31,6 +56,7 @@ class OrderController extends BackstageController{
         if(!empty($keyword)){
             $map['out_trade_no'] = array('like', $keyword);
         }
+
 
         list($list,$totalCount)=$orderModel->getListByPage($map,'refund asc, printd asc, create_time desc','*',$r);
 
@@ -51,6 +77,9 @@ class OrderController extends BackstageController{
             }
         }
 
+        $this->assign("pro",$pro);
+        $this->assign("city",$city);
+        $this->assign("dis",$dis);
         $this->assign('list', $list);
         $this->assign('_page',$totalCount);
         $this->assign('meta_title', '订单列表');

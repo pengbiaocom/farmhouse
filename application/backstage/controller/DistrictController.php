@@ -168,4 +168,42 @@ class DistrictController extends BackstageController{
         $districtModel->updateFields($data);
         $this->success("更新成功",Cookie('__forward__'));
     }
+
+    public function   get_province(){
+        $district = db("district")->where(['level'=>1,'is_show'=>1])->order("id asc")->select();
+
+        if($district){
+            return json(['code'=>0,'msg'=>'ok','data'=>$district]);
+        }else{
+            return json(['code'=>1,'msg'=>'ok','data'=>$district]);
+        }
+    }
+
+    public function   get_citys(){
+        $upid = $this->request->param('upid');
+
+        if(empty($upid))  $upid = 110000;
+
+        $district = db("district")->where(['level'=>2,'upid'=>$upid,'is_show'=>1])->order("id asc")->select();
+
+        if($district){
+            return json(['code'=>0,'msg'=>'ok','data'=>$district]);
+        }else{
+            return json(['code'=>1,'msg'=>'ok','data'=>$district]);
+        }
+    }
+
+    public function get_countys(){
+        $upid = $this->request->param('upid');
+
+        if(empty($upid))  $upid = 110100;
+
+        $district = db("district")->where(['level'=>3,'upid'=>$upid,'is_show'=>1])->order("id asc")->select();
+
+        if($district){
+            return json(['code'=>0,'msg'=>'ok','data'=>$district]);
+        }else{
+            return json(['code'=>1,'msg'=>'ok','data'=>$district]);
+        }
+    }
 }
