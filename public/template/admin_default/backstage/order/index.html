@@ -32,8 +32,8 @@
             	<div class="layui-btn-group" style="margin-bottom: 10px;">
 	                <a class="layui-btn print-btn" data-confirm="打印所选项" data-param="true" url="{:url('Order/print_select')}">打印所选项</a>
 	                <a class="layui-btn print-btn" data-confirm="打印筛选结果" url="{:url('Order/print_search')}">打印筛选结果</a>
-	                <a class="layui-btn fund-btn" data-confirm="退还所选项" data-param="true" url="{:url('Order/fund_select')}">退还所选项</a>
-	                <a class="layui-btn fund-btn" data-confirm="退还筛选结果" url="{:url('Order/fund_search')}">退还筛选结果</a>
+	                <a class="layui-btn fund-btn" data-confirm="退还所选项" data-param="true" url="{:url('Order/refunds')}">退还所选项</a>
+	                <a class="layui-btn fund-btn" data-confirm="退还筛选结果" url="{:url('Order/refunds')}">退还筛选结果</a>
 	                <!-- 高级搜索 -->
 	            </div>
 	         </div>
@@ -238,6 +238,53 @@
                 		var isParam = $(this).attr('data-param');
                     	if(isParam) {
                     		layer.msg('你还没有选择要打印的订单'); 
+                    		return false;
+                    	}
+                    }
+            		
+                    var query = $('#selectForm').serialize();
+                    query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+                    query = query.replace(/^&/g, '');
+                    if (url.indexOf('?') > 0) {
+                        url += '&' + query;
+                    } else {
+                        url += '?' + query;
+                    }
+                    
+                    if(param != undefined && param != ''){
+                        if (url.indexOf('?') > 0) {
+                            url += '&ids=' + param;
+                        } else {
+                            url += '?dis' + param;
+                        }
+                    }
+                    
+                    window.open(url, '_blank', 'height=750, width=600, top=0, left=0, toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, status=no')
+            	}
+            });
+            
+            //退款
+            $(".fund-btn").click(function(){
+            	var text = $(this).attr('data-confirm');
+            	var result = confirm(text);
+            	
+            	if(result) {
+            		var url = $(this).attr('url');
+            		
+            		var ids = $('.ids:checked');
+            		
+                    var param = '';
+                    if (ids.length > 0) {
+                        var str = new Array();
+                        ids.each(function () {
+                            str.push($(this).val());
+                        });
+                        param = str.join(',');
+                    }else{
+                    	//判断是否强制选择
+                		var isParam = $(this).attr('data-param');
+                    	if(isParam) {
+                    		layer.msg('你还没有选择要退款的订单'); 
                     		return false;
                     	}
                     }

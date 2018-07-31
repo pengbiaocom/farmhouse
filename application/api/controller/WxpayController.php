@@ -76,7 +76,7 @@ class WxpayController extends Controller{
             'appid'			=> $config['appid'],
             'mch_id'		=> $config['pay_mchid'],
             'nonce_str'		=> self::getNonceStr(),
-            'body'			=> '益丰农舍-商品购买',
+            'body'			=> '益丰众购-商品购买',
             'out_trade_no'	=> $order->out_trade_no.'_'.rand(1,99999),
             'total_fee'		=> $order->total_fee * 100,
             'spbill_create_ip'	=> get_client_ip(),

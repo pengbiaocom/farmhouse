@@ -41,6 +41,7 @@ class OrderController extends BackstageController{
                 $list[$key]['printdtext'] = $row['printd']==0 ? '<span style="color:red;">未打印</span>':'<span style="color:green;">已打印</sapn>';
                 $list[$key]['refundtext'] = $row['refund']==0 ? '<span style="color:red;">未退还</span>':'<span style="color:green;">已退还</span>';
                 $list[$key]['nickname'] = get_nickname($row['uid']);
+                $list[$key]['create_time'] = date('Y-m-d H:i:s', $row['create_time']);
                 
                 $product_info = json_decode($row['product_info'], true);
                 $list[$key]['goods_info'] = "";
@@ -265,15 +266,32 @@ class OrderController extends BackstageController{
             'pay_mchid'=>'1509902681',
             'pay_apikey'=>'6ba57bc32cfd5044f8710f09ff86c664'
         ];
-
 		$this->config = $config;
+		
+		$ids = input('ids', '', 'op_t');
+        $status = input('status', -1, 'intval');
+        $create_time = input('create_time', strtotime(date('Y-m-d')), 'intval');
+        $keyword = input('keyword','','op_t');
 
-		for ($i = 1; $i <= 50; $i++) {
-		    ob_flush();
-		    flush();
-		    echo $i.'<br/>';
-		    sleep(rand(0, 1));
-		}
+        //获取到满足条件的订单数据（包括订单数据、用户数据、地址数据）
+        $orderModel = new OrderModel();
+        $orders = $orderModel::all(function($query) use($ids,$status,$create_time,$keyword){
+            if($status != -1) $query->where('status', $status);
+        
+            if(!empty($create_time)) $query->where('create_time', 'between', [$create_time, $create_time+86400]);
+        
+            if(!empty($keyword)) $query->where('out_trade_no', 'like', '%'.$keyword.'%');
+        
+        });        
+		
+        foreach ($orders as $order){
+            if($order->status > 0){
+                $this->refund($order);
+                ob_flush();
+                flush();
+                echo '订单：'.$order->out_trade_no.'退还完成。<br/>';                
+            }
+        }
     }
     
     /**
@@ -283,31 +301,29 @@ class OrderController extends BackstageController{
     * @param: variable
     * @return:
     */
-    private function refund($orders){
+    private function refund($order){
         $config = $this->config;
         
         //退款申请参数构造
-        if(sizeof($orders) > 0){
-            foreach ($orders as $order){
-                $refunddorder = array(
-                    'appid'			=> $config['appid'],
-                    'mch_id'		=> $config['pay_mchid'],
-                    'nonce_str'		=> self::getNonceStr(),
-                    'out_trade_no'	=> $order->out_trade_no,
-                    'out_refund_no' => $order->out_trade_no . md5($order->out_trade_no),//退款唯一单号，系统生成
-                    'total_fee'		=> $order->total_fee * 100,
-                    'refund_fee'    => '',//退款金额,通过计算得到要退还的金额
-                );
-                
-                $refunddorder['sign'] = self::makeSign($refunddorder);
-                
-                //请求数据
-                $xmldata = self::array2xml($refunddorder);
-                $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
-                $res = self::postXmlCurl($xmldata, $url, true);
-                
-                var_dump($res);exit;                
-            }
+        if($order){
+            $refunddorder = array(
+                'appid'			=> $config['appid'],
+                'mch_id'		=> $config['pay_mchid'],
+                'nonce_str'		=> self::getNonceStr(),
+                'out_trade_no'	=> $order->out_trade_no,
+                'out_refund_no' => $order->out_trade_no . md5($order->out_trade_no),//退款唯一单号，系统生成
+                'total_fee'		=> $order->total_fee * 100,
+                'refund_fee'    => '1',//退款金额,通过计算得到要退还的金额
+            );
+            
+            $refunddorder['sign'] = self::makeSign($refunddorder);
+            
+            //请求数据
+            $xmldata = self::array2xml($refunddorder);
+            $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
+            $res = self::postXmlCurl($xmldata, $url, true);
+            
+            var_dump($res);exit;            
         }
     }
 
