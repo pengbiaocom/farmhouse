@@ -74,7 +74,7 @@ class DistrictController extends BackstageController{
                 ->keyText('name','地区名称','用于显示的文字')
                 ->keyText('level','级数','分层级数')->keyDefault('level',$curclass['level']+1)
                 ->keySelect('upid','上级分类','',$options)
-                ->keySelect('is_show','上级分类','',$show_text)
+                ->keySelect('is_show','是否显示','',$show_text)
                 ->buttonSubmit()->buttonBack();
             return $builder->show();
         }
@@ -105,6 +105,7 @@ class DistrictController extends BackstageController{
             $curclass = $districtModel->field('id,name,level')->where("id={$row['upid']}")->find();
             if(empty($curclass)) $curclass = [['id'=>0,'name'=>'根目录']];
             $options[$curclass['id']]=$curclass['name'];
+            $show_text = ['隐藏','显示'];
             $builder=new BackstageConfigBuilder();
             $builder->title('编辑')
                 ->keyId()
@@ -112,6 +113,7 @@ class DistrictController extends BackstageController{
                 ->keyText('name','地区名称','用于显示的文字')
                 ->keyText('level','级数','分层级数')
                 ->keySelect('upid','上级分类','',$options)
+                ->keySelect('is_show','是否显示','',$show_text)
                 ->buttonSubmit()->buttonBack();
             return $builder->show();
         }
@@ -128,6 +130,7 @@ class DistrictController extends BackstageController{
         if (empty($ids)) {
             $this->error("请选择要操作的数据!");
         }
+
         if($districtModel->del("id in (".$ids.")")){
             $this->success("删除成功",Cookie('__forward__'));
         }else{

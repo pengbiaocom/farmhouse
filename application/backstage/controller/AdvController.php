@@ -221,13 +221,13 @@ class AdvController extends BackstageController
             $builder->title($pos['title'] . '【' . $pos['name'] . '】' . ' 设置——' . $advPosModel->switchType($pos['type']));
         }
         $builder->keyId()->keyLink('title', '广告说明', 'editAdv?id=###');
-        $builder->keyHtml('pos', '所属广告位');
+        $builder->keyText('pos', '所属广告位');
         $builder->buttonNew(url('editAdv?pos_id=' . $aPosId), '新增广告');
         $builder->buttonDelete(url('setAdvStatus'));
-        if ($aPosId != 0) {
-            $builder->button('广告排期查看', ['href' => url('schedule?pos_id=' . $aPosId)]);
-            $builder->button('设置广告位', ['href' => url('editPos?id=' . $aPosId)]);
-        }
+//        if ($aPosId != 0) {
+//            $builder->button('广告排期查看', ['href' => url('schedule?pos_id=' . $aPosId)]);
+//            $builder->button('设置广告位', ['href' => url('editPos?id=' . $aPosId)]);
+//        }
         $builder->keyText('url', '链接地址')->keyText('sort', '排序')->keyCreateTime()->keyStatus();
         $builder->data($data['data']);
         $builder->pagination($page);

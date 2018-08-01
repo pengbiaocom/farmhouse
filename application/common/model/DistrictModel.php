@@ -138,9 +138,9 @@ class DistrictModel extends BaseModel{
      * @return mixed
      */
     function del($where='1=2'){
-        $datas = $this->where($where)->field("id")->select();
+        $datas = db("District")->where($where)->field("id")->select();
         foreach($datas as $row){
-            $rows = $this->where('upid = "'.$row['id'].'"')->field('id')->select();
+            $rows = db("District")->where('upid = "'.$row['id'].'"')->field('id')->select();
             if(!empty($rows)){
                 $cateIdList="";
                 foreach($rows as $rs){
@@ -149,7 +149,7 @@ class DistrictModel extends BaseModel{
                 self::del('id in ('.$cateIdList.')');
             }
         }
-        return $this->where($where)->delete();
+        return db("District")->where($where)->delete();
     }
 
     /**
