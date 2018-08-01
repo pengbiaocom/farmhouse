@@ -223,7 +223,7 @@ class AdvController extends BackstageController
         }
         $builder->keyId()->keyLink('title', '广告标题', 'editAdv?id=###');
         $builder->keyText('pos', '所属广告位');
-        $builder->buttonNew(url('editAdv?pos_id=' . $aPosId), '新增广告');
+        $builder->buttonNew(url('editAdv?pos_id=9'), '新增广告');
         $builder->buttonDelete(url('setAdvStatus'));
 //        if ($aPosId != 0) {
 //            $builder->button('广告排期查看', ['href' => url('schedule?pos_id=' . $aPosId)]);
