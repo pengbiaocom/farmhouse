@@ -192,8 +192,8 @@ class ProductController extends BackstageController{
             $data['name']=input('post.name','','op_t');
             $data['content']=input('post.content','','filter_content');
             $data['category']=input('post.category',0,'intval');
-            $data['isXg']=input('post.isXg','','intval');
-            $data['stock']=input('post.stock','','intval');
+            $data['isXg']=input('post.isXg',0,'intval');
+            $data['stock']=input('post.stock',100,'intval');
             $data['unit']=input('post.unit','','op_t');
             $data['spec']=input('post.spec','','op_t');
             $data['cover']=input('post.cover',0,'op_t');
@@ -237,6 +237,7 @@ class ProductController extends BackstageController{
                 ->keyText('unit',"商品单位")
                 ->keyText('spec',"商品规格")
                 ->keyTextArea('price_line', "商品价格线", '数量|价格  一行一个')
+                ->keyText('stock', "库存", '默认为100')
                 ->keyEditor('content',"商品描述",'','all',['width' => '700px', 'height' => '300px'])
                 ->keyRadio('isXg', '是否为限购商品', '开启限购后，该商品每人仅能购买一份', array(0=>'否', 1=>'是'))
 
