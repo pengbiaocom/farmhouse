@@ -210,7 +210,8 @@ class AdvController extends BackstageController
 
         foreach ($data['data'] as &$v) {
             $p = $advPosModel->where(['id'=>$v['pos_id']])->find();
-            $v['pos'] = '<a class="text-danger" href="' . url('adv?pos_id=' . $p['id']) . '">' . $p['title'] . '</a>';
+//            $v['pos'] = '<a class="text-danger" href="' . url('adv?pos_id=' . $p['id']) . '">' . $p['title'] . '</a>';
+            $v['pos'] = $p['title'];
         }
 
         //todo 广告管理列表
