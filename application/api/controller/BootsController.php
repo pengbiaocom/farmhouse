@@ -188,7 +188,7 @@ class BootsController extends Controller{
             cache('DB_CONFIG_DATA', $config);
         }
         config($config); //添加配置        
-        
+
         $fund_time = config('FUND_TIME');
         $curr = date('H:i');
         $priv_time = strtotime(date('Y-m-d 0:0:0'));
@@ -220,7 +220,6 @@ class BootsController extends Controller{
                     $prices[$product['id']] = ['price'=>$product['price'], 'curr_price'=>$curr_price, 'sales'=>$product['sales']];
                 }
                 
-
                 //获取到当天的所有订单，并把所涉及到的用户分组，每个用户内的商品进行处理
                 $orderModel = new OrderModel();
                 $orders = $orderModel::all(function($query) use($priv_time){
@@ -277,7 +276,6 @@ class BootsController extends Controller{
                         }
                     }
                 }
-                
                 
                 //开始生成数据
                 if(sizeof($funds) > 0){
