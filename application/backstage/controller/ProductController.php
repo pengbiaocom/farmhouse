@@ -193,6 +193,7 @@ class ProductController extends BackstageController{
             $data['content']=input('post.content','','filter_content');
             $data['category']=input('post.category',0,'intval');
             $data['isXg']=input('post.isXg','','intval');
+            $data['stock']=input('post.stock','','intval');
             $data['unit']=input('post.unit','','op_t');
             $data['spec']=input('post.spec','','op_t');
             $data['cover']=input('post.cover',0,'op_t');
@@ -242,7 +243,7 @@ class ProductController extends BackstageController{
                 ->keyStatus()->keyDefault('status',1)
                 ->keyInteger('sort',lang('_SORT_'))->keyDefault('sort',999)
                 ->group('基础', ['id', 'name', 'category','cover', 'isXg', 'price', 'market_price'])
-                ->group('扩展', ['unit', 'spec', 'price_line', 'content', 'sort'])
+                ->group('扩展', ['unit', 'spec', 'price_line', 'stock', 'content', 'sort'])
                 ->buttonSubmit()->buttonBack();
             return $builder->show();
         }
