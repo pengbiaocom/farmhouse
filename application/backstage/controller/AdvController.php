@@ -221,7 +221,7 @@ class AdvController extends BackstageController
         } else {
             $builder->title($pos['title'] . '【' . $pos['name'] . '】' . ' 设置——' . $advPosModel->switchType($pos['type']));
         }
-        $builder->keyId()->keyLink('title', '广告说明', 'editAdv?id=###');
+        $builder->keyId()->keyLink('title', '广告标题', 'editAdv?id=###');
         $builder->keyText('pos', '所属广告位');
         $builder->buttonNew(url('editAdv?pos_id=' . $aPosId), '新增广告');
         $builder->buttonDelete(url('setAdvStatus'));
