@@ -86,7 +86,7 @@ class DistrictController extends BackstageController{
      */
     public function edit(){
         $districtModel = new DistrictModel();
-        $id=input("id",0,'intval');
+        
         if(Request()->isPost()){
             $data['id'] = input('post.id',0,'intval');
             $data['name']=input('post.name','','op_t');
@@ -94,18 +94,20 @@ class DistrictController extends BackstageController{
             $data['upid']=input('post.upid',0,'intval');
 
             $this->check($data);
-            if($districtModel->edit($data,'id='.$data['id'])){
+            if($districtModel->where('id', $data['id'])->update($data)){
                 $this->success("修改成功",Cookie('__forward__'));
             }else{
                 $this->error("修改失败");
             }
         }else{
+            $id=input("id",0,'intval');
             $row = $districtModel->where("id={$id}")->find();
             $curclass = $districtModel->field('id,name,level')->where("id={$row['upid']}")->find();
             if(empty($curclass)) $curclass = [['id'=>0,'name'=>'根目录']];
             $options[$curclass['id']]=$curclass['name'];
             $builder=new BackstageConfigBuilder();
-            $builder->title('新增')
+            $builder->title('编辑')
+                ->keyId()
                 ->data($row)
                 ->keyText('name','地区名称','用于显示的文字')
                 ->keyText('level','级数','分层级数')
