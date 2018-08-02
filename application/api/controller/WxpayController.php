@@ -196,7 +196,7 @@ class WxpayController extends Controller{
 
         $orderModel = new OrderModel();
         $order_info = $orderModel->where(['out_trade_no'=>$order_sn])->find();
-        $orderModel->where(['out_trade_no'=>$order_sn])->update(['status'=>4]);
+        $orderModel->where(['out_trade_no'=>$order_sn])->update(['status'=>1]);
 
         if($order_info['product_info']){
             $product_info = json_decode($order_info['product_info'],true);
