@@ -10,6 +10,8 @@ use think\Db;
 use app\common\model\FundsModel;
 
 class OrderController extends Controller{
+    private $stock_product_name = "";
+    
     public function create_order(Request $request){
         //接收订单信息
         $uid = $request->param('uid', '', 'intval');
@@ -23,7 +25,7 @@ class OrderController extends Controller{
         //分析订单数据
         $total_fee = $this->total_fee($uid, $product_info, $address_id, $coupon_num, $remark);
         if($total_fee == -3) return json(['code'=>1, 'msg'=>'订单中不存在购买商品', 'data'=>[]]);
-        if($total_fee == -2) return json(['code'=>1, 'msg'=>'商品库存不足', 'data'=>[]]);
+        if($total_fee == -2) return json(['code'=>1, 'msg'=>'“'.$this->stock_product_name.'”库存不足', 'data'=>[]]);
         if($total_fee == -1) return json(['code'=>1, 'msg'=>'下单失败', 'data'=>[]]);
         if($total_fee == 0) return json(['code'=>1, 'msg'=>'参数异常', 'data'=>[]]);
         
@@ -114,6 +116,7 @@ class OrderController extends Controller{
                 //判断限购、库存
                 if($product->stock < $productArr[$product->id] || ($product->isXg == 1 && $productArr[$product->id] > 1)){
                     $productModel->rollback();
+                    $this->stock_product_name = $product->name;
                     return -2;
                 }else{
                     if(!$productModel->where('id', $product->id)->setDec('stock', $productArr[$product->id])){
