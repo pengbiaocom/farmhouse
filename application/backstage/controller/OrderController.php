@@ -52,6 +52,18 @@ class OrderController extends BackstageController{
             $map['create_time'] = array('between', [$create_time, $create_time+86400]);
         }
         
+        //打印
+        $printd = input('printd', -1, 'intval');
+        if($printd !== -1){
+            $map['printd'] = array('EQ', $printd);
+        }
+        
+        //退款
+        $refund = input('refund', -1, 'intval');
+        if($refund !== -1){
+            $map['refund'] = array('EQ', $refund);
+        }
+        
         //搜索
         $keyword = input('keyword','','op_t');
         if(!empty($keyword)){
