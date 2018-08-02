@@ -23,7 +23,7 @@ class OrderController extends Controller{
         //分析订单数据
         $total_fee = $this->total_fee($uid, $product_info, $address_id, $coupon_num, $remark);
         if($total_fee == -3) return json(['code'=>1, 'msg'=>'订单中不存在购买商品', 'data'=>[]]);
-        if($total_fee == -2) return json(['code'=>1, 'msg'=>'存在限购商品或者某商品库存不足', 'data'=>[]]);
+        if($total_fee == -2) return json(['code'=>1, 'msg'=>'商品库存不足', 'data'=>[]]);
         if($total_fee == -1) return json(['code'=>1, 'msg'=>'下单失败', 'data'=>[]]);
         if($total_fee == 0) return json(['code'=>1, 'msg'=>'参数异常', 'data'=>[]]);
         
