@@ -301,9 +301,9 @@ class BootsController extends Controller{
                     }
                     
                     if($fundsModel->saveAll($fundsList)){
-                        $this->writeGetDataLog('生成用户退款明细数据失败');
-                    }else{
                         $this->writeGetDataLog('生成用户退款明细数据成功');
+                    }else{
+                        $this->writeGetDataLog('生成用户退款明细数据失败');
                     }
                 }
             }

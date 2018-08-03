@@ -280,6 +280,7 @@ class OrderController extends BackstageController{
                     $query->where('id', $item['id']);
                 });
                 
+                $item['remark'] = empty($item['remark']) ? '无' : $item['remark'];
                 $item['create_time'] = date('Y-m-d H:i:s', $item['create_time']);
         
                 $item['product_info'] = json_decode($item['product_info'], true);
