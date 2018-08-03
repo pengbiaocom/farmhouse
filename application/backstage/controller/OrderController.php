@@ -276,7 +276,7 @@ class OrderController extends BackstageController{
             
             //分析整理最后需要打印的数据
             foreach ($orders as &$item){
-                $orderModel->save(['printd'=>1],function($query) use($item){
+                $orderModel::update(['printd'=>1],function($query) use($item){
                     $query->where('id', $item['id']);
                 });
                 
