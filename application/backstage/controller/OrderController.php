@@ -187,13 +187,16 @@ class OrderController extends BackstageController{
                 
                 $item['product_info'] = json_decode($item['product_info'], true);
                 $goods = [];
+                $curr_total_fee = 0;
                 foreach ($item['product_info'] as $key=>$good){
                     $good['curr_price'] = $prices[$good['id']]['curr_price'];
                     $good['num_price'] = $prices[$good['id']]['curr_price'] * $good['num'];
+                    $curr_total_fee += $good['num_price'];
                     $goods[] = $good;
                     unset($good);
                 }
                 $item['products'] = $goods;
+                $item['curr_total_fee'] = $curr_total_fee;
                 unset($goods);unset($item['product_info']);
             }
 
@@ -285,13 +288,19 @@ class OrderController extends BackstageController{
         
                 $item['product_info'] = json_decode($item['product_info'], true);
                 $goods = [];
+                $curr_total_fee = 0;
                 foreach ($item['product_info'] as $key=>$good){
                     $good['curr_price'] = $prices[$good['id']]['curr_price'];
                     $good['num_price'] = $prices[$good['id']]['curr_price'] * $good['num'];
+                    $curr_total_fee += $good['num_price'];
                     $goods[] = $good;
                     unset($good);
                 }
                 $item['products'] = $goods;
+                
+                $coupon_price = config('COUPON_DENOMINATION');//没设置的情况下默认为1分钱
+                $item['curr_total_fee'] = $curr_total_fee+$item['freight']-$item['coupon']*$coupon_price;
+                
                 unset($goods);unset($item['product_info']);
             }
         
