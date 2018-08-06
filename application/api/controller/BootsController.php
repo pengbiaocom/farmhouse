@@ -264,7 +264,8 @@ class BootsController extends Controller{
                             }
                             
                             //更改订单中的应退款金额
-                            $orderModel->where('id', $order['id'])->update(['refund_fee'=>$fund_fee]);                            
+                            $orderModel->where('id', $order['id'])->update(['refund_fee'=>$order['total_fee']-$fund_fee]);
+
                         }else{
                             //这里是拿来做销毁的
                             if($orderModel::destroy($order['id'])){
