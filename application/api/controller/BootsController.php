@@ -239,7 +239,7 @@ class BootsController extends Controller{
                                 $funds[$order['uid']]['date_str'] = date('Y年m月d日');
                             
                                 foreach ($order['product_info'] as $item){
-                                    $fund_fee += $prices[$item['id']]['curr_price']*$item['num'];
+                                    $fund_fee += ($item['price'] - $prices[$item['id']]['curr_price'])*$item['num'];//价格差乘以数量为当前商品的退还
                             
                                     $item['sales'] = $prices[$item['id']]['sales'];
                                     $item['curr_price'] = $prices[$item['id']]['curr_price'];
@@ -249,7 +249,7 @@ class BootsController extends Controller{
                                 }
                             }else{
                                 foreach ($order['product_info'] as $item){
-                                    $fund_fee += $prices[$item['id']]['curr_price']*$item['num'];
+                                    $fund_fee += ($item['price'] - $prices[$item['id']]['curr_price'])*$item['num'];//价格差乘以数量为当前商品的退还
                             
                                     if(isset($funds[$order['uid']]['product_info'][$item['id']])){
                                         $funds[$order['uid']]['product_info'][$item['id']]['num'] += $item['num'];
@@ -264,7 +264,7 @@ class BootsController extends Controller{
                             }
                             
                             //更改订单中的应退款金额
-                            $orderModel->where('id', $order['id'])->update(['refund_fee'=>$order['total_fee']-$fund_fee]);
+                            $orderModel->where('id', $order['id'])->update(['refund_fee'=>$fund_fee]);
 
                         }else{
                             //这里是拿来做销毁的
