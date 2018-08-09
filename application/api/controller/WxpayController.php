@@ -171,7 +171,7 @@ class WxpayController extends Controller{
             $result = false;
         }
         // 返回状态给微信服务器
-        if ($result) {
+        if ($result !== false) {
             $str='<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
         }else{
             $str='<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[签名失败]]></return_msg></xml>';
@@ -202,23 +202,25 @@ class WxpayController extends Controller{
 
         $orderModel = new OrderModel();
         $order_info = $orderModel->where(['out_trade_no'=>$order_sn])->find();
-        $orderModel->where(['out_trade_no'=>$order_sn])->update(['status'=>1]);
 
-        if($order_info['product_info']){
-            $product_info = json_decode($order_info['product_info'],true);
-            foreach($product_info as $key=>$row){
-                db("product")->where(['id'=>$row['id']])->setInc("total_sales",$row['num']);
-                db("product")->where(['id'=>$row['id']])->setInc("sales",$row['num']);
+        if($order_info['is_notify'] == 0){
+            $orderModel->where(['out_trade_no'=>$order_sn])->update(['status'=>1, 'is_notify'=>1]);
+            if($order_info['product_info']){
+                $product_info = json_decode($order_info['product_info'],true);
+                foreach($product_info as $key=>$row){
+                    db("product")->where(['id'=>$row['id']])->setInc("total_sales",$row['num']);
+                    db("product")->where(['id'=>$row['id']])->setInc("sales",$row['num']);
+                }
             }
+            
+            $data['out_trade_no'] = $order_sn;
+            $data['openid']   = $openid;
+            $data['total_fee'] = $total_fee;
+            $data['transaction_id'] = $transaction_id;
+            $data['create_time']   = time();
+            
+            db("pay_log")->insert($data);            
         }
-
-        $data['out_trade_no'] = $order_sn;
-        $data['openid']   = $openid;
-        $data['total_fee'] = $total_fee;
-        $data['transaction_id'] = $transaction_id;
-        $data['create_time']   = time();
-
-        db("pay_log")->insert($data);
     }
 
 
