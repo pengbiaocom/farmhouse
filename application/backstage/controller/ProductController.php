@@ -272,10 +272,8 @@ class ProductController extends BackstageController{
             ->keyText('name','商品名称')
             ->keyText('category',lang('_CATEGORY_'))
             ->keyText('price','价格')
-            ->keyTime('start_time','开始时间')
-            ->keyTime('end_time','结束时间')
             ->keyText('sort',lang('_SORT_'))
-            ->keyStatus()->keyUpdateTime()
+            ->keyStatus()
             ->pagination($totalCount);
         return $builder->show();
     }
