@@ -190,7 +190,7 @@ class AddressController extends Controller{
      * @throws \think\Exception
      */
     public function del(Request $request){
-        $data = $request->param("id");
+        $data['id'] = $request->param("id");
 
         if(empty($data['id']))  return json(['code'=>1,'msg'=>'缺少参数']);
 
