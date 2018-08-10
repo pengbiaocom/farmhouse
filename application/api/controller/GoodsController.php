@@ -18,6 +18,8 @@ class GoodsController extends Controller{
         $limit = $request->param('limit', 10, 'intval');
         $page = $request->param('page', 1, 'intval');
         
+        if($page == 'undefined' || $page == '') $page = 1;
+        
         if($category == 0) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
         
         $list = $model

@@ -120,10 +120,10 @@ class ProductController extends BackstageController{
 
         $keyword = input('keyword','','op_t');
         if(!empty($keyword)){
-            $map[] = "(name like '%".$keyword."%' or id=".intval($keyword)." )";
+            $map['name'] = array('like', "%".$keyword."%");//"(name like '%".$keyword."%' or id=".intval($keyword)." )";
         }
 
-        $map['status']=1;
+        $map['status'] = 1;
 
         list($list,$totalCount)=$productModel->getListByPage($map,'update_time desc','*',$r);
         $category=$CategoryModel->getCategoryList(['status'=>['egt',0]],1);
@@ -146,7 +146,7 @@ class ProductController extends BackstageController{
             ->data($list)
             ->setSearchPostUrl(url('product/index'))
             ->searchSelect('分类','cate','select','','',array_merge([['id'=>0,'value'=>lang('_EVERYTHING_')]],$optCategory))
-            ->searchText('','keyword','text','商品名称/编号')
+            ->searchText('','keyword','text','商品名称')
             ->buttonNew(url('product/editproduct'))->buttonDelete(url('product/setproductstatus'))
             ->keyId()
             ->keyText('name','商品名称')
