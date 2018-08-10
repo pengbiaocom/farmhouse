@@ -194,6 +194,7 @@ class ProductController extends BackstageController{
             $data['category']=input('post.category',0,'intval');
             $data['isXg']=input('post.isXg',0,'intval');
             $data['stock']=input('post.stock',100,'intval');
+			$data['sales']=input('post.sales',0,'intval');
 			$data['total_sales']=input('post.total_sales',0,'intval');
             $data['unit']=input('post.unit','','op_t');
             $data['spec']=input('post.spec','','op_t');
@@ -239,14 +240,15 @@ class ProductController extends BackstageController{
                 ->keyText('spec',"商品规格")
                 ->keyTextArea('price_line', "商品价格线", '数量|价格  一行一个')
                 ->keyText('stock', "库存", '默认为100')
-                ->keyText('total_sales', "销量", '默认为0')
+                ->keyText('sales', "当日销量", '默认为0')
+                ->keyText('total_sales', "总销量", '默认为0')
                 ->keyEditor('content',"商品描述",'','all',['width' => '700px', 'height' => '300px'])
                 ->keyRadio('isXg', '是否为限购商品', '开启限购后，该商品每人仅能购买一份', array(0=>'否', 1=>'是'))
 
                 ->keyStatus()->keyDefault('status',1)
                 ->keyInteger('sort',lang('_SORT_'))->keyDefault('sort',999)
                 ->group('基础', ['id', 'name', 'category','cover', 'isXg', 'price', 'market_price'])
-                ->group('扩展', ['unit', 'spec', 'price_line', 'total_sales', 'stock', 'content', 'sort'])
+                ->group('扩展', ['unit', 'spec', 'price_line', 'sales', 'total_sales', 'stock', 'content', 'sort'])
                 ->buttonSubmit()->buttonBack();
             return $builder->show();
         }
