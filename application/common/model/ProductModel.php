@@ -2,6 +2,8 @@
 namespace app\common\model;
 
 
+use think\Request;
+
 class ProductModel extends BaseModel
 {
     public function editData($data)
@@ -23,7 +25,8 @@ class ProductModel extends BaseModel
 
     public function getListByPage($map,$order = 'update_time desc', $field = '*', $r = 20)
     {
-        $list = db("Product")->field($field)->where($map)->order($order)->paginate($r,false);
+        $config['query'] = isset($config['query']) ? $config['query'] : Request::instance()->param();
+        $list = db("Product")->field($field)->where($map)->order($order)->paginate($r,false, $config);
         $page = $list->render();
         $data = $list->toArray();
         return [$data['data'],$page];
