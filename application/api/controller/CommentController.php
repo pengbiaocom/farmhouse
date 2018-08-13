@@ -118,7 +118,6 @@ class CommentController extends Controller{
         if($orderId == 0 || $uid == 0 || empty($reputations)) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
 
         $data = [];
-        $commentsModel = new CommentsModel();
         $res = 0;
         foreach($reputations as $row){
             $data['orderid'] = $orderId;
@@ -127,9 +126,13 @@ class CommentController extends Controller{
             $data['message'] = $row['remark'];
             $data['uid'] = $uid;
             $data['addtime'] = time();
-            $commentsModel->data($data);
-            if($commentsModel->save()){
+            if(db("comments")->where(['orderid'=>$data['orderid'],'gid'=>$data['gid'],'uid'=>$data['uid']])->count()>0){
+                db("comments")->where(['orderid'=>$data['orderid'],'gid'=>$data['gid'],'uid'=>$data['uid']])->update($data);
                 $res++;
+            }else{
+                if(db("comments")->insert($data)){
+                    $res++;
+                }
             }
         }
 
