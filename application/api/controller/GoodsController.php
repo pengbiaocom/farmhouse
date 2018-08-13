@@ -39,6 +39,7 @@ class GoodsController extends Controller{
             $orderModel = new OrderModel();
             $myOrder = $orderModel::all(function($query) use($uid){
                 $query->where('uid', $uid);
+                $query->where('status', '>', 0);
                 $query->where('create_time' , '>', strtotime(date('Y-m-d 0:0:0')));
             });
             foreach ($myOrder as $order){
@@ -110,6 +111,7 @@ class GoodsController extends Controller{
             $orderModel = new OrderModel();
             $myOrder = $orderModel::all(function($query) use($uid){
                 $query->where('uid', $uid);
+                $query->where('status', '>', 0);
                 $query->where('create_time' , '>', strtotime(date('Y-m-d 0:0:0')));
             });
             foreach ($myOrder as $order){
