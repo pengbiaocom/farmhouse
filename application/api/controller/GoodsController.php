@@ -3,6 +3,7 @@ namespace app\api\controller;
 
 use think\Controller;
 use think\Request;
+use app\common\model\OrderModel;
 
 class GoodsController extends Controller{
     /**
@@ -17,6 +18,7 @@ class GoodsController extends Controller{
         $category = $request->param('cate', 0, 'intval');
         $limit = $request->param('limit', 10, 'intval');
         $page = $request->param('page', 1, 'intval');
+        $uid = $request->param('uid', 0, 'intval');
         
         if($page == 'undefined' || $page == '') $page = 1;
         
@@ -32,6 +34,24 @@ class GoodsController extends Controller{
             ->select();
         
         if(!empty($list)){
+            //判断当天限购   计算出我当天购买过的商品
+            $my_pay_product_count = [];
+            $orderModel = new OrderModel();
+            $myOrder = $orderModel::all(function($query) use($uid){
+                $query->where('uid', $uid);
+                $query->where('create_time' , '>', strtotime(date('Y-m-d 0:0:0')));
+            });
+            foreach ($myOrder as $order){
+                $products = json_decode($order['product_info'], true);
+                foreach ($products as $product){
+                    if(isset($product['id'])){
+                        $my_pay_product_count[$product['id']] = $product['num'];
+                    }else{
+                        $my_pay_product_count[$product['id']] += $product['num'];
+                    }
+                }
+            }
+            
             foreach ($list as &$item){
                 $item['cover'] = get_cover(explode(',', $item['cover'])[0], 'path');
             
@@ -47,6 +67,13 @@ class GoodsController extends Controller{
             
                         $item['price_line'] = $value;
                     }
+                }
+                
+                //判断已经购买的商品是否存在该用户不能购买的
+                if($item['isXg'] == 1 && $my_pay_product_count[$item['id']] > 0){
+                    $item['myXg'] = 1;
+                }else{
+                    $item['myXg'] = 0;
                 }
             }
             
@@ -66,6 +93,7 @@ class GoodsController extends Controller{
     public function detail(Request $request){
         $model = db('product');
         $id = $request->param('id', 0, 'intval');
+        $uid = $request->param('uid', 0, 'intval');
         
         if($id == 0) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
         
@@ -77,6 +105,24 @@ class GoodsController extends Controller{
             ->find();
         
         if(!empty($info)){
+            //判断当天限购   计算出我当天购买过的商品
+            $my_pay_product_count = [];
+            $orderModel = new OrderModel();
+            $myOrder = $orderModel::all(function($query) use($uid){
+                $query->where('uid', $uid);
+                $query->where('create_time' , '>', strtotime(date('Y-m-d 0:0:0')));
+            });
+            foreach ($myOrder as $order){
+                $products = json_decode($order['product_info'], true);
+                foreach ($products as $product){
+                    if(isset($product['id'])){
+                        $my_pay_product_count[$product['id']] = $product['num'];
+                    }else{
+                        $my_pay_product_count[$product['id']] += $product['num'];
+                    }
+                }
+            }            
+            
             if(!empty($info['cover'])){
                 foreach (explode(',', $info['cover']) as $item){
                     $images[] = get_cover($item, 'path');
@@ -96,6 +142,13 @@ class GoodsController extends Controller{
             
                     $info['price_line'] = $value;
                 }
+            }
+                
+            //判断已经购买的商品是否存在该用户不能购买的
+            if($info['isXg'] == 1 && $my_pay_product_count[$info['id']] > 0){
+                $info['myXg'] = 1;
+            }else{
+                $info['myXg'] = 0;
             }
             
             return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$info]);
