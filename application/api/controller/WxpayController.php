@@ -204,14 +204,14 @@ class WxpayController extends Controller{
         $order_info = $orderModel->where(['out_trade_no'=>$order_sn])->find();
 
         if($order_info['is_notify'] == 0){
-            $orderModel->where(['out_trade_no'=>$order_sn])->update(['status'=>1, 'is_notify'=>1]);
-            if($order_info['product_info']){
+            if(!empty($order_info['product_info'])){
                 $product_info = json_decode($order_info['product_info'],true);
                 foreach($product_info as $key=>$row){
                     db("product")->where(['id'=>$row['id']])->setInc("total_sales",$row['num']);
                     db("product")->where(['id'=>$row['id']])->setInc("sales",$row['num']);
                 }
             }
+            $orderModel->where(['out_trade_no'=>$order_sn])->update(['status'=>1, 'is_notify'=>1]);
             
             $data['out_trade_no'] = $order_sn;
             $data['openid']   = $openid;
