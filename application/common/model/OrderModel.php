@@ -1,6 +1,7 @@
 <?php
 namespace app\common\model;
 
+use think\Request;
 
 class OrderModel extends BaseModel
 {
@@ -21,7 +22,8 @@ class OrderModel extends BaseModel
 
     public function getListByPage($map,$order = 'create_time desc', $field = '*', $r = 20)
     {
-        $list = db("order")->field($field)->where($map)->order($order)->paginate($r,false);
+        $config['query'] = isset($config['query']) ? $config['query'] : Request::instance()->param();
+        $list = db("order")->field($field)->where($map)->order($order)->paginate($r,false,$config);
         $page = $list->render();
         $data = $list->toArray();
         return [$data['data'],$page];
