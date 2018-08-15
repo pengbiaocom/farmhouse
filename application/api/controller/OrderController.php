@@ -51,6 +51,7 @@ class OrderController extends Controller{
         $funds = $fundsModel::all(function($query) use($uid,$page,$limit){
             $query->where('uid', $uid);
             $query->where('date', '>', 0);
+            $query->order('addtime desc');
             $query->limit(($page-1)*$limit, $limit);
         });
         
