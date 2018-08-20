@@ -25,6 +25,7 @@ class OrderController extends Controller{
         //分析订单数据
         $total_fee = $this->total_fee($uid, $product_info, $address_id, $coupon_num, $remark);
         if($total_fee == -3) return json(['code'=>1, 'msg'=>'订单中不存在购买商品', 'data'=>[]]);
+        if($total_fee == -4) return json(['code'=>1, 'msg'=>'“'.$this->stock_product_name.'”已经下架，请删除该商品后再支付订单', 'data'=>[]]);
         if($total_fee == -2) return json(['code'=>1, 'msg'=>'“'.$this->stock_product_name.'”库存不足', 'data'=>[]]);
         if($total_fee == -1) return json(['code'=>1, 'msg'=>'下单失败', 'data'=>[]]);
         if($total_fee == 0) return json(['code'=>1, 'msg'=>'参数异常', 'data'=>[]]);
@@ -110,30 +111,38 @@ class OrderController extends Controller{
             $productModel = new ProductModel();
             $products = $productModel::all(function($query) use($productIds){
                 $query->where('id', 'in', $productIds);
+                $query->where('status', 1);
             });
             
             $productModel->startTrans();
             foreach($products as $item=>$product){
-                //判断限购、库存
-                if($product->stock < $productArr[$product->id] || ($product->isXg == 1 && $productArr[$product->id] > 1)){
+                if($product->status < 1){
+                    //不能购买的商品
                     $productModel->rollback();
                     $this->stock_product_name = $product->name;
-                    return -2;
+                    return -4;
                 }else{
-                    if(!$productModel->where('id', $product->id)->setDec('stock', $productArr[$product->id])){
+                    //判断限购、库存
+                    if($product->stock < $productArr[$product->id] || ($product->isXg == 1 && $productArr[$product->id] > 1)){
                         $productModel->rollback();
+                        $this->stock_product_name = $product->name;
+                        return -2;
+                    }else{
+                        if(!$productModel->where('id', $product->id)->setDec('stock', $productArr[$product->id])){
+                            $productModel->rollback();
+                        }
                     }
+                    
+                    $total_fee += $product->price*$productArr[$product->id];
+                    
+                    $productList[] = [
+                        'id'=>$product->id,
+                        'name'=>$product->name,
+                        'cover'=>get_cover(explode(',', $product['cover'])[0], 'path'),
+                        'price'=>$product->price,
+                        'num'=>$productArr[$product->id]
+                    ];                    
                 }
-                
-                $total_fee += $product->price*$productArr[$product->id];
-                
-                $productList[] = [
-                    'id'=>$product->id,
-                    'name'=>$product->name,
-                    'cover'=>get_cover(explode(',', $product['cover'])[0], 'path'),
-                    'price'=>$product->price,
-                    'num'=>$productArr[$product->id]
-                ];
             }
             
             $order_data['uid'] = $uid;
