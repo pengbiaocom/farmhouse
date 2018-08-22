@@ -80,6 +80,7 @@ class OrderController extends BackstageController{
                 $list[$key]['printdtext'] = $row['printd']==0 ? '<span style="color:red;">未打印</span>':'<span style="color:green;">已打印</sapn>';
                 $list[$key]['refundtext'] = $row['refund']==0 ? '<span style="color:red;">未退还</span>':'<span style="color:green;">已退还</span>';
                 $list[$key]['nickname'] = get_nickname($row['uid']);
+                $list[$key]['address'] = db('receiving_address')->find($row['address_id']);
                 $list[$key]['create_time'] = date('Y-m-d H:i:s', $row['create_time']);
                 
                 $product_info = json_decode($row['product_info'], true);

@@ -133,6 +133,7 @@
 	                    <th>优惠券使用量</th>
 	                    <th>运费</th>
 	                    <th>订单价格</th>
+	                    <th>详细地址</th>
 	                    <th>备注信息</th>
 	                    <th>是否打印</th>
 	                    <th>应退还金额</th>
@@ -152,6 +153,7 @@
 	                            <td>{$row.coupon}</td>
 	                            <td>{$row.freight}</td>
 	                            <td>{$row.total_fee}</td>
+	                            <td>{$row.address.pos_community}</td>
 	                            <td>{$row.remark}</td>
 	                            <td>{$row.printdtext}</td>
 	                            <td>{$row.refund_fee}</td>
@@ -161,7 +163,7 @@
 	                        </tr>
 	                    </volist>
 	                    <else/>
-	                    <td colspan="12" class="text-center"> {:lang('_ADMIN_USER_EMPTY_')}</td>
+	                    <td colspan="14" class="text-center"> {:lang('_ADMIN_USER_EMPTY_')}</td>
 	                </notempty>
                 </tbody>
             </table>
