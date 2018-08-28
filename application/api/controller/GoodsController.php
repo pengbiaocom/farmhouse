@@ -28,7 +28,7 @@ class GoodsController extends Controller{
             ->alias('p')
             ->field('p.id,p.name,p.category,p.isXg,p.price,p.stock,p.market_price,p.unit,p.spec,p.price_line,p.cover,p.sales,p.total_sales,p.sort,pc.title')
             ->join('product_category pc', 'p.category = pc.id', 'LEFT')
-            ->where('p.status > 0 and stock > 0 and p.category = ' . $category)
+            ->where('p.status > 0 and p.category = ' . $category)
             ->order('p.sort ASC')
             ->limit(($page-1)*$limit, $limit)
             ->select();
@@ -102,7 +102,7 @@ class GoodsController extends Controller{
             ->alias('p')
             ->field('p.id,p.name,p.category,p.isXg,p.price,p.stock,p.market_price,p.unit,p.spec,p.content,p.price_line,p.cover,p.sales as total_sales,p.total_sales as sales,p.sort,pc.title')
             ->join('product_category pc', 'p.category = pc.id', 'LEFT')
-            ->where('p.status > 0 and stock > 0 and p.id = ' . $id)
+            ->where('p.status > 0 and p.id = ' . $id)
             ->find();
         
         if(!empty($info)){
