@@ -39,7 +39,9 @@ class SeedsController extends BackstageController{
             ->buttonNew(url('seeds/edit'))->buttonDelete(url('seeds/setstatus'))
             ->keyId()
             ->keyText('name','种子名称')
+            ->keyText('price','价格')
             ->keyText('unit','单位')
+            ->keyText('sum_exp','总经验')
             ->keyText('stock', '库存')
             ->keyText('sort',lang('_SORT_'))
             ->keyStatus()->keyUpdateTime()
@@ -78,7 +80,10 @@ class SeedsController extends BackstageController{
             $data['stock']=input('post.stock',100,'intval');
 			$data['total_sales']=input('post.total_sales',0,'intval');
             $data['unit']=input('post.unit','','op_t');
+            $data['price']=input('post.price','','op_t');
+            $data['sum_exp']=input('post.sum_exp','','op_t');
             $data['cover']=input('post.cover',0,'op_t');
+            $data['adult_cover']=input('post.adult_cover',0,'op_t');
             $data['sort']=input('post.sort',0,'intval');
             $data['status']=input('post.status',1,'intval');
 
@@ -101,15 +106,18 @@ class SeedsController extends BackstageController{
                 ->data($data)
                 ->keyId('id')
                 ->keyText('name',lang('_TITLE_'))
-                ->keyMultiImage('cover', "图片")
+                ->keyMultiImage('cover', "幼年图片")
+                ->keyMultiImage('adult_cover', "成年图片")
+                ->keyText('price',"价格")
                 ->keyText('unit',"单位")
+                ->keyText('sum_exp',"总经验")
                 ->keyText('stock', "库存", '默认为100')
                 ->keyText('total_sales', "总销量", '默认为0')
                 ->keyEditor('content',"描述",'','all',['width' => '700px', 'height' => '300px'])
 
                 ->keyStatus()->keyDefault('status',1)
                 ->keyInteger('sort',lang('_SORT_'))->keyDefault('sort',999)
-                ->group('基础', ['id', 'name' ,'cover', 'unit', 'stock','total_sales','content','sort'])
+                ->group('基础', ['id', 'name' ,'cover','adult_cover', 'price','unit','sum_exp', 'stock','total_sales','content','sort'])
                 ->buttonSubmit()->buttonBack();
             return $builder->show();
         }
