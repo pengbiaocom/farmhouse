@@ -63,24 +63,17 @@ class SeedsController extends Controller{
         if($uid == 0) return json(['code'=>1, 'msg'=>'参数错误', 'data'=>[]]);
 
         $info = $model
-            ->where(['status'=>0,'uid'=>$uid])
+            ->where(['status'=>0,'pay_status'=>1,'uid'=>$uid])
             ->find();
 
         if(!empty($info)){
             $seeds = db("seeds")->where(['id'=>$info['sid']])->find();
-            if(!empty($seeds['cover'])){
-                foreach (explode(',', $seeds['cover']) as $item){
-                    $images[] = get_cover($item, 'path');
-                }
-                $info['cover'] = $images;
-            }
             if(!empty($seeds['adult_cover'])){
                 foreach (explode(',', $seeds['adult_cover']) as $item){
                     $images1[] = get_cover($item, 'path');
                 }
                 $info['adult_cover'] = $images1;
             }
-//            if($info['exp'] == $info['sum_exp'])  $info['cover'] = $info['adult_cover'];
             $info['cover'] = $info['adult_cover'];
             $info['name'] = $seeds['name'];
             $info['stock'] = $seeds['stock'];
@@ -110,9 +103,13 @@ class SeedsController extends Controller{
         $user = $ucenterMemberModel::get(function($query) use($uid){
             $query->where('id', $uid);
         });
+        $info = db("seeds")->where(['id'=>$sid])->find();
 
-        if($model->where(['uid'=>$uid,'status'=>0])->count()==0){
-            $info = db("seeds")->where(['id'=>$sid])->find();
+        if($info['stock']==0)  return json(['code'=>1,'msg'=>'库存不足']);
+
+        if(db("receiving_address")->where(['uid'=>$uid])->count()==0) return json(['code'=>1,'msg'=>'还没有添加收货地址']);
+
+        if($model->where(['uid'=>$uid,'status'=>0,'pay_status'=>1])->count()==0){
             $data['sid'] = $sid;
             $data['uid'] = $uid;
             $data['sorder_sn'] =  'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
@@ -156,7 +153,7 @@ class SeedsController extends Controller{
                 }
 
                 if(!empty($content['prepay_id'])){
-                    return self::pay($content['prepay_id']);
+                    return self::pay($content['prepay_id'],$unifiedorder['out_trade_no']);
                 }else{
                     return json(['code'=>1,'msg'=>'发起支付失败']);
                 }
@@ -173,7 +170,7 @@ class SeedsController extends Controller{
      * @param string $prepay_id 预支付ID(调用prepay()方法之后的返回数据中获取)
      * @return  json的数据
      */
-    public function pay($prepay_id){
+    public function pay($prepay_id,$sorder_sn){
         $config = $this->config;
 
         $data = array(
@@ -181,12 +178,27 @@ class SeedsController extends Controller{
             'timeStamp'	=> time(),
             'nonceStr'	=> self::getNonceStr(),
             'package'	=> 'prepay_id='.$prepay_id,
-            'signType'	=> 'MD5'
+            'signType'	=> 'MD5',
+            'sorder_sn'=>$sorder_sn
         );
 
         $data['paySign'] = self::makeSign($data);
 
-        return json(['code'=>1,'data'=>$data]);
+        return json(['code'=>0,'data'=>$data]);
+    }
+
+    public function  del_sorder_sn(Request $request){
+
+        $sorder_sn = $request->param('sorder_sn');
+
+        if(empty($sorder_sn))  return json(['code'=>1,'msg'=>'缺少参数']);
+
+        if(db("seeds_user")->where(['sorder_sn'=>$sorder_sn,'pay_status'=>0])->count()>0){
+            db("seeds_user")->where(['sorder_sn'=>$sorder_sn,'pay_status'=>0])->delete();
+            return json(['code'=>0,'msg'=>'成功']);
+        }else{
+            return json(['code'=>1,'msg'=>'失败']);
+        }
     }
 
     //微信支付回调验证
@@ -214,6 +226,8 @@ class SeedsController extends Controller{
             $total_fee = $data['total_fee'];			//付款金额
             $transaction_id = $data['transaction_id']; 	//微信支付流水号
             db("seeds_user")->where(['sorder_sn'=>$order_sn])->update(['pay_status'=>1]);
+            $info = db("seeds_user")->where(['sorder_sn'=>$order_sn])->find();
+            db("seeds")->where(['id'=>$info['sid']])->setDec("stock",1);
 
         }else{
             $out_trade_no =  explode('_',$data['out_trade_no']);
@@ -369,7 +383,7 @@ class SeedsController extends Controller{
 
         if(empty($uid))  return json(['code'=>1,'msg'=>'缺少参数']);
 
-        $count = $model->where(['uid'=>$uid,'status'=>0])->count();
+        $count = $model->where(['uid'=>$uid,'status'=>0,'pay_status'=>1])->count();
 
         return json(['code'=>0,'data'=>$count]);
 

@@ -119,6 +119,80 @@ class WxpayController extends Controller{
     }
 
     /**
+     * 领取种子
+     * @param Request $request
+     * @return \think\response\Json
+     */
+    public function  ling_seeds(Request $request){
+        $model = db("seeds_user");
+        $sid = $request->param("sid",0,'intval');
+        $uid = $request->param('uid',0,'intval');
+
+        if($sid == 0)   return json(['code'=>1,'msg'=>'缺少参数']);
+
+        $ucenterMemberModel = new UcenterMemberModel();
+        $user = $ucenterMemberModel::get(function($query) use($uid){
+            $query->where('id', $uid);
+        });
+
+        if($model->where(['uid'=>$uid,'status'=>0])->count()==0){
+            $info = db("seeds")->where(['id'=>$sid])->find();
+            $data['sid'] = $sid;
+            $data['uid'] = $uid;
+            $data['sorder_sn'] =  'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+            $data['sum_exp'] = $info['sum_exp'];
+            $data['status'] = 0;
+            $data['pay_status'] = 0;
+            $data['create_time'] = $data['update_time'] = time();
+            if($id = $model->insertGetId($data)){
+                $config = $this->config;
+                //统一下单参数构造
+                $unifiedorder = array(
+                    'appid'			=> $config['appid'],
+                    'mch_id'		=> $config['pay_mchid'],
+                    'nonce_str'		=> self::getNonceStr(),
+                    'body'			=> '益丰众购-种子购买',
+                    'out_trade_no'	=> 'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT),//每一次的发起支付都重新生成一下订单号，并替换数据库
+                    'total_fee'		=> $info['price'] * 100,
+                    'spbill_create_ip'	=> get_client_ip(),
+                    'notify_url'	=> 'https://api.yifengzhonggou.com/api/Wxpay/notifys',
+                    'trade_type'	=> 'JSAPI',
+                    'openid'		=> $user->openid
+                );
+                //更新数据库单号
+                $model->where(['id'=>$id])->update(['sorder_sn'=>$unifiedorder['out_trade_no']]);
+                $unifiedorder['sign'] = self::makeSign($unifiedorder);
+                //请求数据
+                $xmldata = self::array2xml($unifiedorder);
+                $url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
+                $res = self::curl_post_ssl($url, $xmldata);
+                if(!$res){
+                    self::return_err("Can't connect the server");
+                }
+
+                $content = self::xml2array($res);
+
+                if(strval($content['result_code']) == 'FAIL'){
+                    self::return_err(strval($content['err_code_des']));
+                }
+                if(strval($content['return_code']) == 'FAIL'){
+                    self::return_err(strval($content['return_msg']));
+                }
+
+                if(!empty($content['prepay_id'])){
+                    return self::pay($content['prepay_id']);
+                }else{
+                    return json(['code'=>1,'msg'=>'发起支付失败']);
+                }
+            }else{
+                return json(['code'=>1,'msg'=>'服务器繁忙']);
+            }
+        }else{
+            return json(['code'=>1,'msg'=>'还有成长中的种子']);
+        }
+    }
+
+    /**
      * 进行支付接口(POST)
      * @param string $prepay_id 预支付ID(调用prepay()方法之后的返回数据中获取)
      * @return  json的数据
@@ -168,6 +242,50 @@ class WxpayController extends Controller{
             $this->updateDB($order_sn,$openid,$total_fee,$transaction_id);
 
         }else{
+            $result = false;
+        }
+        // 返回状态给微信服务器
+        if ($result !== false) {
+            $str='<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+        }else{
+            $str='<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[签名失败]]></return_msg></xml>';
+        }
+        echo $str;
+        return $result;
+    }
+
+    //微信支付回调验证
+    public function notifys(){
+        $xml = $GLOBALS['HTTP_RAW_POST_DATA'];
+
+        // 这句file_put_contents是用来查看服务器返回的XML数据 测试完可以删除了
+        //file_put_contents(APP_ROOT.'/Statics/log2.txt',$res,FILE_APPEND);
+
+        //将服务器返回的XML数据转化为数组
+        $data = self::xml2array($xml);
+        // 保存微信服务器返回的签名sign
+        $data_sign = $data['sign'];
+        // sign不参与签名算法
+        unset($data['sign']);
+        $sign = self::makeSign($data);
+
+        // 判断签名是否正确  判断支付状态
+        if ( ($sign===$data_sign) && ($data['return_code']=='SUCCESS') && ($data['result_code']=='SUCCESS') ) {
+            $result = $data;
+            //获取服务器返回的数据
+            $out_trade_no =  explode('_',$data['out_trade_no']);
+            $order_sn = $out_trade_no[0];			//订单单号
+            $openid = $data['openid'];					//付款人openID
+            $total_fee = $data['total_fee'];			//付款金额
+            $transaction_id = $data['transaction_id']; 	//微信支付流水号
+            db("seeds_user")->where(['sorder_sn'=>$order_sn])->update(['pay_status'=>1]);
+            $info = db("seeds_user")->where(['sorder_sn'=>$order_sn])->find();
+            db("seeds")->where(['id'=>$info['sid']])->setDec("stock",1);
+
+        }else{
+            $out_trade_no =  explode('_',$data['out_trade_no']);
+            $order_sn = $out_trade_no[0];			//订单单号
+            db("seeds_user")->where(['sorder_sn'=>$order_sn])->delete();
             $result = false;
         }
         // 返回状态给微信服务器
