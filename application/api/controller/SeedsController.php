@@ -227,8 +227,8 @@ class SeedsController extends Controller{
             $transaction_id = $data['transaction_id']; 	//微信支付流水号
             db("seeds_user")->where(['sorder_sn'=>$order_sn])->update(['pay_status'=>1]);
             $info = db("seeds_user")->where(['sorder_sn'=>$order_sn])->find();
-            db("seeds")->where(['id'=>$info['sid']])->setDec("stock",1);
-
+            
+            if($info['pay_status'] == 0) db("seeds")->where(['id'=>$info['sid']])->setDec("stock",1);
         }else{
             $out_trade_no =  explode('_',$data['out_trade_no']);
             $order_sn = $out_trade_no[0];			//订单单号
