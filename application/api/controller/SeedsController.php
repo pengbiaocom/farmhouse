@@ -178,11 +178,11 @@ class SeedsController extends Controller{
             'timeStamp'	=> time(),
             'nonceStr'	=> self::getNonceStr(),
             'package'	=> 'prepay_id='.$prepay_id,
-            'signType'	=> 'MD5',
-            'sorder_sn'=>$sorder_sn
+            'signType'	=> 'MD5'
         );
 
         $data['paySign'] = self::makeSign($data);
+        $data['sorder_sn'] = $sorder_sn;
 
         return json(['code'=>0,'data'=>$data]);
     }
