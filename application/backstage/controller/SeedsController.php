@@ -4,6 +4,7 @@ namespace app\backstage\controller;
 use app\backstage\builder\BackstageConfigBuilder;
 use app\backstage\builder\BackstageListBuilder;
 use app\common\model\SeedsModel;
+use app\common\model\SeedsUserModel;
 
 class SeedsController extends BackstageController{
 
@@ -31,6 +32,7 @@ class SeedsController extends BackstageController{
             }
         }
         unset($val);
+        
         $builder=new BackstageListBuilder();
         $builder->title('种子列表')
             ->data($list)
@@ -46,6 +48,46 @@ class SeedsController extends BackstageController{
             ->keyText('sort',lang('_SORT_'))
             ->keyStatus()->keyUpdateTime()
             ->keyDoActionEdit('seeds/edit?id=###');
+        $builder->pagination($totalCount);
+        return $builder->show();
+    }
+    
+    /**
+    * 领用的数据
+    * @date: 2018年9月11日 下午4:28:33
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function seedUser(){
+        $r = config("LIST_ROWS");
+        $seedsUserModel = new SeedsUserModel();
+
+        $map['pay_status'] = 1;
+        list($list,$totalCount)=$seedsUserModel->getListByPage($map,'status desc,create_time desc','*',$r);
+        
+        if($list){
+            foreach($list as $key=>$row){
+                $list[$key]['nickname'] = get_nickname($row['uid']);
+                
+                $seeds = db('seeds')->find($row['sid']);
+                $list[$key]['seeds_name'] = $seeds['name'];
+            }
+        }     
+        
+        $builder = new BackstageListBuilder();
+        $builder->title('领取列表')->data($list);
+        
+        $builder
+            ->keyId()
+            ->keyText('nickname', '用户名')
+            ->keyText('seeds_name', '种子名称')
+            ->keyText('exp', '当前经验值')
+            ->keyText('sum_exp', '所需经验值')
+            ->keyMap('status', '状态', array(0=>'成长中', 1=>'已长成'))
+            ->keyUpdateTime()
+            ->keyDoActionEdit('seeds/seedsUseredit?id=###', '打印');
+        
         $builder->pagination($totalCount);
         return $builder->show();
     }
