@@ -1,0 +1,127 @@
+<extend name="public/base"/>
+
+<block name="body">
+	<style>
+		.select-param{
+			float: right;
+			margin-right: 15px;
+		}
+		.form-dont-clear-url-param .input-group{
+			width:200px;
+		}
+
+		.oneselect .title{
+			line-height: 38px;
+		}
+        .oneselect .btns{
+            float: left;
+            line-height: 32px;
+        }
+        .oneselect .select_box select{
+            min-width: 150px;
+        }		
+	</style>
+
+    <div class="layui-main">
+        <div class="layui-elem-quote" >
+            <a href="{:url('Backstage/Index/index')}">首页<span class="layui-box">&gt;</span></a>
+            <a><cite>领取列表</cite></a>
+        </div>
+
+        <div class="with-padding layui-form">
+            <table class="layui-table" lay-even>
+                <thead>
+	                <tr>
+	                    <th>订单编号</th>
+	                    <th>用户名称</th>
+	                    <th>种子名称</th>
+	                    <th>当前经验值</th>
+	                    <th>所需经验值</th>
+	                    <th>状态</th>
+	                    <th>更新时间</th>
+	                    <th>操作</th>
+	                </tr>
+                </thead>
+                <tbody>
+	                <notempty name="list">
+	                    <volist name="list" id="row">
+	                        <tr>
+	                            <td>{$row.id}</td>
+	                            <td>{$row.nickname}</td>
+	                            <td>{$row.seeds_name}</td>
+	                            <td>{$row.exp}</td>
+	                            <td>{$row.sum_exp}</td>
+	                            <td>{$row.status}</td>
+	                            <td>{$row.update_time}</td>
+	                            <td><a href="{:url('Backstage/seeds/seedsUseredit', array('id'=>$row['id']))}" target="_blank">打印</a></td>
+	                        </tr>
+	                    </volist>
+	                    <else/>
+	                    <td colspan="14" class="text-center"> {:lang('_ADMIN_USER_EMPTY_')}</td>
+	                </notempty>
+                </tbody>
+            </table>
+            <div class="">
+                {$_page}
+            </div>
+        </div>
+    </div>
+
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        $(function () {
+            //打印
+            $(".print-btn").click(function(){
+            	var text = $(this).attr('data-confirm');
+            	var result = confirm(text);
+            	
+            	if(result) {
+            		var url = $(this).attr('url');
+            		
+            		var ids = $('.ids:checked');
+            		
+                    var param = '';
+                    if (ids.length > 0) {
+                        var str = new Array();
+                        ids.each(function () {
+                            str.push($(this).val());
+                        });
+                        param = str.join(',');
+                    }else{
+                    	//判断是否强制选择
+                		var isParam = $(this).attr('data-param');
+                    	if(isParam) {
+                    		layer.msg('你还没有选择要打印的订单'); 
+                    		return false;
+                    	}
+                    }
+            		
+                    var query = $('#selectForm').serialize();
+                    query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+                    query = query.replace(/^&/g, '');
+                    if (url.indexOf('?') > 0) {
+                        url += '&' + query;
+                    } else {
+                        url += '?' + query;
+                    }
+                    
+                    if(param != undefined && param != ''){
+                        if (url.indexOf('?') > 0) {
+                            url += '&ids=' + param;
+                        } else {
+                            url += '?dis' + param;
+                        }
+                    }
+                    
+                    window.open(url, '_blank', 'height=750, width=600, top=0, left=0, toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, status=no')
+            	}
+            });
+
+            //导航高亮
+            highlight_subnav('{:url("seeds/seeduser")}');
+
+        });
+    </script>
+</block>

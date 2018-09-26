@@ -72,24 +72,46 @@ class SeedsController extends BackstageController{
                 
                 $seeds = db('seeds')->find($row['sid']);
                 $list[$key]['seeds_name'] = $seeds['name'];
+                $list[$key]['status'] = $row['status'] == 1 ? '已长成' : '成长中';
+                $list[$key]['update_time'] = date('Y-m-d H:i:s', $row['update_time']);
             }
-        }     
+        }
         
-        $builder = new BackstageListBuilder();
-        $builder->title('领取列表')->data($list);
+        $this->assign('list', $list);
+        $this->assign('_page',$totalCount);
+        return $this->fetch();
+    }
+    
+    /**
+    * 打印
+    * @date: 2018年9月26日 下午1:55:15
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function seedsuseredit(){
+        $id = $this->request->param('id', 0, 'intval');
         
-        $builder
-            ->keyId()
-            ->keyText('nickname', '用户名')
-            ->keyText('seeds_name', '种子名称')
-            ->keyText('exp', '当前经验值')
-            ->keyText('sum_exp', '所需经验值')
-            ->keyMap('status', '状态', array(0=>'成长中', 1=>'已长成'))
-            ->keyUpdateTime()
-            ->keyDoActionEdit('seeds/seedsUseredit?id=###', '打印');
+        $seedsUserModel = new SeedsUserModel();
+        $info = $seedsUserModel->getInfoData($id);
+        $info['nickname'] = get_nickname($info['uid']);
+        $info['seeds'] = db('seeds')->find($row['sid']);
         
-        $builder->pagination($totalCount);
-        return $builder->show();
+        //获取收货地址
+        $address = db('receiving_address')
+            ->alias('address')
+            ->field('address.name,address.mobile,address.pos_community,province.name as province_name,city.name as city_name,district.name as district_name,street.name as street_name')
+            ->join('__DISTRICT__ province', 'address.pos_province = province.id', 'LEFT')
+            ->join('__DISTRICT__ city', 'address.pos_city = city.id', 'LEFT')
+            ->join('__DISTRICT__ district', 'address.pos_district = district.id', 'LEFT')
+            ->join('__DISTRICT__ street', 'address.street_id = street.id', 'LEFT')
+            ->order('address.is_default desc')
+            ->where('address.uid', $info['uid'])
+            ->find();
+        
+        $this->assign('address', $address);
+        $this->assign('info', $info);
+        return $this->fetch();
     }
 
     /**

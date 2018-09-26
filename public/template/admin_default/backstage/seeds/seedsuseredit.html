@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript" src="__STATIC__/js/jquery-2.0.3.min.js"></script>
+</head>
+<body onload="load()">
+
+<div style="text-align:left;">
+	<div style="text-align:center;">欢迎光临益丰众购</div>
+	<div>==============================</div>
+	<div>订单号：{$info.id}</div>
+	<div>用户名：{$info.nickname}</div>
+	<div>------------------------------------</div>
+
+	<div>种植信息：{$info.seeds.name}</div>
+
+	<div>==============================
+	<div>联系人：{$address.name}</div></div>
+	<div>联系电话：{$address.mobile}</div>
+	<div>收货地址：{$address.province_name}{$address.city_name}{$address.district_name}{$address.street_name}{$address.pos_community}</div>
+</div>
+
+<script type="text/javascript">
+function load(){
+  window.print();
+  
+  console.log(1);
+}
+</script>
+</body>
+</html>
