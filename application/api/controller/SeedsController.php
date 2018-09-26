@@ -426,9 +426,9 @@ class SeedsController extends Controller{
             if($model->insert($data)){
                 $info = db("seeds_user")->where(['id'=>$suid])->find();
                 $exp = $info['exp']+$data['exp_value'];
-                if($exp<$info['sum_exp']){
+                if($exp < $info['sum_exp']){
                     db("seeds_user")->where(['id'=>$suid])->update(['exp'=>$exp,'update_time'=>time()]);
-                }else if($exp==$info['sum_exp']){
+                }else if($exp >= $info['sum_exp']){
                     db("seeds_user")->where(['id'=>$suid])->update(['exp'=>$exp,'update_time'=>time(),'status'=>1]);
                 }
                 return json(['code'=>0,'msg'=>'点赞成功']);
