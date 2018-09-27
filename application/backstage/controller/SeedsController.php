@@ -95,7 +95,7 @@ class SeedsController extends BackstageController{
         $seedsUserModel = new SeedsUserModel();
         $info = $seedsUserModel->getInfoData($id);
         $info['nickname'] = get_nickname($info['uid']);
-        $info['seeds'] = db('seeds')->find($row['sid']);
+        $info['seeds'] = db('seeds')->find($info['sid']);
         
         //获取收货地址
         $address = db('receiving_address')
