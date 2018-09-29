@@ -129,7 +129,9 @@ class OrderController extends Controller{
                         return -2;
                     }else{
                         if(!$productModel->where('id', $product->id)->setDec('stock', $productArr[$product->id])){
+                            $this->stock_product_name = $product->name;
                             $productModel->rollback();
+                            return -2;
                         }
                     }
                     
