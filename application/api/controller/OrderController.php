@@ -8,6 +8,7 @@ use app\common\model\OrderModel;
 use app\common\model\CouponModel;
 use think\Db;
 use app\common\model\FundsModel;
+use phpDocumentor\Reflection\Types\This;
 
 class OrderController extends Controller{
     private $stock_product_name = "";
@@ -132,6 +133,8 @@ class OrderController extends Controller{
                             $this->stock_product_name = $product->name;
                             $productModel->rollback();
                             return -2;
+                        }else{
+                            $this->writeGetDataLog("用户：".$uid."购买了".$product->name.$productArr[$product->id]."份");
                         }
                     }
                     
@@ -194,4 +197,24 @@ class OrderController extends Controller{
             return 0;//错误的用户ID
         }
     }
+    
+    /**
+     * 抓取数据日志写入
+     * @param string $content 待写入的内容
+     * @param string $root 下级目录
+     * @param string $name 文件名
+     */
+    public function writeGetDataLog($content,$root='',$name=''){
+        $filename = date('Ymd').$name.'.txt';
+        $fileContent = date('Y-m-d H:i:s').': '.$content."\r\n";
+    
+        //文件夹不存在先创建目录
+        $savePath = "./getDataLog";
+        if(!empty($root)) $savePath = "./getDataLog/".$root;
+        if(!file_exists($savePath)) mkdir($savePath,0777,true);
+    
+        $fp=fopen($savePath.'/'.$filename, "a+");
+        fwrite($fp,$fileContent);
+        fclose($fp);
+    } 
 }
