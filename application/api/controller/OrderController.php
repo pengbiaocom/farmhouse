@@ -9,6 +9,7 @@ use app\common\model\CouponModel;
 use think\Db;
 use app\common\model\FundsModel;
 use phpDocumentor\Reflection\Types\This;
+use SebastianBergmann\Exporter\Exporter;
 
 class OrderController extends Controller{
     private $stock_product_name = "";
@@ -25,13 +26,11 @@ class OrderController extends Controller{
         
         //分析订单数据
         $total_fee = $this->total_fee($uid, $product_info, $address_id, $coupon_num, $remark);
-        if($total_fee == -3) return json(['code'=>1, 'msg'=>'订单中不存在购买商品', 'data'=>[]]);
-        if($total_fee == -4) return json(['code'=>1, 'msg'=>'“'.$this->stock_product_name.'”已经下架，请删除该商品后再支付订单', 'data'=>[]]);
-        if($total_fee == -2) return json(['code'=>1, 'msg'=>'“'.$this->stock_product_name.'”库存不足', 'data'=>[]]);
-        if($total_fee == -1) return json(['code'=>1, 'msg'=>'下单失败', 'data'=>[]]);
-        if($total_fee == 0) return json(['code'=>1, 'msg'=>'参数异常', 'data'=>[]]);
-        
-        return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$total_fee]);
+        if(isset($total_fee['total_fee'])){
+            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$total_fee]);
+        }else{
+            return json(['code'=>1, 'msg'=>$total_fee, 'data'=>[]]);
+        }
     }
     
     /**
@@ -106,95 +105,81 @@ class OrderController extends Controller{
                 }
             }else{
                 return -3;
-            }
-            
+            }            
             
             $productModel = new ProductModel();
             $products = $productModel::all(function($query) use($productIds){
                 $query->where('id', 'in', $productIds);
                 $query->where('status', 1);
             });
-            
-            $productModel->startTrans();
-            foreach($products as $item=>$product){
-                if($product->status < 1){
-                    //不能购买的商品
-                    $productModel->rollback();
-                    $this->stock_product_name = $product->name;
-                    return -4;
-                }else{
-                    //判断限购、库存
-                    if($product->stock < $productArr[$product->id] || ($product->isXg == 1 && $productArr[$product->id] > 1)){
-                        $productModel->rollback();
-                        $this->stock_product_name = $product->name;
-                        return -2;
-                    }else{
-                        if(!$productModel->where('id', $product->id)->setDec('stock', $productArr[$product->id])){
-                            $this->stock_product_name = $product->name;
-                            $productModel->rollback();
-                            return -2;
-                        }else{
-                            $this->writeGetDataLog("用户：".$uid."购买了".$product->name.$productArr[$product->id]."份");
-                        }
-                    }
-                    
-                    $total_fee += $product->price*$productArr[$product->id];
-                    
-                    $productList[] = [
-                        'id'=>$product->id,
-                        'name'=>$product->name,
-                        'cover'=>get_cover(explode(',', $product['cover'])[0], 'path'),
-                        'price'=>$product->price,
-                        'num'=>$productArr[$product->id]
-                    ];                    
-                }
-            }
-            
-            $order_data['uid'] = $uid;
-            $order_data['product_info'] = json_encode($productList);
-            $order_data['coupon'] = $coupon_num;
-            $order_data['address_id'] = $address_id;
-            $order_data['remark'] = $remark;
-            $order_data['create_time'] = time();
-            $order_data['out_trade_no'] = 'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
 
-            //处理运费满减
-            if($total_fee < $freight) {
-                $total_fee += 2;//如果总价没到满免运费的情况下，统一收取2元的运费
-                $order_data['freight'] = 2;
-            }
+
+
+            Db::startTrans();
+            try {
+                foreach($products as $item=>$product){
+                    if($product->status < 1){
+                        exception('“'.$product->name.'”已经下架，请删除该商品后再支付订单');
+                    }else{
+                        //判断限购、库存
+                        if($product->stock < $productArr[$product->id] || ($product->isXg == 1 && $productArr[$product->id] > 1)){
+                            exception('“'.$product->name.'”库存不足');
+                        }else{
+                            if(!Db::table("cms_product")->where('id', $product->id)->setDec('stock', $productArr[$product->id])){
+                                exception('“'.$product->name.'”库存不足');
+                            }
+                        }
+                    
+                        $total_fee += $product->price*$productArr[$product->id];
+                        
+                        $productList[] = [
+                            'id'=>$product->id,
+                            'name'=>$product->name,
+                            'cover'=>get_cover(explode(',', $product['cover'])[0], 'path'),
+                            'price'=>$product->price,
+                            'num'=>$productArr[$product->id]
+                        ]; 
+                    }
+                }
             
-            //处理优惠券
-            $couponModel = new CouponModel();
-            $couponModel->startTrans();
-            if($coupon_num > 0) {
-                if(!$couponModel->where('uid', $uid)->setDec('coupon_num', $coupon_num)){
-                    $couponModel->rollBack();
-                    $productModel->rollback();
+                $order_data['uid'] = $uid;
+                $order_data['product_info'] = json_encode($productList);
+                $order_data['coupon'] = $coupon_num;
+                $order_data['address_id'] = $address_id;
+                $order_data['remark'] = $remark;
+                $order_data['create_time'] = time();
+                $order_data['out_trade_no'] = 'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+    
+                //处理运费满减
+                if($total_fee < $freight) {
+                    $total_fee += 2;//如果总价没到满免运费的情况下，统一收取2元的运费
+                    $order_data['freight'] = 2;
                 }
                 
-                $total_fee -= $coupon_num*$coupon_price;
-            }
-            
-            $order_data['total_fee'] = $total_fee;
-            
-            $orderModel = new OrderModel();
-            $orderModel->data($order_data);
-            
-            $orderModel->startTrans();
-            if($order_id = $orderModel->save()){
-                $orderModel->commit();
-                $couponModel->commit();
-                $productModel->commit();
-                return ['total_fee'=>$total_fee, 'out_trade_no'=>$order_data['out_trade_no']];
-            }else{
-                $orderModel->rollback();
-                $couponModel->rollBack();
-                $productModel->rollback();
-                return -1;
+                //处理优惠券
+                if($coupon_num > 0) {
+                    if(!Db::table("cms_coupon")->where('uid', $uid)->setDec('coupon_num', $coupon_num)){
+                        exception('下单失败');
+                    }
+                    
+                    $total_fee -= $coupon_num*$coupon_price;
+                }
+                
+                $order_data['total_fee'] = $total_fee;
+
+                if(Db::table("cms_order")->insert($order_data)){
+                    Db::commit();
+                    return ['total_fee'=>$total_fee, 'out_trade_no'=>$order_data['out_trade_no']];
+                }else{
+                    exception('下单失败');
+                }
+            } catch (\Exception $e) {
+                Db::rollback();
+                $this->writeGetDataLog($e->getMessage());
+                return $e->getMessage();
             }
         }else{
-            return 0;//错误的用户ID
+            return '参数异常';//错误的用户ID
         }
     }
     
