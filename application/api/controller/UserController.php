@@ -64,6 +64,31 @@ class UserController extends Controller{
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
     }
+    
+    /**
+    * 邀请处理(老用户邀请老用户)
+    * @date: 2018年11月2日 上午10:22:21
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function invitation(Request $request){
+        $uid = $request->param('uid', 0, 'intval');
+        $invitation = $request->param('invitation', 0, 'intval');
+        if($invitation == 0) $invitation = 158;
+
+        $ucenterMemberModel = new UcenterMemberModel();
+        $user = $ucenterMemberModel::get(function($query) use($uid){
+            $query->where('id', $uid);
+        });
+        
+        if($user->id > 0 && $invitation > 0) {
+            $ucenterMemberModel::update(array('id'=>$user->id, 'invit'=>$invitation));
+            return json(['code'=>0, 'msg'=>'调用成功', 'data'=>[]]);
+        } else {
+            return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
+        }
+    }
 
     /**
      * 查询订单列表
