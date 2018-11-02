@@ -82,7 +82,7 @@ class UserController extends Controller{
             $query->where('id', $uid);
         });
         
-        if($user->id > 0 && $invitation > 0) {
+        if($user->id > 0 && $user->invit > 0 && $invitation > 0) {
             $ucenterMemberModel::update(array('id'=>$user->id, 'invit'=>$invitation));
             return json(['code'=>0, 'msg'=>'调用成功', 'data'=>[]]);
         } else {
