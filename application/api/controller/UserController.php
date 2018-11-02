@@ -13,6 +13,7 @@ class UserController extends Controller{
     private $sessionKey = '';
     
     public function login(Request $request){
+        $invitation = $request->param('invitation', 158, 'intval');
         $code = $request->param('code', '', 'op_t');
         $encryptedData = $request->param('encryptedData', '', 'op_t');
         $iv = $request->param('iv', '', 'op_t');
@@ -38,7 +39,7 @@ class UserController extends Controller{
             });
             
             if($user->id > 0){
-                $ucenterMemberModel::update(array('id'=>$user->id, 'openid'=>$res['openid'], 'session_key'=>$res['session_key']));
+                $ucenterMemberModel::update(array('id'=>$user->id, 'openid'=>$res['openid'], 'session_key'=>$res['session_key'], 'invit'=>$invitation));
                 return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>$user->id]]);
             }else{
                 $this->sessionKey = $res['session_key'];
@@ -47,7 +48,7 @@ class UserController extends Controller{
                     //整理数据，并实现注册
                     $ucenterMemberModel = new UcenterMemberModel();
                     $data = json_decode($data, true);
-                    $uid = $ucenterMemberModel->register($res['openid'], $res['session_key'], $data['openid'], $data['nickName'], '123456');
+                    $uid = $ucenterMemberModel->register($res['openid'], $res['session_key'], $data['openid'], $data['nickName'], '123456', $invitation);
                 
                     if($uid > 0){
                         return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>$uid]]);
@@ -74,8 +75,7 @@ class UserController extends Controller{
     */
     public function invitation(Request $request){
         $uid = $request->param('uid', 0, 'intval');
-        $invitation = $request->param('invitation', 0, 'intval');
-        if($invitation == 0) $invitation = 158;
+        $invitation = $request->param('invitation', 158, 'intval');
 
         $ucenterMemberModel = new UcenterMemberModel();
         $user = $ucenterMemberModel::get(function($query) use($uid){

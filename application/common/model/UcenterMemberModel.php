@@ -107,13 +107,14 @@ class UcenterMemberModel extends BaseModel
      * @param  string $mobile 用户手机号码
      * @return integer          注册成功-用户信息，注册失败-错误编号
      */
-    public function register($openid, $session_key, $username, $nickname, $password, $email='', $mobile='', $type=1)
+    public function register($openid, $session_key, $username, $nickname, $password, $invit, $email='', $mobile='', $type=1)
     {
         $data = [
             'openid' => $openid,
             'session_key' => $session_key,
             'username' => $username,
             'password' => $password,
+            'invit' => $invit,
             'email' => $email,
             'mobile' => $mobile,
             'type' => $type,
