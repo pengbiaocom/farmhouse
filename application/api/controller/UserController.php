@@ -6,7 +6,6 @@ use think\Request;
 use app\common\model\CurlModel;
 use app\common\model\UcenterMemberModel;
 use app\common\model\CouponModel;
-use app\common\model\OrderModel;
 
 class UserController extends Controller{
     private $appid = 'wxa6737565830cae42';
