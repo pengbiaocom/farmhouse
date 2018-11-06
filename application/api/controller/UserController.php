@@ -6,6 +6,7 @@ use think\Request;
 use app\common\model\CurlModel;
 use app\common\model\UcenterMemberModel;
 use app\common\model\CouponModel;
+use app\common\model\OrderModel;
 
 class UserController extends Controller{
     private $appid = 'wxa6737565830cae42';
@@ -259,5 +260,43 @@ class UserController extends Controller{
         $data = $result;
         
         return 0;
-    }    
+    }
+    
+    /**
+    * 返利总览
+    * @date: 2018年11月5日 下午3:49:17
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function initRebate(Request $request)
+    {
+       $uid = $request->param('uid');
+    }
+    
+    /**
+    * 用户购买返利
+    * @date: 2018年11月5日 下午3:36:47
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function buyRebate(Request $request)
+    {
+       $uid = $request->param('uid');
+        
+    }
+    
+    /**
+    * 分享邀请返利
+    * @date: 2018年11月5日 下午3:37:43
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function shareRebate(Request $request)
+    {
+       $uid = $request->param('uid');
+        
+    }
 }

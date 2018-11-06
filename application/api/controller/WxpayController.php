@@ -329,6 +329,11 @@ class WxpayController extends Controller{
                     db("product")->where(['id'=>$row['id']])->setInc("sales",$row['num']);
                 }
             }
+            
+            //:TODO  加入连续购买逻辑
+            $this->rebate($openid);
+            
+            
             $orderModel->where(['out_trade_no'=>$order_sn])->update(['status'=>1, 'is_notify'=>1]);
             
             $data['out_trade_no'] = $order_sn;
@@ -337,8 +342,70 @@ class WxpayController extends Controller{
             $data['transaction_id'] = $transaction_id;
             $data['create_time']   = time();
             
-            db("pay_log")->insert($data);            
+            db("pay_log")->insert($data);
         }
+    }
+    
+    /**
+    * 处理购物返利比例逻辑
+    * @date: 2018年11月6日 下午1:51:42
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    private function rebate($openid){
+       $orderModel = new OrderModel();
+        $buyRebate = $orderModel::get(function($query) use($openid){
+            $query->field("order.uid, order.create_time, user.continuity_buy, user.is_tiyan");
+            $query->alias('order');
+            $query->join('__UCENTER_MEMBER__ user', 'order.uid = user.id', 'left');
+            $query->where('order.status', '>', 0);
+            $query->where('user.openid', $openid);
+            $query->order('order.create_time desc');
+        });
+        
+        /* 读取数据库中的配置 */
+        $config = cache('DB_CONFIG_DATA');
+        if (!$config) {
+            $config = controller("common/ConfigApi")->lists();
+            cache('DB_CONFIG_DATA', $config);
+        }
+        config($config); //添加配置
+    
+        $initScale = config('BUY_INIT_SCALE');//基础
+        $incScale = config('BUY_INC_SCALE');//增幅
+        $maxScale = config('BUY_MAX_SCALE');//最大
+         
+        if($buyRebate['uid'] > 0 && $buyRebate['create_time'] > 0){
+            $lastDate = intval(date('Ymd', $buyRebate['create_time']));
+            $toDay = intval(date('Ymd'));
+             
+            //判断当前是否为开启返利的
+            if($buyRebate['continuity_buy'] > 0){
+                //判断返利是否断裂
+                if($lastDate+2 < $toDay){
+                    //超过两天的再次购买，返利链断裂，从头计算
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>0));
+                }else{
+                    //未超过两天的再次购买，连续购买天数加一，按照增幅计算最终返利比例
+                    $setScale = $buyRebate['continuity_buy']+$incScale > $maxScale ? $maxScale : $buyRebate['continuity_buy']+$incScale;
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$setScale));
+                }
+            }else{
+                //开启返利
+                if($buyRebate['is_tiyan'] == 0){
+                    //连续购买没有，体验10%返利没参与过的用户【老用户第一次购买】
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>10, 'is_tiyan'=>1));
+                }else{
+                    //连续购买没有，且已经参与过体验的用户
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$initScale));
+                }
+            }
+        }else{
+            //没有找到该用户的历史订单，默认为新进入的用户，给与10%返利
+            //要更新体验权限，不然会出现两次10%开启
+            db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>10, 'is_tiyan'=>1));
+        }        
     }
 
 
