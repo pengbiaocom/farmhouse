@@ -115,6 +115,7 @@ class UcenterMemberModel extends BaseModel
             'username' => $username,
             'password' => $password,
             'invit' => $invit,
+            'invit_time' => strtotime(date('Ymd')),
             'email' => $email,
             'mobile' => $mobile,
             'type' => $type,

@@ -388,7 +388,7 @@ class WxpayController extends Controller{
                     db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>0));
                 }else{
                     //未超过两天的再次购买，连续购买天数加一，按照增幅计算最终返利比例
-                    $setScale = $buyRebate['continuity_buy']+$incScale > $maxScale ? $maxScale : $buyRebate['continuity_buy']+$incScale;
+                    $setScale = min($buyRebate['continuity_buy']+$incScale, $maxScale);
                     db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$setScale));
                 }
             }else{

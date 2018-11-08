@@ -6,6 +6,8 @@ use think\Request;
 use app\common\model\CurlModel;
 use app\common\model\UcenterMemberModel;
 use app\common\model\CouponModel;
+use think\Db;
+use app\common\model\OrderModel;
 
 class UserController extends Controller{
     private $appid = 'wxa6737565830cae42';
@@ -39,7 +41,7 @@ class UserController extends Controller{
             });
             
             if($user->id > 0){
-                $ucenterMemberModel::update(array('id'=>$user->id, 'openid'=>$res['openid'], 'session_key'=>$res['session_key'], 'invit'=>$invitation));
+                $ucenterMemberModel::update(array('id'=>$user->id, 'openid'=>$res['openid'], 'session_key'=>$res['session_key'], 'invit'=>$invitation, 'invit_time'=>strtotime(date('Ymd'))));
                 return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>$user->id]]);
             }else{
                 $this->sessionKey = $res['session_key'];
@@ -83,7 +85,7 @@ class UserController extends Controller{
         });
         
         if($user->id > 0 && $user->invit > 0 && $invitation > 0) {
-            $ucenterMemberModel::update(array('id'=>$user->id, 'invit'=>$invitation));
+            $ucenterMemberModel::update(array('id'=>$user->id, 'invit'=>$invitation, 'invit_time'=>strtotime(date('Ymd'))));
             return json(['code'=>0, 'msg'=>'调用成功', 'data'=>[]]);
         } else {
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
@@ -271,6 +273,73 @@ class UserController extends Controller{
     public function initRebate(Request $request)
     {
        $uid = $request->param('uid');
+       
+       /* 读取数据库中的配置 */
+       $config = cache('DB_CONFIG_DATA');
+       if (!$config) {
+           $config = controller("common/ConfigApi")->lists();
+           cache('DB_CONFIG_DATA', $config);
+       }
+       config($config); //添加配置
+        
+       $buyInitScale = config('BUY_INIT_SCALE');//基础
+       $buyIncScale = config('BUY_INC_SCALE');//增幅
+       $buyMaxScale = config('BUY_MAX_SCALE');//最大
+       $invitInitScale = config('INVIT_INIT_SCALE');//基础
+       $invitIncScale = config('INVIT_INC_SCALE');//增幅
+       $invitMaxScale = config('INVIT_MAX_SCALE');//最大
+       
+       /* 购买统计 */
+       $ucenterMemberModel = new UcenterMemberModel();
+       $user = $ucenterMemberModel::get(function($query) use($uid){
+           $query->field('user.continuity_buy, order.total_fee');
+           $query->alias('user');
+           $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
+           $query->where('user.id', $uid);
+           $query->where('order.status', '>', 0);
+           $query->order('order.create_time desc');
+       }); 
+       
+       $rebates = [];
+       //没有购买过或者连续购买断裂
+       if($user['continuity_buy'] == 0){
+           $rebates['buy_rebate'] = 0;
+           $rebates['buy_money'] = '0.00';
+       } else {
+           $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
+           $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
+           $rebates['buy_money'] = round($user['total_fee']*$rebates['yq_rebate']/100, 2);
+       }
+
+       /* 邀请数据统计 */
+       $boef_time = strtotime(date('Ymd'));
+       $invits = $ucenterMemberModel::all(function($query) use($uid,$boef_time){
+           $query->field('user.invit_time, order.total_fee, order.create_time');
+           $query->alias('user');
+           $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
+           $query->where('user.invit', $uid);
+           $query->where('order.status', '>', 0);
+           $query->where('order.create_time', 'between', [$boef_time,$boef_time+86400]);
+       });
+       
+       $today_invit_count = 0;
+       $today_invit_consumption = 0;
+       foreach ($invits as $invit){
+           if($invit['invit_time'] == $boef_time) $today_invit_count += 1;
+           
+           if(strtotime(date('Ymd',$invit['create_time'])) == $boef_time) $today_invit_consumption += $invit['total_fee'];
+       }
+       
+       if($today_invit_count == 0){
+           //当天没有要求下线成员，默认5%返利
+           $rebates['invit_rebate'] = 5;
+           $rebates['invit_money'] = round($today_invit_consumption*5/100, 2);
+       }else{
+           $rebates['invit_rebate'] = min($invitInitScale+($today_invit_count-1)*$invitIncScale, $invitMaxScale);
+           $rebates['invit_money'] = round($today_invit_consumption*$rebates['invit_rebate']/100, 2);
+       }
+       
+       return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$rebates]);
     }
     
     /**
@@ -283,7 +352,42 @@ class UserController extends Controller{
     public function buyRebate(Request $request)
     {
        $uid = $request->param('uid');
-        
+       
+       /* 读取数据库中的配置 */
+       $config = cache('DB_CONFIG_DATA');
+       if (!$config) {
+           $config = controller("common/ConfigApi")->lists();
+           cache('DB_CONFIG_DATA', $config);
+       }
+       config($config); //添加配置
+       
+       $buyInitScale = config('BUY_INIT_SCALE');//基础
+       $buyIncScale = config('BUY_INC_SCALE');//增幅
+       $buyMaxScale = config('BUY_MAX_SCALE');//最大
+       
+       /* 购买统计 */
+       $ucenterMemberModel = new UcenterMemberModel();
+       $user = $ucenterMemberModel::get(function($query) use($uid){
+           $query->field('user.continuity_buy, order.total_fee');
+           $query->alias('user');
+           $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
+           $query->where('user.id', $uid);
+           $query->where('order.status', '>', 0);
+           $query->order('order.create_time desc');
+       }); 
+       
+       $rebates = [];
+       //没有购买过或者连续购买断裂
+       if($user['continuity_buy'] == 0){
+           $rebates['buy_rebate'] = 0;
+           $rebates['buy_money'] = '0.00';
+       } else {
+           $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
+           $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
+           $rebates['buy_money'] = round($user['total_fee']*$rebates['yq_rebate']/100, 2);
+       }
+       
+       return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$rebates]);
     }
     
     /**
@@ -296,6 +400,60 @@ class UserController extends Controller{
     public function shareRebate(Request $request)
     {
        $uid = $request->param('uid');
-        
+       
+       /* 读取数据库中的配置 */
+       $config = cache('DB_CONFIG_DATA');
+       if (!$config) {
+           $config = controller("common/ConfigApi")->lists();
+           cache('DB_CONFIG_DATA', $config);
+       }
+       config($config); //添加配置
+
+       $invitInitScale = config('INVIT_INIT_SCALE');//基础
+       $invitIncScale = config('INVIT_INC_SCALE');//增幅
+       $invitMaxScale = config('INVIT_MAX_SCALE');//最大
+
+       /* 邀请数据统计 */
+       $boef_time = strtotime(date('Ymd'));
+       $ucenterMemberModel = new UcenterMemberModel();
+       $orderModel = new OrderModel();
+       
+       $users = $ucenterMemberModel::all(function($query) use($uid){
+           $query->alias('user');
+           $query->field('user.id, user.invit_time');
+           $query->where('user.invit', $uid);
+       });
+       
+       $today_invit_count = 0;
+       $rebates['list'] = [];
+       foreach ($users as $user){
+           $invit = $orderModel::get(function($query) use($user, $boef_time){
+               $query->alias('order');
+               $query->field('sum(order.total_fee) as total_fee, order.create_time');
+               $query->where('order.uid', $user['id']);
+               $query->where('order.create_time', '>', $boef_time);
+               $query->group('order.uid');
+           });
+           
+           if($user['invit_time'] == $boef_time && !empty($invit)) $today_invit_count += 1;
+           
+           if(!empty($invit) && strtotime(date('Ymd',$invit['create_time'])) == $boef_time) {
+               $rebates['list'][] = ['username'=>get_nickname($user['id']), 'invit_time'=>$user['invit_time'], 'total_fee'=>$invit['total_fee']];
+           } else {
+               $rebates['list'][] = ['username'=>get_nickname($user['id']), 'invit_time'=>$user['invit_time'], 'total_fee'=>'0.00'];
+           }
+       }
+       
+       $last_names = array_column($rebates['list'],'total_fee');
+       array_multisort($last_names,SORT_DESC,$rebates['list']);
+       
+       if($today_invit_count == 0){
+           //当天没有要求下线成员，默认5%返利
+           $rebates['invit_rebate'] = 5;
+       }else{
+           $rebates['invit_rebate'] = min($invitInitScale+($today_invit_count-1)*$invitIncScale, $invitMaxScale);
+       }
+       
+       return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$rebates]);
     }
 }
