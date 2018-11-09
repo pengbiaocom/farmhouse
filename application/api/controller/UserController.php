@@ -289,30 +289,41 @@ class UserController extends Controller{
        $invitIncScale = config('INVIT_INC_SCALE');//增幅
        $invitMaxScale = config('INVIT_MAX_SCALE');//最大
        
+       $boef_time = strtotime(date('Ymd'));
+       
        /* 购买统计 */
        $ucenterMemberModel = new UcenterMemberModel();
-       $user = $ucenterMemberModel::get(function($query) use($uid){
-           $query->field('user.continuity_buy, order.total_fee');
+       $users = $ucenterMemberModel::all(function($query) use($uid,$boef_time){
+           $query->field('user.continuity_buy, sum(order.total_fee) as total_fee, FROM_UNIXTIME(order.create_time,"%Y%m%d") as create_date');
            $query->alias('user');
            $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
            $query->where('user.id', $uid);
            $query->where('order.status', '>', 0);
-           $query->order('order.create_time desc');
-       }); 
+           $query->where('order.create_time', 'between', [$boef_time-172800,$boef_time]);
+           $query->order('create_date DESC');
+           $query->group('FROM_UNIXTIME(order.create_time,"%Y%m%d")');
+       });
        
        $rebates = [];
+       $rebates['buy_rebate'] = 0;
+       $rebates['buy_money'] = '0.00';
+       $rebates['tal_profit'] = $ucenterMemberModel->where('id', $uid)->value('tal_profit');
+       
        //没有购买过或者连续购买断裂
-       if($user['continuity_buy'] == 0){
-           $rebates['buy_rebate'] = 0;
-           $rebates['buy_money'] = '0.00';
-       } else {
-           $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
-           $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
-           $rebates['buy_money'] = round($user['total_fee']*$rebates['yq_rebate']/100, 2);
+       foreach ($users as $user){
+           if($user['continuity_buy'] == 0){
+               $rebates['buy_rebate'] = 0;
+               $rebates['buy_money'] = '0.00';
+           } else {
+               $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
+               $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
+               $rebates['buy_money'] = round($user['total_fee']*$rebates['buy_rebate']/100, 2);
+           }
+
+           if($user['total_fee'] > 0) break;
        }
 
        /* 邀请数据统计 */
-       $boef_time = strtotime(date('Ymd'));
        $invits = $ucenterMemberModel::all(function($query) use($uid,$boef_time){
            $query->field('user.invit_time, order.total_fee, order.create_time');
            $query->alias('user');
@@ -366,25 +377,35 @@ class UserController extends Controller{
        $buyMaxScale = config('BUY_MAX_SCALE');//最大
        
        /* 购买统计 */
+       $boef_time = strtotime(date('Ymd'));
        $ucenterMemberModel = new UcenterMemberModel();
-       $user = $ucenterMemberModel::get(function($query) use($uid){
-           $query->field('user.continuity_buy, order.total_fee');
+       $users = $ucenterMemberModel::all(function($query) use($uid,$boef_time){
+           $query->field('user.continuity_buy, sum(order.total_fee) as total_fee, FROM_UNIXTIME(order.create_time,"%Y%m%d") as create_date');
            $query->alias('user');
            $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
            $query->where('user.id', $uid);
            $query->where('order.status', '>', 0);
-           $query->order('order.create_time desc');
-       }); 
+           $query->where('order.create_time', 'between', [$boef_time-172800,$boef_time]);
+           $query->order('create_date DESC');
+           $query->group('FROM_UNIXTIME(order.create_time,"%Y%m%d")');
+       });
        
        $rebates = [];
+       $rebates['buy_rebate'] = 0;
+       $rebates['buy_money'] = '0.00';
+       
        //没有购买过或者连续购买断裂
-       if($user['continuity_buy'] == 0){
-           $rebates['buy_rebate'] = 0;
-           $rebates['buy_money'] = '0.00';
-       } else {
-           $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
-           $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
-           $rebates['buy_money'] = round($user['total_fee']*$rebates['yq_rebate']/100, 2);
+       foreach ($users as $user){
+           if($user['continuity_buy'] == 0){
+               $rebates['buy_rebate'] = 0;
+               $rebates['buy_money'] = '0.00';
+           } else {
+               $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
+               $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
+               $rebates['buy_money'] = round($user['total_fee']*$rebates['buy_rebate']/100, 2);
+           }
+
+           if($user['total_fee'] > 0) break;
        }
        
        return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$rebates]);
