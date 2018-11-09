@@ -9,4 +9,8 @@ class IndexController extends HomeBaseController{
         
         return $this->fetch('index');
     }
+    
+    public function role(){
+        return $this->fetch();
+    }
 }
