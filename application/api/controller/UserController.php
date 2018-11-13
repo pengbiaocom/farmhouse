@@ -5,14 +5,16 @@ use think\Controller;
 use think\Request;
 use app\common\model\CurlModel;
 use app\common\model\UcenterMemberModel;
-use app\common\model\CouponModel;
 use think\Db;
 use app\common\model\OrderModel;
+use app\common\model\ProductModel;
 
 class UserController extends Controller{
     private $appid = 'wxa6737565830cae42';
     private $secret = '2db64a778849a93bf4481a5815427a54';
     private $sessionKey = '';
+    
+    private $config = [];
     
     public function login(Request $request){
         $invitation = $request->param('invitation', 158, 'intval');
@@ -120,14 +122,14 @@ class UserController extends Controller{
 
         }
 
-        $order_list = db("order")->where($map)->order("status asc,create_time desc")->page($page, $limit)->select();
+        $order_list = db("order")->where($map)->order("create_time desc")->page($page, $limit)->select();
 
         if($order_list){
             $status_text = ['待付款','待发货','待收货','待评价','已完成'];
             foreach($order_list as $key=>$row){
                 $order_list[$key]['create_time'] = date("Y-m-d H:i:s",$row['create_time']);
                 $order_list[$key]['product_info'] = json_decode($row['product_info'],true);
-                $order_list[$key]['statusStr'] = $status_text[$row['status']];
+                $order_list[$key]['statusStr'] = $row['status'] == -1 ? '已取消' : $status_text[$row['status']];
             }
             return json(['code'=>0,'msg'=>'success','data'=>$order_list,'paginate'=>['page'=>sizeof($order_list) < $limit ? $page : $page+1, 'limit'=>$limit]]);
         }else{
@@ -204,24 +206,214 @@ class UserController extends Controller{
 
        if(empty($order_id))  return json(['code'=>1,'msg'=>'缺少必要参数']);
 
-        $detail = db("order")->where(['id'=>$order_id])->find();
+       $detail = db("order")->where(['id'=>$order_id])->find();
        if($detail['status']==0){
-           if(db("order")->where(['id'=>$order_id])->delete()){
-               $couponModel = new CouponModel();
-               if($detail['coupon']>0){
-                   $couponModel->where('uid', $detail['uid'])->setInc('coupon_num', $detail['coupon']);
+           if(db("order")->where(['id'=>$order_id])->update(['status'=>-1])){
+               $goods = json_decode($detail['product_info'], true);
+               foreach ($goods as $good){
+                   $productModel = new ProductModel();
+                   $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
                }
-
-               return json(['code'=>0,'msg'=>'删除成功！']);
+               return json(['code'=>0,'msg'=>'取消成功！']);
            }else{
-               return json(['code'=>1,'msg'=>'删除失败！']);
+               return json(['code'=>1,'msg'=>'取消失败！']);
+           }
+       }elseif ($detail['status'] == 1){
+           $boef_time = strtotime(date('Ymd'));
+           if($del['create_time'] > $boef_time && $del['create_time'] < $boef_time+41400){
+               $del = db("order")->where(['id'=>$order_id])->update(['status'=>-1]);
+               if($del){
+                   //处理退款接口
+                   $config = [
+                       'appid'=>'wxa6737565830cae42',
+                       'pay_mchid'=>'1509902681',
+                       'pay_apikey'=>'6ba57bc32cfd5044f8710f09ff86c664'
+                   ];
+                   $this->config = $config;
+                    
+                   if($this->refund($detail)){
+                       $goods = json_decode($detail['product_info'], true);
+                       foreach ($goods as $good){
+                           $productModel = new ProductModel();
+                           $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
+                       }
+                        
+                       return json(['code'=>0,'msg'=>'取消成功！']);
+                   } else {
+                       db("order")->where(['id'=>$order_id])->update(['status'=>1]);
+                       return json(['code'=>1,'msg'=>'取消失败！']);
+                   }
+               }               
+           } else {
+               return json(['code'=>1,'msg'=>'只有当天支付并19:30之前可以取消']);
            }
        }else{
-           return json(['code'=>1,'msg'=>'没有支付的订单才可以删除']);
+           return json(['code'=>1,'msg'=>'待支付/待发货的订单才可以取消']);
        }
 
     }
+    
+    /**
+     * 退款申请
+     * @date: 2018年7月27日 上午9:00:18
+     * @author: onep2p <324834500@qq.com>
+     * @param: variable
+     * @return:
+     */
+    private function refund($order){
+        $config = $this->config;
+    
+        //退款申请参数构造
+        if($order){
+            $refunddorder = array(
+                'appid'			=> $config['appid'],
+                'mch_id'		=> $config['pay_mchid'],
+                'nonce_str'		=> self::getNonceStr(),
+                'out_trade_no'	=> $order['out_trade_no'],
+                'out_refund_no' => 'tk_' . md5($order['out_trade_no']),//退款唯一单号，系统生成
+                'total_fee'		=> $order['total_fee'] * 100,
+                'refund_fee'    => $order['total_fee'] * 100,//退款金额,通过计算得到要退还的金额
+            );
+    
+            $refunddorder['sign'] = self::makeSign($refunddorder);
+    
+            //请求数据
+            $xmldata = self::array2xml($refunddorder);
+            $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
+            $res = self::postXmlCurl($xmldata, $url, true);
+            $resData = $this->xml2array($res);
+            
+            if($resData['return_code'] === 'SUCCESS' && $resData['return_msg'] === 'OK' && $resData['result_code'] === 'SUCCESS'){
+                return true;
+            }
+    
+            return false;
+        }
+    }
 
+    /**
+     *
+     * 产生随机字符串，不长于32位
+     * @param int $length
+     * @return 产生的随机字符串
+     */
+    protected function getNonceStr($length = 32) {
+        $chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        $str ="";
+        for ( $i = 0; $i < $length; $i++ )  {
+            $str .= substr($chars, mt_rand(0, strlen($chars)-1), 1);
+        }
+        return $str;
+    }
+    
+    /**
+     * 生成签名
+     * @return 签名
+     */
+    protected function makeSign($data){
+        //获取微信支付秘钥
+        $key = $this->config['pay_apikey'];
+        // 去空
+        $data=array_filter($data);
+        //签名步骤一：按字典序排序参数
+        ksort($data);
+        $string_a=http_build_query($data);
+        $string_a=urldecode($string_a);
+        //签名步骤二：在string后加入KEY
+        //$config=$this->config;
+        $string_sign_temp=$string_a."&key=".$key;
+        //签名步骤三：MD5加密
+        $sign = md5($string_sign_temp);
+        // 签名步骤四：所有字符转为大写
+        $result=strtoupper($sign);
+        return $result;
+    }
+
+    /**
+     * 将一个数组转换为 XML 结构的字符串
+     * @param array $arr 要转换的数组
+     * @param int $level 节点层级, 1 为 Root.
+     * @return string XML 结构的字符串
+     */
+    protected function array2xml($arr, $level = 1) {
+        $s = $level == 1 ? "<xml>" : '';
+        foreach($arr as $tagname => $value) {
+            if (is_numeric($tagname)) {
+                $tagname = $value['TagName'];
+                unset($value['TagName']);
+            }
+            if(!is_array($value)) {
+                $s .= "<{$tagname}>".(!is_numeric($value) ? '<![CDATA[' : '').$value.(!is_numeric($value) ? ']]>' : '')."</{$tagname}>";
+            } else {
+                $s .= "<{$tagname}>" . $this->array2xml($value, $level + 1)."</{$tagname}>";
+            }
+        }
+        $s = preg_replace("/([\x01-\x08\x0b-\x0c\x0e-\x1f])+/", ' ', $s);
+        return $level == 1 ? $s."</xml>" : $s;
+    }
+    
+    /**
+     * 将xml转为array
+     * @param  string 	$xml xml字符串
+     * @return array    转换得到的数组
+     */
+    protected function xml2array($xml){
+        //禁止引用外部xml实体
+        libxml_disable_entity_loader(true);
+        $result= json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+        return $result;
+    }    
+
+	/**
+	 * 以post方式提交xml到对应的接口url
+	 * 
+	 * @param string $xml  需要post的xml数据
+	 * @param string $url  url
+	 * @param bool $useCert 是否需要证书，默认不需要
+	 * @param int $second   url执行超时时间，默认30s
+	 * @throws WxPayException
+	 */
+	private static function postXmlCurl($xml, $url, $useCert = false, $second = 30)
+	{		
+		$ch = curl_init();
+		//设置超时
+		curl_setopt($ch, CURLOPT_TIMEOUT, $second);
+		curl_setopt($ch,CURLOPT_URL, $url);
+		curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,TRUE);
+		curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,2);//严格校验
+		
+		//设置header
+		curl_setopt($ch, CURLOPT_HEADER, FALSE);
+		
+		//要求结果为字符串且输出到屏幕上
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+	
+		if($useCert == true){
+			//设置证书
+			//使用证书：cert 与 key 分别属于两个.pem文件
+			curl_setopt($ch,CURLOPT_SSLCERTTYPE,'PEM');
+			curl_setopt($ch,CURLOPT_SSLCERT, './cert/apiclient_cert.pem');
+			curl_setopt($ch,CURLOPT_SSLKEYTYPE,'PEM');
+			curl_setopt($ch,CURLOPT_SSLKEY, './cert/apiclient_key.pem');
+		}
+		
+		//post提交方式
+		curl_setopt($ch, CURLOPT_POST, TRUE);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+		
+		//运行curl
+		$data = curl_exec($ch);
+		
+		//返回结果
+		if($data){
+			curl_close($ch);
+			return $data;
+		} else { 
+			$error = curl_errno($ch);
+			curl_close($ch);
+			throw new WxPayException("curl出错，错误码:$error");
+		}
+	}
     
     /**
      * 检验数据的真实性，并且获取解密后的明文.
@@ -304,7 +496,14 @@ class UserController extends Controller{
            $query->group('FROM_UNIXTIME(order.create_time,"%Y%m%d")');
        });
        
+       $orderModel = new OrderModel();
+       $map['status'] = array('GT', 0);
+       $map['uid'] = $uid;
+       $map['create_time'] = array('GT', $boef_time);
+       $today_buy = $orderModel->where($map)->count();
+       
        $rebates = [];
+       $rebates['is_today_buy'] = $today_buy;
        $rebates['buy_rebate'] = 0;
        $rebates['buy_money'] = '0.00';
        $rebates['tal_profit'] = $ucenterMemberModel->where('id', $uid)->value('tal_profit');
@@ -317,7 +516,7 @@ class UserController extends Controller{
            } else {
                $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
                $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
-               $rebates['buy_money'] = round($user['total_fee']*$rebates['buy_rebate']/100, 2);
+               $rebates['buy_money'] = sprintf("%.2f", $user['total_fee']*$rebates['buy_rebate']/100);
            }
 
            if($user['total_fee'] > 0) break;
@@ -344,10 +543,10 @@ class UserController extends Controller{
        if($today_invit_count == 0){
            //当天没有要求下线成员，默认5%返利
            $rebates['invit_rebate'] = 5;
-           $rebates['invit_money'] = round($today_invit_consumption*5/100, 2);
+           $rebates['invit_money'] = sprintf("%.2f", $today_invit_consumption*5/100);
        }else{
            $rebates['invit_rebate'] = min($invitInitScale+($today_invit_count-1)*$invitIncScale, $invitMaxScale);
-           $rebates['invit_money'] = round($today_invit_consumption*$rebates['invit_rebate']/100, 2);
+           $rebates['invit_money'] = sprintf("%.2f", $today_invit_consumption*$rebates['invit_rebate']/100);
        }
        
        return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$rebates]);
@@ -380,7 +579,7 @@ class UserController extends Controller{
        $boef_time = strtotime(date('Ymd'));
        $ucenterMemberModel = new UcenterMemberModel();
        $users = $ucenterMemberModel::all(function($query) use($uid,$boef_time){
-           $query->field('user.continuity_buy, sum(order.total_fee) as total_fee, FROM_UNIXTIME(order.create_time,"%Y%m%d") as create_date');
+           $query->field('user.continuity_buy, sum(order.total_fee) as total_fee, FROM_UNIXTIME(order.create_time,"%Y-%m-%d") as create_date');
            $query->alias('user');
            $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
            $query->where('user.id', $uid);
@@ -390,19 +589,30 @@ class UserController extends Controller{
            $query->group('FROM_UNIXTIME(order.create_time,"%Y%m%d")');
        });
        
+       $orderModel = new OrderModel();
+       $map['status'] = array('GT', 0);
+       $map['uid'] = $uid;
+       $map['create_time'] = array('GT', $boef_time);
+       $today_buy = $orderModel->where($map)->count();
+       
        $rebates = [];
+       $rebates['is_today_buy'] = $today_buy;
        $rebates['buy_rebate'] = 0;
        $rebates['buy_money'] = '0.00';
+       $rebates['last_buy_date'] = 0;
        
        //没有购买过或者连续购买断裂
        foreach ($users as $user){
            if($user['continuity_buy'] == 0){
                $rebates['buy_rebate'] = 0;
                $rebates['buy_money'] = '0.00';
+               $rebates['last_buy_date'] = 0;
            } else {
                $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
+               
+               $rebates['last_buy_date'] = $user['create_date'];
                $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
-               $rebates['buy_money'] = round($user['total_fee']*$rebates['buy_rebate']/100, 2);
+               $rebates['buy_money'] = sprintf("%.2f", $user['total_fee']);
            }
 
            if($user['total_fee'] > 0) break;
@@ -446,6 +656,7 @@ class UserController extends Controller{
        });
        
        $today_invit_count = 0;
+       $rebates['sumMoney'] = 0;
        $rebates['list'] = [];
        foreach ($users as $user){
            $invit = $orderModel::get(function($query) use($user, $boef_time){
@@ -459,6 +670,7 @@ class UserController extends Controller{
            if($user['invit_time'] == $boef_time && !empty($invit)) $today_invit_count += 1;
            
            if(!empty($invit) && strtotime(date('Ymd',$invit['create_time'])) == $boef_time) {
+               $rebates['sumMoney'] += $invit['total_fee'];
                $rebates['list'][] = ['username'=>get_nickname($user['id']), 'invit_time'=>$user['invit_time'], 'total_fee'=>$invit['total_fee']];
            } else {
                $rebates['list'][] = ['username'=>get_nickname($user['id']), 'invit_time'=>$user['invit_time'], 'total_fee'=>'0.00'];
@@ -468,6 +680,7 @@ class UserController extends Controller{
        $last_names = array_column($rebates['list'],'total_fee');
        array_multisort($last_names,SORT_DESC,$rebates['list']);
        
+       $rebates['invit_count'] = $today_invit_count;
        if($today_invit_count == 0){
            //当天没有要求下线成员，默认5%返利
            $rebates['invit_rebate'] = 5;
