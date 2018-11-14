@@ -690,4 +690,32 @@ class UserController extends Controller{
        
        return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$rebates]);
     }
+    
+    /**
+    * 累计收益分类统计
+    * @date: 2018年11月14日 下午4:45:21
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function talProfit(Request $request){
+       $uid = $request->param('uid');
+       
+       $ucenterMemberModel = new UcenterMemberModel();
+       $openid = $ucenterMemberModel->where('id', $uid)->value('openid');
+       
+       $rebates = ['buy_profit'=>'0.00', 'invit_profit'=>'0.00'];
+       $userProfit = Db::table("cms_profit")->field("sum(money) as money, profit_type")->where('openid', $openid)->group('profit_type')->select();
+       foreach ($userProfit as $profit){
+           if($profit['profit_type'] == 1){
+               //购买
+               $rebates['buy_profit'] = $profit['money'];
+           }else{
+               //邀请
+               $rebates['invit_profit'] = $profit['money'];
+           }
+       }
+       
+       return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$rebates]);
+    }
 }
