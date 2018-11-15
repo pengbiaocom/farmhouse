@@ -25,7 +25,7 @@
 		</volist>
 		</div>
 		<div>------------------------------------</div>
-		<div>优惠券：-￥{$vo.coupon * $config.COUPON_DENOMINATION}（{$vo.coupon}张）</div>
+		<if condition="$vo.distribution neq -1"><div>配送方式：{$vo.distribution}</div></if>
 		<div>运费：+￥{$vo.freight}</div>
 		<div>------------------------------------</div>
 		<div>合计：￥{$vo.curr_total_fee}</div>

@@ -284,6 +284,7 @@ class OrderController extends BackstageController{
                     $query->where('id', $item['id']);
                 });
                 
+                $item['distribution'] = $item['distribution'] == -1 ? $item['distribution'] : ($item['distribution'] == 0 ? '次日09:00-11:30（自取）': '次日15:00-19:00（自取）');
                 $item['remark'] = empty($item['remark']) ? '无' : $item['remark'];
                 $item['create_time'] = date('Y-m-d H:i:s', $item['create_time']);
         

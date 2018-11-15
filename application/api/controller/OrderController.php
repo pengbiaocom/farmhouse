@@ -21,11 +21,12 @@ class OrderController extends Controller{
         $address_id = $request->param('address_id', '', 'intval');
         $coupon_num = $request->param('coupon_num', 0, 'intval');
         $remark = $request->param('remark', '', 'op_t');
+        $distribution = $request->param('index', -1, 'intval');
         
         if(empty($uid) || empty($product_info) || empty($address_id)) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'参数错误']]);
         
         //分析订单数据
-        $total_fee = $this->total_fee($uid, $product_info, $address_id, $coupon_num, $remark);
+        $total_fee = $this->total_fee($uid, $product_info, $address_id, $coupon_num, $remark, $distribution);
         if(isset($total_fee['total_fee'])){
             return json(['code'=>0, 'msg'=>'调用成功', 'data'=>$total_fee]);
         }else{
@@ -74,7 +75,7 @@ class OrderController extends Controller{
     * @param: variable
     * @return:
     */
-    private function total_fee($uid, $product_info, $address_id, $coupon_num, $remark){
+    private function total_fee($uid, $product_info, $address_id, $coupon_num, $remark, $distribution){
         $user = Db::table('__UCENTER_MEMBER__')->alias('um')->field("um.id,um.username,c.coupon_num")->join('__COUPON__ c', 'um.id = c.uid', 'LEFT')->where('um.id = ' . $uid)->find();
         
         /* 读取数据库中的配置 */
@@ -149,6 +150,7 @@ class OrderController extends Controller{
                 $order_data['remark'] = $remark;
                 $order_data['create_time'] = time();
                 $order_data['out_trade_no'] = 'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+                $order_data['distribution'] = $distribution;
     
                 //处理运费满减
                 if($total_fee < $freight) {
