@@ -200,7 +200,7 @@ class BootsController extends Controller{
         $fund_time = config('FUND_TIME');
         $curr = date('H:i');
         $priv_time = strtotime(date('Y-m-d 0:0:0'));
-        if(1==1){//$curr === $fund_time
+        if($curr === $fund_time){
             $buyInitScale = config('BUY_INIT_SCALE');//基础
             $buyIncScale = config('BUY_INC_SCALE');//增幅
             $buyMaxScale = config('BUY_MAX_SCALE');//最大
