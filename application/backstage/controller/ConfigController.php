@@ -105,7 +105,7 @@ class ConfigController extends BackstageController
             $configModel = new ConfigModel();
             foreach ($config as $name => $value) {
                 $map = ['name' => $name];
-                $configModel->isUpdate(true)->save(['value'=>$value],$map);
+                $configModel->where($map)->update(['value'=>$value]);
             }
         }
         cache('DB_CONFIG_DATA', null);
