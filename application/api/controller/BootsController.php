@@ -330,13 +330,14 @@ class BootsController extends Controller{
         
                         //更改订单中的应退款金额
                         $orderModel->where('id', $order['id'])->update(['refund_fee'=>$fund_fee]);
-                    }else if($order['status'] == 0){
+                    }else if($order['status']){
                         //这里是拿来做销毁的
                         if($orderModel::destroy($order['id'])){
                             $goods = json_decode($order['product_info'], true);
                             foreach ($goods as $good){
                                 $productModel = new ProductModel();
                                 $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
+                                $productModel->where('id', $good['id'])->setDec('sales', $good['num']);
                             }
                         }
                     }
