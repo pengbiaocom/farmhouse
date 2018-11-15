@@ -236,6 +236,7 @@ class UserController extends Controller{
                        foreach ($goods as $good){
                            $productModel = new ProductModel();
                            $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
+                           $productModel->where('id', $good['id'])->setDec('sales', $good['num']);
                        }
                         
                        return json(['code'=>0,'msg'=>'取消成功！']);
@@ -663,6 +664,7 @@ class UserController extends Controller{
                $query->alias('order');
                $query->field('sum(order.total_fee) as total_fee, order.create_time');
                $query->where('order.uid', $user['id']);
+               $query->where('order.status', '>', 0);
                $query->where('order.create_time', '>', $boef_time);
                $query->group('order.uid');
            });

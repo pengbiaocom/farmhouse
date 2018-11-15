@@ -336,8 +336,10 @@ class BootsController extends Controller{
                             $goods = json_decode($order['product_info'], true);
                             foreach ($goods as $good){
                                 $productModel = new ProductModel();
-                                if($order['status'] == 0) $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
-                                $productModel->where('id', $good['id'])->setDec('sales', $good['num']);
+                                if($order['status'] == 0) {
+                                    $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
+                                    $productModel->where('id', $good['id'])->setDec('sales', $good['num']);
+                                }
                             }
                         }
                     }
