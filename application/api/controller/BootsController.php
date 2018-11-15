@@ -5,7 +5,6 @@ use think\Controller;
 use think\Request;
 use app\common\model\OrderModel;
 use app\common\model\ProductModel;
-use app\common\model\FundsModel;
 use app\common\model\CouponModel;
 use app\common\model\UcenterMemberModel;
 use think\Db;
@@ -164,7 +163,7 @@ class BootsController extends Controller{
             //处理超过7天前的未评价订单
             $priv_time = strtotime(date('Ymd'));
             $orderModel->save(['status'=>5],function($query) use($priv_time){
-                $query->where('status',4);
+                $query->where('status',3);
                 $query->where('create_time', '<', $priv_time-86400*7);
             });
             
@@ -281,6 +280,65 @@ class BootsController extends Controller{
                         $openid = $ucenterMemberModel->where('id', $order['invit'])->value('openid');
                         $this->profit($openid, $invit_money, 2);
                         $invit_dis[] = $order['invit'];
+                    }
+                }
+            }
+            
+            
+            //获取到当天的所有订单，并把所涉及到的用户分组，每个用户内的商品进行处理
+            $orderModel = new OrderModel();
+            $orders = $orderModel::all(function($query) use($boef_time){
+                $query->where('create_time', '>', $boef_time);
+            });
+            
+            if($orders){
+                foreach ($orders as $order){
+                    if($order['status'] > 0){
+                        $order['product_info'] = json_decode($order['product_info'], true);
+        
+                        //刷入应退金额
+                        $fund_fee = 0;
+                        if(!isset($funds[$order['uid']])){
+                            $funds[$order['uid']]['uid'] = $order['uid'];
+                            $funds[$order['uid']]['date'] = date('Ymd');
+                            $funds[$order['uid']]['date_str'] = date('Y年m月d日');
+        
+                            foreach ($order['product_info'] as $item){
+                                $fund_fee += ($item['price'] - $prices[$item['id']]['curr_price'])*$item['num'];//价格差乘以数量为当前商品的退还
+        
+                                $item['sales'] = $prices[$item['id']]['sales'];
+                                $item['curr_price'] = $prices[$item['id']]['curr_price'];
+                                $item['num'] = intval($item['num']);
+        
+                                $funds[$order['uid']]['product_info'][$item['id']] = $item;
+                            }
+                        }else{
+                            foreach ($order['product_info'] as $item){
+                                $fund_fee += ($item['price'] - $prices[$item['id']]['curr_price'])*$item['num'];//价格差乘以数量为当前商品的退还
+        
+                                if(isset($funds[$order['uid']]['product_info'][$item['id']])){
+                                    $funds[$order['uid']]['product_info'][$item['id']]['num'] += $item['num'];
+                                }else{
+                                    $item['sales'] = $prices[$item['id']]['sales'];
+                                    $item['curr_price'] = $prices[$item['id']]['curr_price'];
+                                    $item['num'] = intval($item['num']);
+        
+                                    $funds[$order['uid']]['product_info'][$item['id']] = $item;
+                                }
+                            }
+                        }
+        
+                        //更改订单中的应退款金额
+                        $orderModel->where('id', $order['id'])->update(['refund_fee'=>$fund_fee]);
+                    }else if($order['status'] == 0){
+                        //这里是拿来做销毁的
+                        if($orderModel::destroy($order['id'])){
+                            $goods = json_decode($order['product_info'], true);
+                            foreach ($goods as $good){
+                                $productModel = new ProductModel();
+                                $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
+                            }
+                        }
                     }
                 }
             }
