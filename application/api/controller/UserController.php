@@ -508,15 +508,20 @@ class UserController extends Controller{
        $rebates['buy_rebate'] = 0;
        $rebates['buy_money'] = '0.00';
        $rebates['tal_profit'] = $ucenterMemberModel->where('id', $uid)->value('tal_profit');
+       $rebates['continuity_buy'] = $ucenterMemberModel->where('id', $uid)->value('continuity_buy');
+       
+       if($rebates['continuity_buy'] == 0){
+           $rebates['buy_rebate'] = 0;
+       }else{
+           $rebate = $buyInitScale + $rebates['continuity_buy']*$buyIncScale;
+           $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
+       }
        
        //没有购买过或者连续购买断裂
        foreach ($users as $user){
-           if($user['continuity_buy'] == 0){
-               $rebates['buy_rebate'] = 0;
+           if($rebates['continuity_buy'] == 0){
                $rebates['buy_money'] = '0.00';
            } else {
-               $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
-               $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
                $rebates['buy_money'] = sprintf("%.2f", $user['total_fee']*$rebates['buy_rebate']/100);
            }
 
