@@ -140,6 +140,7 @@
 	                    <th>是否退款</th>
 	                    <th>状态</th>
 	                    <th>创建时间</th>
+	                    <th>操作</th>
 	                </tr>
                 </thead>
                 <tbody>
@@ -160,6 +161,7 @@
 	                            <td>{$row.refundtext}</td>
 	                            <td>{$row.statustext}</td>
 	                            <td>{$row.create_time}</td>
+	                            <td><a href="{:url('Backstage/Order/refunds', array('ids'=>$row['id'], 'type'=>2))}" class="ajax-get confirm">退款</a></td>
 	                        </tr>
 	                    </volist>
 	                    <else/>

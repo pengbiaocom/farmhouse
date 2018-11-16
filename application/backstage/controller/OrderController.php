@@ -4,6 +4,8 @@ namespace app\backstage\controller;
 use app\common\model\OrderModel;
 use app\common\model\ProductModel;
 use app\common\model\AuthRuleModel;
+use app\common\model\UcenterMemberModel;
+use app\backstage\builder\BackstageListBuilder;
 
 class OrderController extends BackstageController{
 
@@ -330,40 +332,224 @@ class OrderController extends BackstageController{
 		$this->config = $config;
 		
 		$ids = input('ids', '', 'op_t');
+		$type = input('type', 1, 'intval');
         $status = input('status', -1, 'intval');
         $create_time = input('create_time', strtotime(date('Y-m-d')), 'intval');
         $keyword = input('keyword','','op_t');
 
         //获取到满足条件的订单数据（包括订单数据、用户数据、地址数据）
         $orderModel = new OrderModel();
-        $orders = $orderModel::all(function($query) use($ids,$status,$create_time,$keyword){
-            if(!empty($ids)) $query->where('id', 'in', $ids);
-            
-            if($status != -1) $query->where('status', $status);
-        
-            if(!empty($create_time)) $query->where('create_time', 'between', [$create_time, $create_time+86400]);
-        
-            if(!empty($keyword)) $query->where('out_trade_no', 'like', '%'.$keyword.'%');
-        
+        $orders = $orderModel::all(function($query) use($ids,$status,$create_time,$keyword, $type){
+            if($type == 1){
+                if(!empty($ids)) $query->where('id', 'in', $ids);
+                
+                if($status != -1) $query->where('status', $status);
+                
+                if(!empty($create_time)) $query->where('create_time', 'between', [$create_time, $create_time+86400]);
+                
+                if(!empty($keyword)) $query->where('out_trade_no', 'like', '%'.$keyword.'%');                
+            }else{
+                $query->where('id', $ids);
+            }
         });        
 		
         foreach ($orders as $order){
-            if($order->status > 0 && $order->refund == 0){
-                if($this->refund($order)){
-                    ob_flush();
-                    flush();
-                    echo '订单：'.$order->out_trade_no.'退款完成。<br/>';                    
+            if($type == 1){
+                if($order->status > 0 && $order->refund == 0){
+                    if($this->refund($order)){
+                        ob_flush();
+                        flush();
+                        echo '订单：'.$order->out_trade_no.'退款完成。<br/>';
+                    }else{
+                        ob_flush();
+                        flush();
+                        echo '订单：'.$order->out_trade_no.'退款失败。<br/>';
+                    }
                 }else{
                     ob_flush();
                     flush();
-                    echo '订单：'.$order->out_trade_no.'退款失败。<br/>';
-                }
+                    echo '订单：'.$order->out_trade_no.'退款失败（未支付订单）。<br/>';
+                }                
             }else{
-                ob_flush();
-                flush();
-                echo '订单：'.$order->out_trade_no.'退款失败（未支付订单）。<br/>';
+                if($order->status > 0){
+                    $del = db("order")->where(['id'=>$order['id']])->update(['status'=>-1]);
+                    if($del){
+                        //处理退款接口
+                        if($this->refund($order, 2)){
+                            $goods = json_decode($order['product_info'], true);
+                            foreach ($goods as $good){
+                                $productModel = new ProductModel();
+                                $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
+                                $productModel->where('id', $good['id'])->setDec('sales', $good['num']);
+                            }
+                    
+                            $this->success('取消成功！');
+                        } else {
+                            db("order")->where(['id'=>$order_id])->update(['status'=>1]);
+                            $this->error('取消失败！');
+                        }
+                    }
+                }else{
+                    if(db("order")->where(['id'=>$order['id']])->update(['status'=>-1])){
+                        $goods = json_decode($order['product_info'], true);
+                        foreach ($goods as $good){
+                            $productModel = new ProductModel();
+                            $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
+                        }
+                        $this->success('取消成功！');
+                    }else{
+                        $this->error('取消失败！');
+                    }
+                }
             }
         }
+    }
+    
+    public function profit(){
+        $date = input('date', strtotime(date('Y-m-d')), 'intval');
+        
+        $ucenterMember = new UcenterMemberModel();
+        $users = $ucenterMember::all(function($query){
+            $query->field('user.invit, member.nickname, count(user.id) as invitCount');
+            $query->alias('user');
+            $query->join('__MEMBER__ member', 'user.invit = member.uid', 'left');
+            $query->where('user.invit', '>', 0);
+            $query->group('user.invit');
+        });
+        
+        $lists = [];
+        foreach ($users as $user){
+            $data['id'] = $user['invit'];
+            $data['nickname'] = $user['nickname'];
+            $data['invitCount'] = $user['invitCount'];
+            
+            $rebate = $this->initRebate($user['invit'], $date);
+            
+            $data['is_today_buy'] = $rebate['is_today_buy'] == 0 ? '否' : '是';
+            $data['tal_profit'] = $rebate['tal_profit'];
+            
+            $data['buy_rebate'] = $rebate['buy_rebate'];
+            $data['buy_money'] = $rebate['buy_money'];
+            $data['continuity_buy'] = $rebate['continuity_buy'];
+            
+            $data['invit_rebate'] = $rebate['invit_rebate'];
+            $data['invit_money'] = $rebate['invit_money'];
+            $data['today_invit_count'] = $rebate['today_invit_count'];
+            
+            
+            $lists[] = $data;unset($data);unset($rebate);
+        }
+        
+        $builder = new BackstageListBuilder();
+        $builder->title('收益总览');
+        
+        $builder->searchDateTime('日期', 'date', 'date');
+        
+        $builder->keyId();
+        $builder->keyText('nickname', '用户昵称');
+        $builder->keyText('today_invit_count', '今日邀请并购买人数');
+        $builder->keyText('invitCount', '总邀请人数');
+        
+        $builder->keyText('is_today_buy', '今日是否购买');
+        $builder->keyText('buy_rebate', '购买返利比例');
+        $builder->keyText('buy_money', '购买收益');
+        
+        $builder->keyText('invit_rebate', '邀请提成比例');
+        $builder->keyText('invit_money', '邀请收益');
+        
+        return $builder->data($lists)->show();
+    }
+    
+    private function initRebate($uid, $date){
+        /* 读取数据库中的配置 */
+        $config = cache('DB_CONFIG_DATA');
+        if (!$config) {
+            $config = controller("common/ConfigApi")->lists();
+            cache('DB_CONFIG_DATA', $config);
+        }
+        config($config); //添加配置
+        
+        $buyInitScale = config('BUY_INIT_SCALE');//基础
+        $buyIncScale = config('BUY_INC_SCALE');//增幅
+        $buyMaxScale = config('BUY_MAX_SCALE');//最大
+        $invitInitScale = config('INVIT_INIT_SCALE');//基础
+        $invitIncScale = config('INVIT_INC_SCALE');//增幅
+        $invitMaxScale = config('INVIT_MAX_SCALE');//最大
+         
+        $boef_time = empty($date) ? strtotime(date('Ymd')) : strtotime(date('Ymd',$date));
+         
+        /* 购买统计 */
+        $ucenterMemberModel = new UcenterMemberModel();
+        $users = $ucenterMemberModel::all(function($query) use($uid,$boef_time){
+            $query->field('user.continuity_buy, sum(order.total_fee) as total_fee, FROM_UNIXTIME(order.create_time,"%Y%m%d") as create_date');
+            $query->alias('user');
+            $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
+            $query->where('user.id', $uid);
+            $query->where('order.status', '>', 0);
+            $query->where('order.create_time', 'between', [$boef_time-172800,$boef_time]);
+            $query->order('create_date DESC');
+            $query->group('FROM_UNIXTIME(order.create_time,"%Y%m%d")');
+        });
+             
+        $orderModel = new OrderModel();
+        $map['status'] = array('GT', 0);
+        $map['uid'] = $uid;
+        $map['create_time'] = array('GT', $boef_time);
+        $today_buy = $orderModel->where($map)->count();
+         
+        $rebates = [];
+        $rebates['is_today_buy'] = $today_buy;
+        $rebates['buy_rebate'] = 0;
+        $rebates['buy_money'] = '0.00';
+        $rebates['tal_profit'] = $ucenterMemberModel->where('id', $uid)->value('tal_profit');
+        $rebates['continuity_buy'] = $ucenterMemberModel->where('id', $uid)->value('continuity_buy');
+         
+        if($rebates['continuity_buy'] == 0){
+            $rebates['buy_rebate'] = 0;
+        }else{
+            $rebate = $buyInitScale + $rebates['continuity_buy']*$buyIncScale;
+            $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
+        }
+         
+        //没有购买过或者连续购买断裂
+        foreach ($users as $user){
+            if($rebates['continuity_buy'] == 0){
+                $rebates['buy_money'] = '0.00';
+            } else {
+                $rebates['buy_money'] = sprintf("%.2f", $user['total_fee']*$rebates['buy_rebate']/100);
+            }
+    
+            if($user['total_fee'] > 0) break;
+        }
+    
+        /* 邀请数据统计 */
+        $invits = $ucenterMemberModel::all(function($query) use($uid,$boef_time){
+            $query->field('user.invit_time, order.total_fee, order.create_time');
+            $query->alias('user');
+            $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
+            $query->where('user.invit', $uid);
+            $query->where('order.status', '>', 0);
+            $query->where('order.create_time', 'between', [$boef_time,$boef_time+86400]);
+        });
+             
+        $rebates['today_invit_count'] = 0;
+        $today_invit_consumption = 0;
+        foreach ($invits as $invit){
+            if($invit['invit_time'] == $boef_time) $rebates['today_invit_count'] += 1;
+             
+            if(strtotime(date('Ymd',$invit['create_time'])) == $boef_time) $today_invit_consumption += $invit['total_fee'];
+        }
+         
+        if($rebates['today_invit_count'] == 0){
+            //当天没有要求下线成员，默认5%返利
+            $rebates['invit_rebate'] = 5;
+            $rebates['invit_money'] = sprintf("%.2f", $today_invit_consumption*5/100);
+        }else{
+            $rebates['invit_rebate'] = min($invitInitScale+($rebates['today_invit_count']-1)*$invitIncScale, $invitMaxScale);
+            $rebates['invit_money'] = sprintf("%.2f", $today_invit_consumption*$rebates['invit_rebate']/100);
+        }  
+        
+        return $rebates;
     }
     
     /**
@@ -373,7 +559,7 @@ class OrderController extends BackstageController{
     * @param: variable
     * @return:
     */
-    private function refund($order){
+    private function refund($order, $type = 1){
         $config = $this->config;
         
         //退款申请参数构造
@@ -385,7 +571,7 @@ class OrderController extends BackstageController{
                 'out_trade_no'	=> $order->out_trade_no,
                 'out_refund_no' => $order->out_trade_no . md5($order->out_trade_no),//退款唯一单号，系统生成
                 'total_fee'		=> $order->total_fee * 100,
-                'refund_fee'    => $order->refund_fee * 100,//退款金额,通过计算得到要退还的金额
+                'refund_fee'    => $type == 1 ? $order->refund_fee * 100 : $order->total_fee * 100,//退款金额,通过计算得到要退还的金额
             );
             
             $refunddorder['sign'] = self::makeSign($refunddorder);
