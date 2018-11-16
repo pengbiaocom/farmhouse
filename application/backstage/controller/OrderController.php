@@ -511,7 +511,7 @@ class OrderController extends BackstageController{
             $rebates['buy_rebate'] = 0;
         }else{
             $rebate = $buyInitScale + $rebates['continuity_buy']*$buyIncScale;
-            $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
+            $rebates['buy_rebate'] = min($rebate, $buyMaxScale);            
         }
          
         //没有购买过或者连续购买断裂
@@ -519,7 +519,11 @@ class OrderController extends BackstageController{
             if($rebates['continuity_buy'] == 0){
                 $rebates['buy_money'] = '0.00';
             } else {
-                $rebates['buy_money'] = sprintf("%.2f", $user['total_fee']*$rebates['buy_rebate']/100);
+                if($rebates['is_today_buy'] == 1){
+                    $rebates['buy_money'] = sprintf("%.2f", $user['total_fee']*$rebates['buy_rebate']/100);
+                }else{
+                    $rebates['buy_money'] = '0.00';
+                }
             }
     
             if($user['total_fee'] > 0) break;
