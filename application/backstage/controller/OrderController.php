@@ -397,6 +397,7 @@ class OrderController extends BackstageController{
                         foreach ($goods as $good){
                             $productModel = new ProductModel();
                             $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
+                            $productModel->where('id', $good['id'])->setDec('sales', $good['num']);
                         }
                         $this->success('取消成功！');
                     }else{
