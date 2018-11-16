@@ -21,6 +21,8 @@ class OrderController extends BackstageController{
         $status = input('status', -1, 'intval');
         if($status !== -1){
             $map['status'] = array('EQ', $status);
+        }else{
+            $map['status'] = array('EGT', 0);
         }
 
         $pro = input("pro",-1,'intval');
@@ -583,9 +585,10 @@ class OrderController extends BackstageController{
             $resData = $this->xml2array($res);
             
             if($resData['return_code'] === 'SUCCESS' && $resData['return_msg'] === 'OK' && $resData['result_code'] === 'SUCCESS'){
-                $orderModel = new OrderModel();
-                
-                $orderModel->where('out_trade_no', $resData['out_trade_no'])->update(['refund'=>1]);
+                if($type == 1){
+                    $orderModel = new OrderModel();
+                    $orderModel->where('out_trade_no', $resData['out_trade_no'])->update(['refund'=>1]);                    
+                }
                 
                 return true;
             }
