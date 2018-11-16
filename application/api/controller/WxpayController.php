@@ -330,11 +330,10 @@ class WxpayController extends Controller{
                 }
             }
             
+            $orderModel->where(['out_trade_no'=>$order_sn])->update(['status'=>1, 'is_notify'=>1]);
+            
             //:TODO  加入连续购买逻辑
             $this->rebate($openid);
-            
-            
-            $orderModel->where(['out_trade_no'=>$order_sn])->update(['status'=>1, 'is_notify'=>1]);
             
             $data['out_trade_no'] = $order_sn;
             $data['openid']   = $openid;
