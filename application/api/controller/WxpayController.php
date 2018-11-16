@@ -397,7 +397,7 @@ class WxpayController extends Controller{
                     db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>10, 'is_tiyan'=>1));
                 }else{
                     //连续购买没有，且已经参与过体验的用户
-                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$initScale));
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$initScale, 'is_tiyan'=>1));
                 }
             }
         }else{
