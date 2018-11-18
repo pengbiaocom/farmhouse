@@ -421,6 +421,7 @@ class OrderController extends BackstageController{
         });
         
         $lists = [];
+		$uids = [];
         foreach ($users as $user){
             $data['id'] = $user['invit'];
             $data['nickname'] = $user['nickname'];
@@ -439,7 +440,7 @@ class OrderController extends BackstageController{
             $data['invit_money'] = $rebate['invit_money'];
             $data['today_invit_count'] = $rebate['today_invit_count'];
             
-            
+            $uids[] = $user['invit'];
             $lists[] = $data;unset($data);unset($rebate);
         }
 		
@@ -450,30 +451,31 @@ class OrderController extends BackstageController{
 			$query->join('__MEMBER__ member', 'order.uid = member.uid', 'left');
 			$query->join('__UCENTER_MEMBER__ user', 'order.uid = user.id', 'left');
 			$query->where('order.status', '>', 0);
-			$query->where('user.invit', 0);
 			$query->where('order.create_time', 'between', [$date, $date+86400]);
 		});
 		
 		foreach ($orders as $order){
-            $data['id'] = $order['uid'];
-            $data['nickname'] = $order['nickname'];
-            $data['invitCount'] = 0;
-			
-            $rebate = $this->initRebate($order['uid'], $date);
-            
-            $data['is_today_buy'] = $rebate['is_today_buy'] == 0 ? '否' : '是';
-            $data['tal_profit'] = $rebate['tal_profit'];
-            
-            $data['buy_rebate'] = $rebate['buy_rebate'];
-            $data['buy_money'] = $rebate['buy_money'];
-            $data['continuity_buy'] = $rebate['continuity_buy'];
-            
-            $data['invit_rebate'] = $rebate['invit_rebate'];
-            $data['invit_money'] = $rebate['invit_money'];
-            $data['today_invit_count'] = $rebate['today_invit_count'];
-            
-            
-            $lists[] = $data;unset($data);unset($rebate);
+			if(!in_array($order['uid'], $uids)){
+				$data['id'] = $order['uid'];
+				$data['nickname'] = $order['nickname'];
+				$data['invitCount'] = 0;
+				
+				$rebate = $this->initRebate($order['uid'], $date);
+				
+				$data['is_today_buy'] = $rebate['is_today_buy'] == 0 ? '否' : '是';
+				$data['tal_profit'] = $rebate['tal_profit'];
+				
+				$data['buy_rebate'] = $rebate['buy_rebate'];
+				$data['buy_money'] = $rebate['buy_money'];
+				$data['continuity_buy'] = $rebate['continuity_buy'];
+				
+				$data['invit_rebate'] = $rebate['invit_rebate'];
+				$data['invit_money'] = $rebate['invit_money'];
+				$data['today_invit_count'] = $rebate['today_invit_count'];
+				
+				
+				$lists[] = $data;unset($data);unset($rebate);				
+			}
 		}
         
         $builder = new BackstageListBuilder();
