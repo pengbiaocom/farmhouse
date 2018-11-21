@@ -338,7 +338,6 @@ class BootsController extends Controller{
                                 $productModel = new ProductModel();
                                 if($order['status'] == 0) {
                                     $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
-                                    $productModel->where('id', $good['id'])->setDec('sales', $good['num']);
                                 }
                             }
                         }
