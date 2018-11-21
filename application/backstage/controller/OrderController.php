@@ -452,6 +452,7 @@ class OrderController extends BackstageController{
 			$query->join('__UCENTER_MEMBER__ user', 'order.uid = user.id', 'left');
 			$query->where('order.status', '>', 0);
 			$query->where('order.create_time', 'between', [$date, $date+86400]);
+			$query->group('order.uid');
 		});
 		
 		foreach ($orders as $order){
@@ -532,7 +533,7 @@ class OrderController extends BackstageController{
         $orderModel = new OrderModel();
         $map['status'] = array('GT', 0);
         $map['uid'] = $uid;
-        $map['create_time'] = array('GT', $boef_time);
+        $map['create_time'] = array('between', [$boef_time, $boef_time+86400]);
         $today_buy = $orderModel->where($map)->count();
          
         $rebates = [];
@@ -554,7 +555,7 @@ class OrderController extends BackstageController{
             if($rebates['continuity_buy'] == 0){
                 $rebates['buy_money'] = '0.00';
             } else {
-                if($rebates['is_today_buy'] == 1){
+                if($rebates['is_today_buy'] > 0){
                     $rebates['buy_money'] = sprintf("%.2f", $user['total_fee']*$rebates['buy_rebate']/100);
                 }else{
                     $rebates['buy_money'] = '0.00';

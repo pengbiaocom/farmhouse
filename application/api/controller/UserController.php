@@ -522,7 +522,7 @@ class UserController extends Controller{
            if($rebates['continuity_buy'] == 0){
                $rebates['buy_money'] = '0.00';
            } else {
-               if($rebates['is_today_buy'] == 1){
+               if($rebates['is_today_buy'] > 1){
                    $rebates['buy_money'] = sprintf("%.2f", $user['total_fee']*$rebates['buy_rebate']/100);
                }else{
                    $rebates['buy_money'] = '0.00';
