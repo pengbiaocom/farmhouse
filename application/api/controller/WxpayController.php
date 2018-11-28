@@ -358,7 +358,7 @@ class WxpayController extends Controller{
             $query->field("order.uid, order.create_time, user.continuity_buy, user.is_tiyan");
             $query->alias('order');
             $query->join('__UCENTER_MEMBER__ user', 'order.uid = user.id', 'left');
-            $query->where('order.status', '>', 0);
+            $query->where('order.status', '>', 1);
             $query->where('user.openid', $openid);
             $query->order('order.create_time desc');
         });
@@ -397,7 +397,7 @@ class WxpayController extends Controller{
                     db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>10, 'is_tiyan'=>1));
                 }else{
                     //连续购买没有，且已经参与过体验的用户
-                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$initScale, 'is_tiyan'=>1));
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$initScale));
                 }
             }
         }else{
