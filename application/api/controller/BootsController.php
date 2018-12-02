@@ -237,7 +237,7 @@ class BootsController extends Controller{
                     if($user['continuity_buy'] == 0){
                         $buy_money = '0.00';
                     } else {
-                        $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
+                        $rebate = $buyInitScale + ($user['continuity_buy']-1)*$buyIncScale;
                         $buy_rebate = min($rebate, $buyMaxScale);
                         $buy_money = sprintf("%.2f", $user['total_fee']*$buy_rebate/100);
                     }

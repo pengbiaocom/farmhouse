@@ -462,6 +462,7 @@ class OrderController extends BackstageController{
 				
 				$rebate = $this->initRebate($order['uid'], $date);
 				
+				
 				$data['is_today_buy'] = $rebate['is_today_buy'] == 0 ? '否' : '是';
 				$data['tal_profit'] = $rebate['tal_profit'];
 				
@@ -545,7 +546,7 @@ class OrderController extends BackstageController{
         if($rebates['continuity_buy'] == 0){
             $rebates['buy_rebate'] = 0;
         }else{
-            $rebate = $buyInitScale + $rebates['continuity_buy']*$buyIncScale;
+            $rebate = $buyInitScale + ($rebates['continuity_buy']-1)*$buyIncScale;
             $rebates['buy_rebate'] = min($rebate, $buyMaxScale);            
         }
          

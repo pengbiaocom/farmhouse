@@ -344,7 +344,7 @@ class WxpayController extends Controller{
             db("pay_log")->insert($data);
         }
     }
-    
+		
     /**
     * 处理购物返利比例逻辑
     * @date: 2018年11月6日 下午1:51:42
@@ -376,19 +376,18 @@ class WxpayController extends Controller{
         $maxScale = config('BUY_MAX_SCALE');//最大
          
         if($buyRebate['uid'] > 0 && $buyRebate['create_time'] > 0){
-            $lastDate = intval(date('Ymd', $buyRebate['create_time']));
-            $toDay = intval(date('Ymd'));
+            $lastDate = intval(strtotime(date('Ymd', $buyRebate['create_time'])));
+            $toDay = intval(strtotime(date('Ymd')));
              
             //判断当前是否为开启返利的
             if($buyRebate['continuity_buy'] > 0){
                 //判断返利是否断裂
-                if($lastDate+2 < $toDay){
+                if($lastDate+172800 < $toDay){
                     //超过两天的再次购买，返利链断裂，从头计算
                     db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>0));
                 }else{
                     //未超过两天的再次购买，连续购买天数加一，按照增幅计算最终返利比例
-                    $setScale = min($buyRebate['continuity_buy']+$incScale, $maxScale);
-                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$setScale, 'is_tiyan'=>1));
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$buyRebate['continuity_buy']+1, 'is_tiyan'=>1));
                 }
             }else{
                 //开启返利
@@ -397,7 +396,7 @@ class WxpayController extends Controller{
                     db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>10, 'is_tiyan'=>1));
                 }else{
                     //连续购买没有，且已经参与过体验的用户
-                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$initScale));
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>1));
                 }
             }
         }else{
