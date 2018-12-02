@@ -376,8 +376,8 @@ class WxpayController extends Controller{
         $maxScale = config('BUY_MAX_SCALE');//最大
          
         if($buyRebate['uid'] > 0 && $buyRebate['create_time'] > 0){
-            $lastDate = intval(strtotime(date('Ymd', $buyRebate['create_time'])));
-            $toDay = intval(strtotime(date('Ymd')));
+            $lastDate = strtotime(date('Ymd', $buyRebate['create_time']));
+            $toDay = strtotime(date('Ymd'));
              
             //判断当前是否为开启返利的
             if($buyRebate['continuity_buy'] > 0){
