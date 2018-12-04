@@ -238,6 +238,12 @@ class UserController extends Controller{
                            $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
                            $productModel->where('id', $good['id'])->setDec('sales', $good['num']);
                        }
+                       
+                       $map['create_time'] = ['GT', $boef_time];
+                       $map['status'] = ['GT', 0];
+                       if(db("order")->where($map)->count() == 0 && db('ucenter_member')->where('id', $detail['uid'])->value('continuity_buy') > 0) {
+                           db('ucenter_member')->where('id', $detail['uid'])->setDec('continuity_buy', 1);
+                       }
                         
                        return json(['code'=>0,'msg'=>'取消成功！']);
                    } else {
