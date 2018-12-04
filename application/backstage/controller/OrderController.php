@@ -383,6 +383,12 @@ class OrderController extends BackstageController{
                                 $productModel = new ProductModel();
                                 $productModel->where('id', $good['id'])->setInc('stock', $good['num']);
                             }
+                            
+                            $map['create_time'] = ['GT', strtotime(date('Ymd'))];
+                            $map['status'] = ['GT', 0];
+                            if(db("order")->where($map)->count() == 0 && db('ucenter_member')->where('id', $order['uid'])->value('continuity_buy') > 0) {
+                                db('ucenter_member')->where('id', $order['uid'])->setDec('continuity_buy', 1);
+                            }
                     
                             $this->success('取消成功！');
                         } else {
