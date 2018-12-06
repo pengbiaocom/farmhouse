@@ -387,6 +387,7 @@ class OrderController extends BackstageController{
                             
                             $map['create_time'] = ['GT', strtotime(date('Ymd'))];
                             $map['status'] = ['GT', 0];
+                            $map['uid'] = $order['uid'];
                             if(db("order")->where($map)->count() == 0 && db('ucenter_member')->where('id', $order['uid'])->value('continuity_buy') > 0) {
                                 db('ucenter_member')->where('id', $order['uid'])->setDec('continuity_buy', 1);
                             }

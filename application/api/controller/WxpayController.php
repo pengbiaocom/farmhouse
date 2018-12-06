@@ -380,26 +380,24 @@ class WxpayController extends Controller{
             $toDay = strtotime(date('Ymd'));
              
             //判断当前是否为开启返利的
-            if($lastDate != $toDay){
-                if($buyRebate['continuity_buy'] > 0){
-                    //判断返利是否断裂
-                    if($lastDate+172800 < $toDay){
-                        //超过两天的再次购买，返利链断裂，从头计算
-                        db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>0));
-                    }else{
-                        //未超过两天的再次购买，连续购买天数加一，按照增幅计算最终返利比例
-                        db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$buyRebate['continuity_buy']+1, 'is_tiyan'=>1));
-                    }
+            if($buyRebate['continuity_buy'] > 0){
+                //判断返利是否断裂
+                if($lastDate+172800 < $toDay){
+                    //超过两天的再次购买，返利链断裂，从头计算
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>0));
                 }else{
-                    //开启返利
-                    if($buyRebate['is_tiyan'] == 0){
-                        //连续购买没有，体验10%返利没参与过的用户【老用户第一次购买】
-                        db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>10, 'is_tiyan'=>1));
-                    }else{
-                        //连续购买没有，且已经参与过体验的用户
-                        db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>1));
-                    }
-                }                
+                    //未超过两天的再次购买，连续购买天数加一，按照增幅计算最终返利比例
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>$buyRebate['continuity_buy']+1, 'is_tiyan'=>1));
+                }
+            }else{
+                //开启返利
+                if($buyRebate['is_tiyan'] == 0){
+                    //连续购买没有，体验10%返利没参与过的用户【老用户第一次购买】
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>10, 'is_tiyan'=>1));
+                }else{
+                    //连续购买没有，且已经参与过体验的用户
+                    db("ucenter_member")->where('id', $buyRebate['uid'])->update(array('continuity_buy'=>1));
+                }
             }
         }else{
             //没有找到该用户的历史订单，默认为新进入的用户，给与10%返利
