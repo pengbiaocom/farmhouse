@@ -519,7 +519,7 @@ class UserController extends Controller{
        if($rebates['continuity_buy'] == 0){
            $rebates['buy_rebate'] = 0;
        }else{
-           $rebate = $buyInitScale + $rebates['continuity_buy']*$buyIncScale;
+           $rebate = $buyInitScale + ($rebates['continuity_buy']-1)*$buyIncScale;
            $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
        }
        
@@ -624,7 +624,7 @@ class UserController extends Controller{
                $rebates['buy_money'] = '0.00';
                $rebates['last_buy_date'] = 0;
            } else {
-               $rebate = $buyInitScale + $user['continuity_buy']*$buyIncScale;
+               $rebate = $buyInitScale + ($user['continuity_buy']-1)*$buyIncScale;
                
                $rebates['last_buy_date'] = $user['create_date'];
                $rebates['buy_rebate'] = min($rebate, $buyMaxScale);
