@@ -242,8 +242,6 @@ class UserController extends Controller{
                        $map['create_time'] = ['GT', $boef_time];
                        $map['status'] = ['GT', 0];
                        $map['uid'] = $detail['uid'];
-                       $this->writeGetDataLog(db("order")->where($map)->count());
-                       $this->writeGetDataLog(db('ucenter_member')->where('id', $detail['uid'])->value('continuity_buy'));
                        if(db("order")->where($map)->count() == 0 && db('ucenter_member')->where('id', $detail['uid'])->value('continuity_buy') > 0) {
                            db('ucenter_member')->where('id', $detail['uid'])->setDec('continuity_buy', 1);
                        }
@@ -261,27 +259,7 @@ class UserController extends Controller{
            return json(['code'=>1,'msg'=>'待支付/待发货的订单才可以取消']);
        }
 
-    }
-    
-    /**
-     * 抓取数据日志写入
-     * @param string $content 待写入的内容
-     * @param string $root 下级目录
-     * @param string $name 文件名
-     */
-    public function writeGetDataLog($content,$root='',$name=''){
-        $filename = date('Ymd').$name.'.txt';
-        $fileContent = date('Y-m-d H:i:s').': '.$content."\r\n";
-    
-        //文件夹不存在先创建目录
-        $savePath = "./getDataLog";
-        if(!empty($root)) $savePath = "./getDataLog/".$root;
-        if(!file_exists($savePath)) mkdir($savePath,0777,true);
-    
-        $fp=fopen($savePath.'/'.$filename, "a+");
-        fwrite($fp,$fileContent);
-        fclose($fp);
-    }   
+    } 
     
     /**
      * 退款申请
