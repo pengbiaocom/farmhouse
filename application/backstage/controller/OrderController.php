@@ -580,6 +580,7 @@ class OrderController extends BackstageController{
             $query->where('user.invit', $uid);
             $query->where('order.status', '>', 0);
             $query->where('order.create_time', 'between', [$boef_time,$boef_time+86400]);
+			$query->group('order.uid');
         });
              
         $rebates['today_invit_count'] = 0;
