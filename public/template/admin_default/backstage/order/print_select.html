@@ -7,15 +7,15 @@
 <body onload="load()">
 
 <volist name="orders" id="vo">
-	<div style="text-align:left;">
+	<div style="text-align:left;padding-right:20px">
 		<div style="text-align:center;">欢迎光临益丰众购</div>
 		<div>==============================</div>
 		<div>生鲜易损坏、不易存储请收货时仔细检查！有质量问题，请在配送当天联系售后。超时不售后！</div>
 		<div>联系电话：15884278329</div>
-		<div>------------------------------------</div>
+		<div>---------------------------</div>
 		<div>订单号：{$vo.out_trade_no}</div>
 		<div>用户名：{$vo.nickname}</div>
-		<div>------------------------------------</div>
+		<div>---------------------------</div>
 		<div>
 		<volist name="vo.products" id="good">
 			<div>成团价格：{$good.name}  ￥{$good.curr_price}*{$good.num}</div>
@@ -24,10 +24,10 @@
 			</if>
 		</volist>
 		</div>
-		<div>------------------------------------</div>
+		<div>---------------------------</div>
 		<if condition="$vo.distribution neq -1"><div>配送方式：{$vo.distribution}</div></if>
 		<div>运费：+￥{$vo.freight}</div>
-		<div>------------------------------------</div>
+		<div>---------------------------</div>
 		<div>合计：￥{$vo.curr_total_fee}</div>
 		<div>时间：{$vo.create_time}</div>
 		<div>==============================

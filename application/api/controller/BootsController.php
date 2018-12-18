@@ -252,12 +252,13 @@ class BootsController extends Controller{
                 /* 计算邀请返利 */
                 if($order['invit'] > 0){
                     $invits = $ucenterMemberModel::all(function($query) use($order,$boef_time){
-                        $query->field('user.invit_time, order.total_fee, order.create_time');
+                        $query->field('user.invit_time, sum(order.total_fee) as total_fee, order.create_time');
                         $query->alias('user');
                         $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
                         $query->where('user.invit', $order['invit']);
                         $query->where('order.status', '>', 0);
                         $query->where('order.create_time', '>', $boef_time);
+						$query->group('order.uid');
                     });
                     
                     $today_invit_count = 0;
