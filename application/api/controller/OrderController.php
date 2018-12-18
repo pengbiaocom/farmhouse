@@ -22,6 +22,8 @@ class OrderController extends Controller{
         $coupon_num = $request->param('coupon_num', 0, 'intval');
         $remark = $request->param('remark', '', 'op_t');
         $distribution = $request->param('index', -1, 'intval');
+		
+		$this->writeGetDataLog("预计购买的商品信息：".$product_info);
         
         if(empty($uid) || empty($product_info) || empty($address_id)) return json(['code'=>1, 'msg'=>'调用失败', 'data'=>['info'=>'参数错误']]);
         
