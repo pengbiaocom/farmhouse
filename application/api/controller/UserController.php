@@ -43,7 +43,7 @@ class UserController extends Controller{
             });
             
             if($user->id > 0){
-                $ucenterMemberModel::update(array('id'=>$user->id, 'openid'=>$res['openid'], 'session_key'=>$res['session_key'], 'invit'=>$invitation, 'invit_time'=>strtotime(date('Ymd'))));
+				if($user->invit > 0) $ucenterMemberModel::update(array('id'=>$user->id, 'openid'=>$res['openid'], 'session_key'=>$res['session_key'], 'invit'=>$invitation, 'invit_time'=>strtotime(date('Ymd'))));
                 return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>$user->id]]);
             }else{
                 $this->sessionKey = $res['session_key'];
