@@ -345,6 +345,7 @@ class BootsController extends Controller{
                     }
                 }
             }
+			$this->writeGetDataLog("返利和应退处理完成");
         }
     }
     
