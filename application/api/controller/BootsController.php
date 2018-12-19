@@ -371,6 +371,7 @@ class BootsController extends Controller{
                 'desc' => $type == 1 ? '购买收益' : '邀请收益',
                 'spbill_create_ip' => get_client_ip()
             );
+			$this->writeGetDataLog(json_encode($refunddorder));
     
             $refunddorder['sign'] = self::makeSign($refunddorder);
     
@@ -388,7 +389,9 @@ class BootsController extends Controller{
                 }
                 
                 return true;
-            }
+            }else{
+				$this->writeGetDataLog(json_encode($resData));
+			}
             
             return false;
         }
