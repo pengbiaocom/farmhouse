@@ -144,39 +144,43 @@ class OrderController extends Controller{
                         ]; 
                     }
                 }
-            
-                $order_data['uid'] = $uid;
-                $order_data['product_info'] = json_encode($productList);
-                $order_data['coupon'] = $coupon_num;
-                $order_data['address_id'] = $address_id;
-                $order_data['remark'] = $remark;
-                $order_data['create_time'] = time();
-                $order_data['out_trade_no'] = 'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
-                $order_data['distribution'] = $distribution;
-    
-                //处理运费满减
-                if($total_fee < $freight) {
-                    $total_fee += 2;//如果总价没到满免运费的情况下，统一收取2元的运费
-                    $order_data['freight'] = 2;
-                }
-                
-                //处理优惠券
-                if($coupon_num > 0) {
-                    if(!Db::table("cms_coupon")->where('uid', $uid)->setDec('coupon_num', $coupon_num)){
-                        exception('下单失败');
-                    }
-                    
-                    $total_fee -= $coupon_num*$coupon_price;
-                }
-                
-                $order_data['total_fee'] = $total_fee;
+				
+				if(count($productList) > 0){
+					$order_data['uid'] = $uid;
+					$order_data['product_info'] = json_encode($productList);
+					$order_data['coupon'] = $coupon_num;
+					$order_data['address_id'] = $address_id;
+					$order_data['remark'] = $remark;
+					$order_data['create_time'] = time();
+					$order_data['out_trade_no'] = 'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+					$order_data['distribution'] = $distribution;
+		
+					//处理运费满减
+					if($total_fee < $freight) {
+						$total_fee += 2;//如果总价没到满免运费的情况下，统一收取2元的运费
+						$order_data['freight'] = 2;
+					}
+					
+					//处理优惠券
+					if($coupon_num > 0) {
+						if(!Db::table("cms_coupon")->where('uid', $uid)->setDec('coupon_num', $coupon_num)){
+							exception('下单失败');
+						}
+						
+						$total_fee -= $coupon_num*$coupon_price;
+					}
+					
+					$order_data['total_fee'] = $total_fee;
 
-                if(Db::table("cms_order")->insert($order_data)){
-                    Db::commit();
-                    return ['total_fee'=>$total_fee, 'out_trade_no'=>$order_data['out_trade_no']];
-                }else{
-                    exception('下单失败');
-                }
+					if(Db::table("cms_order")->insert($order_data)){
+						Db::commit();
+						return ['total_fee'=>$total_fee, 'out_trade_no'=>$order_data['out_trade_no']];
+					}else{
+						exception('下单失败');
+					}					
+				}else{
+					exception('下单失败');
+				}
             } catch (\Exception $e) {
                 Db::rollback();
                 $this->writeGetDataLog($e->getMessage());
