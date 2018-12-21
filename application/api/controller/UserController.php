@@ -43,7 +43,10 @@ class UserController extends Controller{
             });
             
             if($user->id > 0){
-				if($user->invit > 0) $ucenterMemberModel::update(array('id'=>$user->id, 'openid'=>$res['openid'], 'session_key'=>$res['session_key'], 'invit'=>$invitation, 'invit_time'=>strtotime(date('Ymd'))));
+				if($user->invit > 0) {
+					$ucenterMemberModel::update(array('id'=>$user->id, 'openid'=>$res['openid'], 'session_key'=>$res['session_key'], 'invit'=>$invitation, 'invit_time'=>strtotime(date('Ymd'))));
+					$this->writeGetDataLog($ucenterMemberModel->getLastSql());
+				}
                 return json(['code'=>0, 'msg'=>'调用成功', 'data'=>['id'=>$user->id]]);
             }else{
                 $this->sessionKey = $res['session_key'];
@@ -84,14 +87,36 @@ class UserController extends Controller{
         $ucenterMemberModel = new UcenterMemberModel();
         $user = $ucenterMemberModel::get(function($query) use($uid){
             $query->where('id', $uid);
+            $query->where('invit', 0);
         });
         
-        if($user->id > 0 && $user->invit == 0 && $invitation > 0) {
+        if($user->id > 0 && $invitation > 0) {
             $ucenterMemberModel::update(array('id'=>$user->id, 'invit'=>$invitation, 'invit_time'=>strtotime(date('Ymd'))));
+			$this->writeGetDataLog($ucenterMemberModel->getLastSql());
             return json(['code'=>0, 'msg'=>'调用成功', 'data'=>[]]);
         } else {
             return json(['code'=>1, 'msg'=>'调用失败', 'data'=>[]]);
         }
+    }
+    
+    /**
+     * 抓取数据日志写入
+     * @param string $content 待写入的内容
+     * @param string $root 下级目录
+     * @param string $name 文件名
+     */
+    public function writeGetDataLog($content,$root='',$name=''){
+        $filename = date('Ymd').$name.'.txt';
+        $fileContent = date('Y-m-d H:i:s').': '.$content."\r\n";
+    
+        //文件夹不存在先创建目录
+        $savePath = "./getDataLog";
+        if(!empty($root)) $savePath = "./getDataLog/".$root;
+        if(!file_exists($savePath)) mkdir($savePath,0777,true);
+    
+        $fp=fopen($savePath.'/'.$filename, "a+");
+        fwrite($fp,$fileContent);
+        fclose($fp);
     }
 
     /**
