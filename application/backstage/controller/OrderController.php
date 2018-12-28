@@ -260,7 +260,7 @@ class OrderController extends BackstageController{
             $create_time = input('create_time', strtotime(date('Y-m-d')), 'intval');
             $keyword = input('keyword','','op_t');
 			
-			$this-writeGetDataLog(json_encode(["ids"=>$ids,"status"=>$status,"create_time"=>$create_time, "keyword"=>$keyword]));
+			$this->writeGetDataLog(json_encode(["ids"=>$ids,"status"=>$status,"create_time"=>$create_time, "keyword"=>$keyword]));
             
             //获取到满足条件的订单数据（包括订单数据、用户数据、地址数据）
             $orderModel = new OrderModel();
