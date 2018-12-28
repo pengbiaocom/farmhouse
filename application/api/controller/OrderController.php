@@ -93,7 +93,7 @@ class OrderController extends Controller{
         $coupon_price = config('COUPON_DENOMINATION');//没设置的情况下默认为1分钱
         $coupon_num = intval($coupon_num);
         
-        if(!empty($user['id']) && $user['id'] != 1 && $coupon_num <= $coupon_max && $coupon_num <= $user['coupon_num']){
+        if(!empty($user['id']) && $user['id'] != 1 && $coupon_num <= $coupon_max && $coupon_num <= $user['coupon_num'] && time() < strtotime(date('Ymd200000'))){
             $total_fee = 0;//订单总价
             $productList = [];//商品信息
             $order_data = [];//订单数据

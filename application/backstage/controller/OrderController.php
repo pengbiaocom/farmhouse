@@ -259,6 +259,8 @@ class OrderController extends BackstageController{
             $status = input('status', -1, 'intval');
             $create_time = input('create_time', strtotime(date('Y-m-d')), 'intval');
             $keyword = input('keyword','','op_t');
+			
+			$this-writeGetDataLog(json_encode(["ids"=>$ids,"status"=>$status,"create_time"=>$create_time, "keyword"=>$keyword]));
             
             //获取到满足条件的订单数据（包括订单数据、用户数据、地址数据）
             $orderModel = new OrderModel();
@@ -288,7 +290,7 @@ class OrderController extends BackstageController{
                     $query->where('id', $item['id']);
                 });
                 
-                $item['distribution'] = $item['distribution'] == -1 ? $item['distribution'] : ($item['distribution'] == 0 ? '次日09:00-11:30（自取）': '次日15:00-19:00（自取）');
+                $item['distribution'] = '次日09:00-19:00（自取）';//$item['distribution'] == -1 ? $item['distribution'] : ($item['distribution'] == 0 ? '次日09:00-11:30（自取）': '次日15:00-19:00（自取）');
                 $item['remark'] = empty($item['remark']) ? '无' : $item['remark'];
                 $item['create_time'] = date('Y-m-d H:i:s', $item['create_time']);
         
@@ -316,6 +318,26 @@ class OrderController extends BackstageController{
         
         return $this->fetch('print_select');
     }
+    
+    /**
+     * 抓取数据日志写入
+     * @param string $content 待写入的内容
+     * @param string $root 下级目录
+     * @param string $name 文件名
+     */
+    public function writeGetDataLog($content,$root='',$name=''){
+        $filename = date('Ymd').$name.'.txt';
+        $fileContent = date('Y-m-d H:i:s').': '.$content."\r\n";
+    
+        //文件夹不存在先创建目录
+        $savePath = "./getDataLog";
+        if(!empty($root)) $savePath = "./getDataLog/".$root;
+        if(!file_exists($savePath)) mkdir($savePath,0777,true);
+    
+        $fp=fopen($savePath.'/'.$filename, "a+");
+        fwrite($fp,$fileContent);
+        fclose($fp);
+    } 
     
     /**
     * 获取满足条件的退款订单
