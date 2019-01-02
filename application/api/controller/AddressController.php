@@ -128,7 +128,7 @@ class AddressController extends Controller{
 
         if(empty($data['name'])){
             return json(['code'=>1,'msg'=>'请输入收货人姓名']);
-        }else if(!preg_match("/^1[345678]{1}\d{9}$/",$data['mobile'])){
+        }else if(!preg_match("/^1[3456789]{1}\d{9}$/",$data['mobile'])){
             return json(['code'=>1,'msg'=>'请输入正确的手机号']);
         }else if(empty($data['pos_province']) || empty($data['pos_city']) || empty($data['pos_district']) || empty($data['pos_community'])){
             return json(['code'=>1,'msg'=>'请填写收货地址']);
@@ -167,7 +167,7 @@ class AddressController extends Controller{
 
         if(empty($data['name'])){
             return json(['code'=>1,'msg'=>'请输入收货人姓名']);
-        }else if(!preg_match("/^1[345678]{1}\d{9}$/",$data['mobile'])){
+        }else if(!preg_match("/^1[3456789]{1}\d{9}$/",$data['mobile'])){
             return json(['code'=>1,'msg'=>'请输入正确的手机号']);
         }else if(empty($data['pos_province']) || empty($data['pos_city']) || empty($data['pos_district']) || empty($data['pos_community'])){
             return json(['code'=>1,'msg'=>'请填写收货地址']);
