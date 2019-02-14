@@ -585,8 +585,8 @@ class UserController extends Controller{
        
        if($today_invit_count == 0){
            //当天没有要求下线成员，默认5%返利
-           $rebates['invit_rebate'] = 5;
-           $rebates['invit_money'] = sprintf("%.2f", $today_invit_consumption*5/100);
+           $rebates['invit_rebate'] = $invitInitScale;
+           $rebates['invit_money'] = sprintf("%.2f", $today_invit_consumption*$invitInitScale/100);
        }else{
            $rebates['invit_rebate'] = min($invitInitScale+($today_invit_count-1)*$invitIncScale, $invitMaxScale);
            $rebates['invit_money'] = sprintf("%.2f", $today_invit_consumption*$rebates['invit_rebate']/100);
@@ -727,7 +727,7 @@ class UserController extends Controller{
        $rebates['invit_count'] = $today_invit_count;
        if($today_invit_count == 0){
            //当天没有要求下线成员，默认5%返利
-           $rebates['invit_rebate'] = 5;
+           $rebates['invit_rebate'] = $invitInitScale;
        }else{
            $rebates['invit_rebate'] = min($invitInitScale+($today_invit_count-1)*$invitIncScale, $invitMaxScale);
        }
