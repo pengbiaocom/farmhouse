@@ -270,7 +270,7 @@ class BootsController extends Controller{
                     }
                 
                     if($today_invit_count == 0){
-                        $invit_money = sprintf("%.2f", $today_invit_consumption*5/100);
+                        $invit_money = sprintf("%.2f", $today_invit_consumption*$invitInitScale/100);
                     }else{
                         $invit_rebate = min($invitInitScale+($today_invit_count-1)*$invitIncScale, $invitMaxScale);
                         $invit_money = sprintf("%.2f", $today_invit_consumption*$invit_rebate/100);
