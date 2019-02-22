@@ -245,7 +245,7 @@ class UserController extends Controller{
            }
        }elseif ($detail['status'] == 1){
            $boef_time = strtotime(date('Ymd'));
-           if($detail['create_time'] > $boef_time && $detail['create_time'] < intval($boef_time+70200)){
+           if($detail['create_time'] > $boef_time && time() < intval($boef_time+70200)){
                $del = db("order")->where(['id'=>$order_id])->update(['status'=>-1]);
                if($del){
                    //处理退款接口
