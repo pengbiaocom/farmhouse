@@ -293,6 +293,36 @@ class BootsController extends Controller{
             });
             
             if($orders){
+				//先把当天的商品数据获取到    获取到当天销量、价格阶段
+				$prices = [];
+				$funds = [];
+				
+				$productModel = new ProductModel();
+				$products = $productModel::all(function($query){
+					$query->field("id,price,price_line,sales");
+					$query->where('status', 1);
+				});
+				if($products){
+					foreach ($products as $product){
+						$curr_price = $product['price'];
+						if(!empty($product['price_line'])){
+							$array = preg_split('/[,;\r\n]+/', trim($product['price_line'], ",;\r\n"));
+						
+							if(strpos($product['price_line'],'|')){
+								foreach ($array as $val) {
+									list($k, $v) = explode('|', $val);
+									if($product['sales'] >= $k){
+										$curr_price = number_format($v,2,".","");
+									}
+								}
+							}
+						}
+						$prices[$product['id']] = ['price'=>$product['price'], 'curr_price'=>$curr_price, 'sales'=>$product['sales']];
+					}
+				}
+				
+				
+				
                 foreach ($orders as $order){
                     if($order['status'] > 0){
                         $order['product_info'] = json_decode($order['product_info'], true);
@@ -328,7 +358,6 @@ class BootsController extends Controller{
                                 }
                             }
                         }
-        
                         //更改订单中的应退款金额
                         $orderModel->where('id', $order['id'])->update(['refund_fee'=>$fund_fee]);
                     }else{
@@ -343,6 +372,37 @@ class BootsController extends Controller{
                             }
                         }
                     }
+					
+					
+					//开始生成数据
+					if(sizeof($funds) > 0){
+						$fundsModel = new FundsModel();
+						
+						$fundsList = [];
+						foreach ($funds as $fund){
+							$info = $fundsModel::get(function($query) use($fund){
+								$query->where('uid', $fund['uid']);
+								$query->where('date', $fund['date']);
+							});
+							
+							if(empty($info)){
+								$data = array();
+								$data['uid'] = $fund['uid'];
+								$data['date'] = $fund['date'];
+								$data['date_str'] = $fund['date_str'];
+								$data['product_info'] = json_encode($fund['product_info']);
+								$data['addtime'] = time();
+								
+								$fundsList[] = $data;unset($data);
+							}
+						}
+						
+						if($fundsModel->saveAll($fundsList)){
+							$this->writeGetDataLog('生成用户退款明细数据成功');
+						}else{
+							$this->writeGetDataLog('生成用户退款明细数据失败');
+						}
+					}					
                 }
             }
 			$this->writeGetDataLog("返利和应退处理完成");
@@ -395,7 +455,9 @@ class BootsController extends Controller{
 			}
             
             return false;
-        }
+        }else{
+			return false;
+		}
     }
 
     /**
