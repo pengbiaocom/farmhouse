@@ -5,6 +5,7 @@ use think\Controller;
 use think\Request;
 use app\common\model\OrderModel;
 use app\common\model\ProductModel;
+use app\common\model\FundsModel;
 use app\common\model\CouponModel;
 use app\common\model\UcenterMemberModel;
 use think\Db;
@@ -211,86 +212,82 @@ class BootsController extends Controller{
             $orderModel = new OrderModel();
             $orders = $orderModel::all(function($query) use($boef_time){
                 $query->alias('order');
+				$query->field('order.*,user.openid, user.invit');
                 $query->join('__UCENTER_MEMBER__ user', 'order.uid = user.id', 'left');
-                $query->where('order.status', '>', 0);
+                $query->where('order.status', '>', -1);
                 $query->where('order.create_time', 'between', [$boef_time,$boef_time+86400]);//今天的数据
                 $query->group('order.uid');
             });
             
             $invit_dis = [];
             foreach ($orders as $order){
-                /* 计算购买返利  */
-                $ucenterMemberModel = new UcenterMemberModel();
-                $users = $ucenterMemberModel::all(function($query) use($order,$boef_time){
-                   $query->field('user.continuity_buy, sum(order.total_fee) as total_fee, FROM_UNIXTIME(order.create_time,"%Y%m%d") as create_date');
-                   $query->alias('user');
-                   $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
-                   $query->where('user.id', $order['uid']);
-                   $query->where('order.status', '>', 0);
-                   $query->where('order.create_time', 'between', [$boef_time-172800,$boef_time]);
-                   $query->order('create_date DESC');
-                   $query->group('FROM_UNIXTIME(order.create_time,"%Y%m%d")');
-                });
-                
-                $buy_money = '0.00';
-                foreach ($users as $user){
-                    if($user['continuity_buy'] == 0){
-                        $buy_money = '0.00';
-                    } else {
-                        $rebate = $buyInitScale + ($user['continuity_buy']-1)*$buyIncScale;
-                        $buy_rebate = min($rebate, $buyMaxScale);
-                        $buy_money = sprintf("%.2f", $user['total_fee']*$buy_rebate/100);
-                    }
-                
-                    if($user['total_fee'] > 0) break;
-                }
-                
-                //开始发放购买奖励
-                $this->profit($order['openid'], $buy_money, 1);
-                
-                
-                /* 计算邀请返利 */
-                if($order['invit'] > 0){
-                    $invits = $ucenterMemberModel::all(function($query) use($order,$boef_time){
-                        $query->field('user.invit_time, sum(order.total_fee) as total_fee, order.create_time');
-                        $query->alias('user');
-                        $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
-                        $query->where('user.invit', $order['invit']);
-                        $query->where('order.status', '>', 0);
-                        $query->where('order.create_time', '>', $boef_time);
-						$query->group('order.uid');
-                    });
-                    
-                    $today_invit_count = 0;
-                    $today_invit_consumption = 0;
-                    foreach ($invits as $invit){
-                        if($invit['invit_time'] == $boef_time && !empty($invit)) $today_invit_count += 1;
-                        
-                        if(strtotime(date('Ymd',$invit['create_time'])) == $boef_time) $today_invit_consumption += $invit['total_fee'];
-                    }
-                
-                    if($today_invit_count == 0){
-                        $invit_money = sprintf("%.2f", $today_invit_consumption*$invitInitScale/100);
-                    }else{
-                        $invit_rebate = min($invitInitScale+($today_invit_count-1)*$invitIncScale, $invitMaxScale);
-                        $invit_money = sprintf("%.2f", $today_invit_consumption*$invit_rebate/100);
-                    }
-                
-                    //开始发放邀请奖励
-                    if(!in_array($order['invit'], $invit_dis)){
-                        $openid = $ucenterMemberModel->where('id', $order['invit'])->value('openid');
-                        $this->profit($openid, $invit_money, 2);
-                        $invit_dis[] = $order['invit'];
-                    }
-                }
+				if($oder['status'] > 0){
+					/* 计算购买返利  */
+					$ucenterMemberModel = new UcenterMemberModel();
+					$users = $ucenterMemberModel::all(function($query) use($order,$boef_time){
+					   $query->field('user.continuity_buy, sum(order.total_fee) as total_fee, FROM_UNIXTIME(order.create_time,"%Y%m%d") as create_date');
+					   $query->alias('user');
+					   $query->join('__ORDER__ order', 'user.id = order.uid', 'left');
+					   $query->where('user.id', $order['uid']);
+					   $query->where('order.status', '>', 0);
+					   $query->where('order.create_time', 'between', [$boef_time-172800,$boef_time]);
+					   $query->order('create_date DESC');
+					   $query->group('FROM_UNIXTIME(order.create_time,"%Y%m%d")');
+					});
+					
+					$buy_money = '0.00';
+					foreach ($users as $user){
+						if($user['continuity_buy'] == 0){
+							$buy_money = '0.00';
+						} else {
+							$rebate = $buyInitScale + ($user['continuity_buy']-1)*$buyIncScale;
+							$buy_rebate = min($rebate, $buyMaxScale);
+							$buy_money = sprintf("%.2f", $user['total_fee']*$buy_rebate/100);
+						}
+					
+						if($user['total_fee'] > 0) break;
+					}
+					
+					//开始发放购买奖励
+					$this->profit($order['openid'], $buy_money, 1);
+					
+					
+					/* 计算邀请返利 */
+					if($order['invit'] > 0){
+						$invits = $ucenterMemberModel::all(function($query) use($order,$boef_time){
+							$query->field('user.invit_time, sum(order.total_fee) as total_fee, order.create_time');
+							$query->alias('user');
+							$query->join('__ORDER__ order', 'user.id = order.uid', 'left');
+							$query->where('user.invit', $order['invit']);
+							$query->where('order.status', '>', 0);
+							$query->where('order.create_time', 'between', [$boef_time,$boef_time + 86400]);
+							$query->group('order.uid');
+						});
+						
+						$today_invit_count = 0;
+						$today_invit_consumption = 0;
+						foreach ($invits as $invit){
+							if($invit['invit_time'] == $boef_time && !empty($invit)) $today_invit_count += 1;
+							
+							if(strtotime(date('Ymd',$invit['create_time'])) == $boef_time) $today_invit_consumption += $invit['total_fee'];
+						}
+					
+						if($today_invit_count == 0){
+							$invit_money = sprintf("%.2f", $today_invit_consumption*$invitInitScale/100);
+						}else{
+							$invit_rebate = min($invitInitScale+($today_invit_count-1)*$invitIncScale, $invitMaxScale);
+							$invit_money = sprintf("%.2f", $today_invit_consumption*$invit_rebate/100);
+						}
+					
+						//开始发放邀请奖励
+						if(!in_array($order['invit'], $invit_dis)){
+							$openid = $ucenterMemberModel->where('id', $order['invit'])->value('openid');
+							$this->profit($openid, $invit_money, 2);
+							$invit_dis[] = $order['invit'];
+						}
+					}					
+				}
             }
-            
-            
-            //获取到当天的所有订单，并把所涉及到的用户分组，每个用户内的商品进行处理
-            $orderModel = new OrderModel();
-            $orders = $orderModel::all(function($query) use($boef_time){
-                $query->where('create_time', '>', $boef_time);
-            });
             
             if($orders){
 				//先把当天的商品数据获取到    获取到当天销量、价格阶段
@@ -320,8 +317,6 @@ class BootsController extends Controller{
 						$prices[$product['id']] = ['price'=>$product['price'], 'curr_price'=>$curr_price, 'sales'=>$product['sales']];
 					}
 				}
-				
-				
 				
                 foreach ($orders as $order){
                     if($order['status'] > 0){
