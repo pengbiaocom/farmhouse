@@ -211,4 +211,16 @@ class DistrictController extends BackstageController{
             return json(['code'=>1,'msg'=>'ok','data'=>$district]);
         }
     }
+
+    public function get_streets(){
+        $upid = $this->request->param('upid');
+
+        $district = db("district")->where(['level'=>4,'upid'=>$upid,'is_show'=>1])->order("id asc")->select();
+
+        if($district){
+            return json(['code'=>0,'msg'=>'ok','data'=>$district]);
+        }else{
+            return json(['code'=>1,'msg'=>'ok','data'=>$district]);
+        }
+    }
 }

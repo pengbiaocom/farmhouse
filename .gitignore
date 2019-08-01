@@ -2,3 +2,6 @@
 composer.lock
 *.log
 /runtime/*
+/.settings
+.buildpath
+.project

@@ -28,6 +28,7 @@ class OrderController extends BackstageController{
         $pro = input("pro",-1,'intval');
         $city = input('city',-1,'intval');
         $dis = input("dis",-1,'intval');
+        $street = input("street",-1,'intval');
 
         //区域
         if($pro!=-1){
@@ -96,13 +97,11 @@ class OrderController extends BackstageController{
         }
 
         //检测动态权限
-        $rule1 = strtolower( 'backstage/order/print_search');
-        $rule2 = strtolower( 'backstage/order/print_search');
-        $rule3 = strtolower( 'backstage/order/refunds');
-        $rule4 = strtolower( 'backstage/order/refunds');
+        $rule1 = strtolower('backstage/order/print_search');
+        $rule2 = strtolower('backstage/order/refunds');
+        $rule3 = strtolower('backstage/order/template');
 
-
-        $is_auth1 = $is_auth2 = $is_auth3 = $is_auth4 = 0;
+        $is_auth1 = $is_auth2 = $is_auth3 = 0;
         if (!$this->checkRule($rule1, AuthRuleModel::RULE_URL, null)) {
             $is_auth1 = 1;
         }
@@ -110,23 +109,190 @@ class OrderController extends BackstageController{
             $is_auth2 = 1;
         }
         if (!$this->checkRule($rule3, AuthRuleModel::RULE_URL, null)) {
-            $is_auth3 = 1;
-        }
-        if (!$this->checkRule($rule4, AuthRuleModel::RULE_URL, null)) {
-            $is_auth4 = 1;
+            $is_auth2 = 1;
         }
 
         $this->assign("is_auth1",$is_auth1);
         $this->assign("is_auth2",$is_auth2);
         $this->assign("is_auth3",$is_auth3);
-        $this->assign("is_auth4",$is_auth4);
         $this->assign("pro",$pro);
         $this->assign("city",$city);
         $this->assign("dis",$dis);
+        $this->assign("street",$street);
         $this->assign('list', $list);
         $this->assign('_page',$totalCount);
         $this->assign('meta_title', '订单列表');
         return $this->fetch();
+    }
+    
+    /**
+    * 发送模版通知
+    * @date: 2019年8月1日 上午9:56:26
+    * @author: onep2p <324834500@qq.com>
+    * @param: variable
+    * @return:
+    */
+    public function template(){
+        $config = [
+            'appid'=>'wxa6737565830cae42',
+            'secret'=>'2db64a778849a93bf4481a5815427a54'
+        ];
+        
+        
+        $params = $this->request->param();
+                
+        $resJson = $this->postXmlCurl("", "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" . $config["appid"] . "&secret=" . $config["secret"]);
+        $resJson = json_decode($resJson, true);
+        if(isset($resJson['access_token']) && !empty($resJson['access_token'])){
+            $orderModel = new OrderModel();
+            $orders = $orderModel::all(function($query) use($params){
+                $query->alias('order');
+            
+                $query->field('uc.openid,address.name as nickname,group_concat(order.out_trade_no) as out_trade_nos,order.formId,province.name as province_name,city.name as city_name,district.name as district_name,street.name as street_name,address.pos_community,group_concat(order.product_info SEPARATOR ";") as product_infos');//整理数据
+            
+                $query->where('order.status', 'in', '1,2');//待发货的
+                $query->where('order.is_message_send', 0);//没有通知的
+                $query->where('order.create_time', 'between', [$params['create_time'], $params['create_time']+86400]);
+            
+                $query->join('__MEMBER__ member', 'order.uid = member.uid', 'LEFT');//需要获取到用户openID
+                $query->join('__UCENTER_MEMBER__ uc', 'order.uid = uc.id', 'LEFT');
+            
+                $query->join('__RECEIVING_ADDRESS__ address', 'order.address_id = address.id', 'LEFT');
+                $query->join('__DISTRICT__ province', 'address.pos_province = province.id', 'LEFT');
+                $query->join('__DISTRICT__ city', 'address.pos_city = city.id', 'LEFT');
+                $query->join('__DISTRICT__ district', 'address.pos_district = district.id', 'LEFT');
+                $query->join('__DISTRICT__ street', 'address.street_id = street.id', 'LEFT');
+            
+                if(isset($params['ids']) && !empty($params['ids'])) {
+                    $query->where('order.id', 'in', $params['ids']);
+                }else{
+                    if(isset($params['street']) && $params['street'] != -1){
+                        $query->where('address.street_id', $params['street']);//筛选的街道
+                    }else{
+                        if(isset($params['dis']) && $params['dis'] != -1){
+                            $query->where('address.pos_district', $params['dis']);//筛选的区县
+                        }else{
+                            if(isset($params['city']) && $params['city'] != -1){
+                                $query->where('address.pos_city', $params['city']);//筛选的城市
+                            }else{
+                                if(isset($params['pro']) && $params['pro'] != -1){
+                                    $query->where('address.pos_province', $params['pro']);//筛选的城市
+                                }
+                            }
+                        }
+                    }
+                }
+            
+                //分组
+                $query->group('order.uid');
+            });
+            
+                foreach ($orders as $order){
+                    $product_infos = [];
+                    foreach (explode(';', $order->product_infos) as $product_info){
+                        $products = json_decode($product_info, true);
+                        foreach ($products as $product){
+                            $product_infos[] = $product['name'] . '*' . $product['num'];
+                        }
+                    }
+            
+                    if(!empty($order->formId)){
+                        $template = array(
+                            'touser'		=> $order->openid,
+                            'template_id'	=> '7xa7B1oydUK9XDBvwe5nQUnKsCeYk6cNHWVsImVAb3I',
+                            'form_id'	=> $order->formId,
+                            'data' => [
+                                'keyword1'=>['value'=>$order->nickname],
+                                'keyword2'=>['value'=>date('Y年m月d日H时i分')],
+                                'keyword3'=>['value'=>$order->province_name . $order->city_name . $order->district_name . $order->street_name . $order->pos_community],
+                                'keyword4'=>['value'=>implode(',', $product_infos)],
+                                'keyword5'=>['value'=>'待收货']
+                            ],//退款唯一单号，系统生成
+                        );
+            
+                        //请求数据
+                        $url = 'https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token=' . $resJson['access_token'];
+                        $res = self::postXmlCurl(json_encode($template), $url, false);
+                        $resData = json_decode($res, true);
+                        
+                        if($resData['errcode'] == 0){
+                            ob_flush();
+                            flush();
+                            echo '用户：'.$order->nickname.'发送通知完成。<br/>';
+                            $orderModel->where('out_trade_no', 'in', $order->out_trade_nos)->update(['is_message_send'=>1]);
+                        }else{
+                            switch ($resData['errcode']) {
+                                case 40037:
+                                    echo 'template_id不正确';
+                                break;
+                                case 41028:
+                                    echo 'form_id不正确，或者过期';
+                                break;
+                                case 41029:
+                                    echo '用户：'.$order->nickname.'已经发送（form_id已被使用）';
+                                    $orderModel->where('out_trade_no', 'in', $order->out_trade_nos)->update(['is_message_send'=>1]);
+                                break;
+                                case 41030:
+                                    echo 'page不正确';
+                                break;
+                                case 45009:
+                                    echo '接口调用超过限额（目前默认每个帐号日调用限额为100万）';
+                                break;
+                            }
+                        }
+                    }
+                }
+        }
+    }
+    
+    public function export_order()
+    {
+        vendor("PHPExcel.PHPExcel");
+        $objPHPExcel = new \PHPExcel();
+
+
+        //定义配置
+        $title = "测试表格";
+        $topNumber = 2;//表头有几行占用
+        $xlsTitle = iconv('utf-8', 'gb2312', $title);//文件名称
+        $fileName = $title.date('_YmdHis');//文件名称
+        $cellKey = array(
+            'A','B','C','D','E','F','G','H','I','J','K','L','M',
+            'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+            'AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM',
+            'AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ'
+        );
+        
+        /**
+         * 第一个sheet
+         */
+        //处理表头标题
+        $objPHPExcel->getActiveSheet()->mergeCells('A1:'.$cellKey[10].'1');//合并单元格（如果要拆分单元格是需要先合并再拆分的，否则程序会报错）
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A1','订单信息');
+        $objPHPExcel->getActiveSheet()->setTitle('销售数据');
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setBold(true);
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(18);
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+
+        
+        
+        /**
+         * 第二个sheet
+         */
+        //创建
+        $objPHPExcel->createSheet();
+        $objPHPExcel->setActiveSheetIndex(1);
+        $objPHPExcel->getActiveSheet()->setTitle('订单数据');
+
+        //导出execl
+        header('pragma:public');
+        header('Content-type:application/vnd.ms-excel;charset=utf-8;name="'.$xlsTitle.'.xls"');
+        header("Content-Disposition:attachment;filename=$fileName.xls");//attachment新窗口打印inline本窗口打印
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        $objWriter->save('php://output');
+        exit;
     }
 
     /**
@@ -750,7 +916,7 @@ class OrderController extends BackstageController{
 	 * @param int $second   url执行超时时间，默认30s
 	 * @throws WxPayException
 	 */
-	private static function postXmlCurl($xml, $url, $useCert = false, $second = 30)
+	private static function postXmlCurl($xml, $url, $useCert = false, $second = 30, $isPost = true)
 	{		
 		$ch = curl_init();
 		//设置超时
@@ -775,8 +941,10 @@ class OrderController extends BackstageController{
 		}
 		
 		//post提交方式
-		curl_setopt($ch, CURLOPT_POST, TRUE);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+		if($isPost){
+		    curl_setopt($ch, CURLOPT_POST, TRUE);
+		    curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+		}
 		
 		//运行curl
 		$data = curl_exec($ch);

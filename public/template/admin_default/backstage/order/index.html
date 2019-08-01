@@ -33,14 +33,17 @@
                     <if condition="$is_auth1 eq 0">
                         <a class="layui-btn print-btn" data-confirm="打印所选项" data-param="true" url="{:url('Order/print_search')}">打印所选项</a>
                     </if>
-	                <if condition="$is_auth2 eq 0">
+	                <if condition="$is_auth1 eq 0">
                         <a class="layui-btn print-btn" data-confirm="打印筛选结果" url="{:url('Order/print_search')}">打印筛选结果</a>
                     </if>
-	                <if condition="$is_auth3 eq 0">
+	                <if condition="$is_auth2 eq 0">
                         <a class="layui-btn fund-btn" data-confirm="退还所选项" data-param="true" url="{:url('Order/refunds')}">退还所选项</a>
                     </if>
-	                <if condition="$is_auth4 eq 0">
+	                <if condition="$is_auth2 eq 0">
                         <a class="layui-btn fund-btn" data-confirm="退还筛选结果" url="{:url('Order/refunds')}">退还筛选结果</a>
+                    </if>
+	                <if condition="$is_auth3 eq 0">
+                        <a class="layui-btn template-btn" data-confirm="通知筛选结果" url="{:url('Order/template')}">发送待收货通知</a>
                     </if>
 	                <!-- 高级搜索 -->
 	            </div>
@@ -59,9 +62,13 @@
                 			</select>
                 		</div>
                 		<div class="select_box" style="width:100px;">
-                			<select name="dis" lay-filter="select_text">
+                			<select name="dis" lay-filter="select_text3">
                 			</select>
-                		</div>              		
+                		</div>    
+                		<div class="select_box" style="width:100px;">
+                			<select name="street" lay-filter="select_text">
+                			</select>
+                		</div>           		
                 	</div>
                 	<div class="oneselect">
                 		<div class="title">日期：</div>
@@ -200,14 +207,17 @@
                 $('#selectForm').submit();
             });
             form.on('select(select_text1)',function(data){
-                console.log(1)
                 $("select[name='city']").val(-1);
                 $('#selectForm').submit();
             });
 
             form.on('select(select_text2)',function(data){
-                console.log(1)
                 $("select[name='dis']").val(-1);
+                $('#selectForm').submit();
+            });
+
+            form.on('select(select_text3)',function(data){
+                $("select[name='street']").val(-1);
                 $('#selectForm').submit();
             });
 
@@ -268,6 +278,25 @@
 
                 form.render("select");
             });
+            var street_id = "{$street}";
+                $.post("{:url('District/get_streets')}",{upid:dis_id},function(res){
+                    if(street_id==-1){
+                        $("select[name='street']").append('<option value="-1" selected>请选择</option>');
+                    }else{
+                        $("select[name='street']").append('<option value="-1">请选择</option>');
+                    }
+                    if(res.code==0){
+                        $.each(res.data, function(i,val){
+                            if(street_id == val.id){
+                                $("select[name='street']").append('<option value="'+val.id+'" selected>'+val.name+'</option>');
+                            }else{
+                                $("select[name='street']").append('<option value="'+val.id+'">'+val.name+'</option>');
+                            }
+                        });
+                    }
+
+                    form.render("select");
+                });
 	    });    
     
     
@@ -363,6 +392,53 @@
                 		var isParam = $(this).attr('data-param');
                     	if(isParam) {
                     		layer.msg('你还没有选择要退款的订单'); 
+                    		return false;
+                    	}
+                    }
+            		
+                    var query = $('#selectForm').serialize();
+                    query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+                    query = query.replace(/^&/g, '');
+                    if (url.indexOf('?') > 0) {
+                        url += '&' + query;
+                    } else {
+                        url += '?' + query;
+                    }
+                    
+                    if(param != undefined && param != ''){
+                        if (url.indexOf('?') > 0) {
+                            url += '&ids=' + param;
+                        } else {
+                            url += '?dis' + param;
+                        }
+                    }
+                    
+                    window.open(url, '_blank', 'height=750, width=600, top=0, left=0, toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, status=no')
+            	}
+            });
+            
+            //通知
+            $(".template-btn").click(function(){
+            	var text = $(this).attr('data-confirm');
+            	var result = confirm(text);
+            	
+            	if(result) {
+            		var url = $(this).attr('url');
+            		
+            		var ids = $('.ids:checked');
+            		
+                    var param = '';
+                    if (ids.length > 0) {
+                        var str = new Array();
+                        ids.each(function () {
+                            str.push($(this).val());
+                        });
+                        param = str.join(',');
+                    }else{
+                    	//判断是否强制选择
+                		var isParam = $(this).attr('data-param');
+                    	if(isParam) {
+                    		layer.msg('你还没有选择要通知的订单'); 
                     		return false;
                     	}
                     }

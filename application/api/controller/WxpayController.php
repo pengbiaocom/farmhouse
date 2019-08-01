@@ -77,7 +77,7 @@ class WxpayController extends Controller{
             'mch_id'		=> $config['pay_mchid'],
             'nonce_str'		=> self::getNonceStr(),
             'body'			=> '益丰众购-商品购买',
-            'out_trade_no'	=> 'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT),//每一次的发起支付都重新生成一下订单号，并替换数据库
+            'out_trade_no'	=> $order->out_trade_no,//'YF'.date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT),//每一次的发起支付都重新生成一下订单号，并替换数据库
             'total_fee'		=> $order->total_fee * 100,
             'spbill_create_ip'	=> get_client_ip(),
             'notify_url'	=> 'https://api.yifengzhonggou.com/api/Wxpay/notify',
@@ -86,9 +86,9 @@ class WxpayController extends Controller{
         );
         
         //更新数据库单号
-        $orderModel::update(['out_trade_no'=>$unifiedorder['out_trade_no']], function($query) use($order){
-            $query->where('id', $order->id);
-        });
+        //$orderModel::update(['out_trade_no'=>$unifiedorder['out_trade_no']], function($query) use($order){
+        //    $query->where('id', $order->id);
+        //});
         
 
         $unifiedorder['sign'] = self::makeSign($unifiedorder);

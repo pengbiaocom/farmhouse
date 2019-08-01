@@ -7,7 +7,7 @@ use app\common\model\AuthRuleModel;
 use app\common\model\ModuleModel;
 use app\common\model\MenuModel;
 
-class BackstageController extends BaseController{
+class backstageController extends BaseController{
 
     public function _initialize(){
         header("Content-type: text/html; charset=utf-8");
