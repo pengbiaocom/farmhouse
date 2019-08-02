@@ -250,9 +250,65 @@ class OrderController extends BackstageController{
         vendor("PHPExcel.PHPExcel");
         $objPHPExcel = new \PHPExcel();
 
+        $params = $this->request->param();
+        if(!isset($params['create_time'])) $params['create_time'] = strtotime(date('Ymd'));
+        
+        //处理数据
+        $orderModel = new OrderModel();
+        $orders = $orderModel::all(function($query) use($params){
+            $query->alias('order');
+            $query->field('group_concat(order.product_info SEPARATOR ";") as product_infos,member.nickname,order.uid,address.name,address.mobile');
+            $query->join('__MEMBER__ member', 'order.uid = member.uid', 'LEFT');
+            $query->join('__RECEIVING_ADDRESS__ address', 'order.address_id = address.id', 'LEFT');
+            $query->where('order.status', '>', 0);
+            $query->where('order.create_time', 'between', [$params['create_time'], $params['create_time']+86400]);
+            
+            $query->group('order.uid');
+        });
+        
+        $products = [];
+        $users = [];
+        $productModel = new ProductModel();
+        foreach ($orders as $order){
+            foreach (explode(';', $order->product_infos) as $product_infos){
+                foreach (json_decode($product_infos, true) as $product){
+                    $productInfo = $productModel::get(function($query) use($product){
+                        $query->alias('product');
+                        $query->field('category.id as cate_id,category.title,product.id,product.spec,product.price');
+                        $query->where('product.id', $product['id']);
+                        $query->join('__PRODUCT_CATEGORY__ category', 'product.category = category.id', 'LEFT');
+                    });
+                
+                    //销售表数据
+                    $product['category'] = $productInfo->title;
+                    $product['spec'] = $productInfo->spec;
+                    $product['price'] = $productInfo->price;
+                    $product['user_name'] = $order->name;
+                    $product['mobile'] = $order->mobile;
+                    
+                    if (isset($products[$productInfo->cate_id][$productInfo->id])) {
+                        $products[$productInfo->cate_id][$productInfo->id]['num'] += $product['num'];
+                    }else{
+                        $products[$productInfo->cate_id]['category_name'] = $product['category'];
+                        $products[$productInfo->cate_id]['list'][$productInfo->id] = $product;
+                    }
+                    
+                    //用户订单表数据
+                    if (isset($users[$order->uid][$productInfo->id])) {
+                        $users[$order->uid][$productInfo->id]['num'] += $product['num'];
+                    }else{
+                        $users[$order->uid]['name'] = $order->name;
+                        $users[$order->uid]['mobile'] = $order->mobile;
+                        $users[$order->uid]['list'][$productInfo->id] = $product;
+                    }
+                }   
+            }
+        }
+//         dump($users);exit;
+//         dump($products);exit;
 
         //定义配置
-        $title = "测试表格";
+        $title = date('Y年m月d日', $params['create_time']) . "销售数据";
         $topNumber = 2;//表头有几行占用
         $xlsTitle = iconv('utf-8', 'gb2312', $title);//文件名称
         $fileName = $title.date('_YmdHis');//文件名称
@@ -267,15 +323,66 @@ class OrderController extends BackstageController{
          * 第一个sheet
          */
         //处理表头标题
-        $objPHPExcel->getActiveSheet()->mergeCells('A1:'.$cellKey[10].'1');//合并单元格（如果要拆分单元格是需要先合并再拆分的，否则程序会报错）
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A1','订单信息');
         $objPHPExcel->getActiveSheet()->setTitle('销售数据');
+        $objPHPExcel->getActiveSheet()->mergeCells('A1:'.$cellKey[8].'1');//合并单元格（如果要拆分单元格是需要先合并再拆分的，否则程序会报错）
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A1',date('Y年m月d日', $params['create_time']) . '销售信息');
         $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setBold(true);
         $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(18);
         $objPHPExcel->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         $objPHPExcel->getActiveSheet()->getStyle('A1')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
-
+        //处理表头
+        $objPHPExcel->getActiveSheet()->setCellValue('A2', '分类');
+        $objPHPExcel->getActiveSheet()->getColumnDimension('A')->setWidth(30);
+        $objPHPExcel->getActiveSheet()->setCellValue('B2', '名称');
+        $objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(60);
+        $objPHPExcel->getActiveSheet()->setCellValue('C2', '销量');
+        $objPHPExcel->getActiveSheet()->setCellValue('D2', '规格');
+        $objPHPExcel->getActiveSheet()->getColumnDimension('D')->setWidth(30);
+        $objPHPExcel->getActiveSheet()->setCellValue('E2', '单价');
+        $objPHPExcel->getActiveSheet()->setCellValue('F2', '合计（单价*销量）');
+        $objPHPExcel->getActiveSheet()->getColumnDimension('F')->setWidth(30);
+        
+        //处理第一个sheet的数据
+        $startHead = 3;
+        $total_price = 0;
+        foreach ($products as $product){
+            $headCount = count($product['list']);
+            if($headCount > 1){
+                $objPHPExcel->getActiveSheet()->mergeCells('A'.$startHead.':A'.($startHead + $headCount - 1));
+                $objPHPExcel->getActiveSheet()->setCellValue('A' . $startHead, $product['category_name']);
+                
+                $i = 0;
+                foreach ($product['list'] as $item){
+                    $num_price  = number_format($item['price']*$item['num'], 2);
+                    $objPHPExcel->getActiveSheet()->setCellValue('B' . ($startHead + $i), $item['name']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('C' . ($startHead + $i), $item['num']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('D' . ($startHead + $i), $item['spec']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('E' . ($startHead + $i), '￥'.$item['price']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('F' . ($startHead + $i), '￥'.$num_price);
+                    $total_price += $num_price;
+                    $i++;
+                }
+            }else{
+                $objPHPExcel->getActiveSheet()->setCellValue('A' . $startHead, $product['category_name']);
+                
+                $i = 0;
+                foreach ($product['list'] as $item){
+                    $num_price  = number_format($item['price']*$item['num'], 2);
+                    $objPHPExcel->getActiveSheet()->setCellValue('B' . ($startHead + $i), $item['name']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('C' . ($startHead + $i), $item['num']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('D' . ($startHead + $i), $item['spec']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('E' . ($startHead + $i), '￥'.$item['price']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('F' . ($startHead + $i), '￥'.$num_price);
+                    $total_price += $num_price;
+                    $i++;
+                }
+            }
+            $startHead += $headCount;
+        }
+        $objPHPExcel->getActiveSheet()->mergeCells('A'.$startHead.':E'.$startHead);
+        $objPHPExcel->getActiveSheet()->setCellValue('A' . $startHead, '合计');
+        $objPHPExcel->getActiveSheet()->setCellValue('F' . $startHead, '￥'.$total_price);
         
         
         /**
@@ -285,7 +392,57 @@ class OrderController extends BackstageController{
         $objPHPExcel->createSheet();
         $objPHPExcel->setActiveSheetIndex(1);
         $objPHPExcel->getActiveSheet()->setTitle('订单数据');
+        $objPHPExcel->getActiveSheet()->mergeCells('A1:'.$cellKey[8].'1');
+        $objPHPExcel->setActiveSheetIndex(1)->setCellValue('A1', date('Y年m月d日', $params['create_time']) . '用户订单信息');
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setBold(true);
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(18);
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
+        //处理第二个sheet表头
+        $objPHPExcel->getActiveSheet()->setCellValue('A2', '用户姓名');
+        $objPHPExcel->getActiveSheet()->getColumnDimension('A')->setWidth(30);
+        $objPHPExcel->getActiveSheet()->setCellValue('B2', '联系电话');
+        $objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(30);
+        $objPHPExcel->getActiveSheet()->setCellValue('C2', '购买商品');
+        $objPHPExcel->getActiveSheet()->getColumnDimension('C')->setWidth(60);
+        $objPHPExcel->getActiveSheet()->setCellValue('D2', '购买数量');
+        $objPHPExcel->getActiveSheet()->setCellValue('E2', '规格');
+        $objPHPExcel->getActiveSheet()->getColumnDimension('E')->setWidth(30);
+        
+        //处理第二个sheet的数据
+        $startHead = 3;
+        foreach ($users as $user){
+            $headCount = count($user['list']);
+            if($headCount > 1){
+                $objPHPExcel->getActiveSheet()->mergeCells('A'.$startHead.':A'.($startHead + $headCount - 1));
+                $objPHPExcel->getActiveSheet()->setCellValue('A' . $startHead, $user['name']);
+
+                $objPHPExcel->getActiveSheet()->mergeCells('B'.$startHead.':B'.($startHead + $headCount - 1));
+                $objPHPExcel->getActiveSheet()->setCellValue('B' . $startHead, $user['mobile']);
+        
+                $i = 0;
+                foreach ($user['list'] as $item){
+                    $objPHPExcel->getActiveSheet()->setCellValue('C' . ($startHead + $i), $item['name']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('D' . ($startHead + $i), $item['num']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('E' . ($startHead + $i), $item['spec']);
+                    $i++;
+                }
+            }else{
+                $objPHPExcel->getActiveSheet()->setCellValue('A' . $startHead, $user['name']);
+                $objPHPExcel->getActiveSheet()->setCellValue('B' . $startHead, $user['mobile']);
+        
+                $i = 0;
+                foreach ($user['list'] as $item){
+                    $objPHPExcel->getActiveSheet()->setCellValue('C' . ($startHead + $i), $item['name']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('D' . ($startHead + $i), $item['num']);
+                    $objPHPExcel->getActiveSheet()->setCellValue('E' . ($startHead + $i), $item['spec']);
+                    $i++;
+                }
+            }
+            $startHead += $headCount;
+        }
+        
         //导出execl
         header('pragma:public');
         header('Content-type:application/vnd.ms-excel;charset=utf-8;name="'.$xlsTitle.'.xls"');
