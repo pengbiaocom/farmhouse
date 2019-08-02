@@ -257,52 +257,51 @@ class OrderController extends BackstageController{
         $orderModel = new OrderModel();
         $orders = $orderModel::all(function($query) use($params){
             $query->alias('order');
-            $query->field('group_concat(order.product_info SEPARATOR ";") as product_infos,member.nickname,order.uid,address.name,address.mobile');
+            $query->field('order.product_info,member.nickname,order.uid,address.name,address.mobile');
             $query->join('__MEMBER__ member', 'order.uid = member.uid', 'LEFT');
             $query->join('__RECEIVING_ADDRESS__ address', 'order.address_id = address.id', 'LEFT');
-            $query->where('order.status', '>', 0);
+            $query->where('order.status', 1);
             $query->where('order.create_time', 'between', [$params['create_time'], $params['create_time']+86400]);
             
-            $query->group('order.uid');
+            //$query->group('order.uid');
         });
         
         $products = [];
         $users = [];
         $productModel = new ProductModel();
         foreach ($orders as $order){
-            foreach (explode(';', $order->product_infos) as $product_infos){
-                foreach (json_decode($product_infos, true) as $product){
-                    $productInfo = $productModel::get(function($query) use($product){
-                        $query->alias('product');
-                        $query->field('category.id as cate_id,category.title,product.id,product.spec,product.price');
-                        $query->where('product.id', $product['id']);
-                        $query->join('__PRODUCT_CATEGORY__ category', 'product.category = category.id', 'LEFT');
-                    });
-                
-                    //销售表数据
-                    $product['category'] = $productInfo->title;
-                    $product['spec'] = $productInfo->spec;
-                    $product['price'] = $productInfo->price;
-                    $product['user_name'] = $order->name;
-                    $product['mobile'] = $order->mobile;
-                    
-                    if (isset($products[$productInfo->cate_id][$productInfo->id])) {
-                        $products[$productInfo->cate_id][$productInfo->id]['num'] += $product['num'];
-                    }else{
-                        $products[$productInfo->cate_id]['category_name'] = $product['category'];
-                        $products[$productInfo->cate_id]['list'][$productInfo->id] = $product;
-                    }
-                    
-                    //用户订单表数据
-                    if (isset($users[$order->uid][$productInfo->id])) {
-                        $users[$order->uid][$productInfo->id]['num'] += $product['num'];
-                    }else{
-                        $users[$order->uid]['name'] = $order->name;
-                        $users[$order->uid]['mobile'] = $order->mobile;
-                        $users[$order->uid]['list'][$productInfo->id] = $product;
-                    }
-                }   
-            }
+			foreach (json_decode($order->product_info, true) as $product){
+				$productInfo = $productModel::get(function($query) use($product){
+					$query->alias('product');
+					$query->field('category.id as cate_id,category.title,product.id,product.spec,product.price');
+					$query->where('product.id', $product['id']);
+					$query->join('__PRODUCT_CATEGORY__ category', 'product.category = category.id', 'LEFT');
+				});
+			
+				//销售表数据
+				$product['category'] = $productInfo->title;
+				$product['spec'] = $productInfo->spec;
+				$product['price'] = $productInfo->price;
+				$product['user_name'] = $order->name;
+				$product['mobile'] = $order->mobile;
+				
+				if (isset($products[$productInfo->cate_id]['list'][$productInfo->id])) {
+					$products[$productInfo->cate_id]['list'][$productInfo->id]['num'] += $product['num'];
+				}else{
+					$products[$productInfo->cate_id]['category_name'] = $product['category'];
+					$products[$productInfo->cate_id]['list'][$productInfo->id] = $product;
+				}
+				
+				//用户订单表数据
+				if (isset($users[$order->uid]['list'][$productInfo->id])) {
+					$users[$order->uid]['list'][$productInfo->id]['num'] += $product['num'];
+				}else{
+					$users[$order->uid]['name'] = $order->name;
+					$users[$order->uid]['nickname'] = $order->nickname;
+					$users[$order->uid]['mobile'] = $order->mobile;
+					$users[$order->uid]['list'][$productInfo->id] = $product;
+				}
+			} 
         }
 //         dump($users);exit;
 //         dump($products);exit;
@@ -382,7 +381,7 @@ class OrderController extends BackstageController{
         }
         $objPHPExcel->getActiveSheet()->mergeCells('A'.$startHead.':E'.$startHead);
         $objPHPExcel->getActiveSheet()->setCellValue('A' . $startHead, '合计');
-        $objPHPExcel->getActiveSheet()->setCellValue('F' . $startHead, '￥'.$total_price);
+        $objPHPExcel->getActiveSheet()->setCellValue('F' . $startHead, '￥' . number_format($total_price, 2));
         
         
         /**
@@ -416,7 +415,7 @@ class OrderController extends BackstageController{
             $headCount = count($user['list']);
             if($headCount > 1){
                 $objPHPExcel->getActiveSheet()->mergeCells('A'.$startHead.':A'.($startHead + $headCount - 1));
-                $objPHPExcel->getActiveSheet()->setCellValue('A' . $startHead, $user['name']);
+                $objPHPExcel->getActiveSheet()->setCellValue('A' . $startHead, $user['name'] . '('.$user['nickname'].')');
 
                 $objPHPExcel->getActiveSheet()->mergeCells('B'.$startHead.':B'.($startHead + $headCount - 1));
                 $objPHPExcel->getActiveSheet()->setCellValue('B' . $startHead, $user['mobile']);
@@ -429,7 +428,7 @@ class OrderController extends BackstageController{
                     $i++;
                 }
             }else{
-                $objPHPExcel->getActiveSheet()->setCellValue('A' . $startHead, $user['name']);
+                $objPHPExcel->getActiveSheet()->setCellValue('A' . $startHead, $user['name'] . '('.$user['nickname'].')');
                 $objPHPExcel->getActiveSheet()->setCellValue('B' . $startHead, $user['mobile']);
         
                 $i = 0;
